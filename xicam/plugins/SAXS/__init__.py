@@ -20,3 +20,4 @@ class SAXSPlugin(GUIPlugin):
                        'Compare': GUILayout(QLabel('Compare'))
                        }
         super(SAXSPlugin, self).__init__()
+
