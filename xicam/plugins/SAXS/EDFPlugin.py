@@ -13,54 +13,16 @@ from lazyarray import larray
 class EDFPlugin(DataHandlerPlugin):
     name = 'EDFPlugin'
 
-    class Handler(object):
+    descriptor_keys = ['ByteOrder', 'HeaderID', 'VersionNumber']
 
-        def __init__(self, path):
-            self.path = path
+    def __init__(self, path):
+        self.path = path
+        super(EDFPlugin, self).__init__()
 
-        def __call__(self, *args, **kwargs):
-            return fabio.open(self.path).data
+    def __call__(self, *args, **kwargs):
+        return fabio.open(self.path).data
 
-    @staticmethod
-    def getStartDoc(paths, start_uid):
-        metadata = EDFPlugin.parseTXTFile(paths[0])
-        metadata.update(EDFPlugin.parseEDFFile(paths[0]))
-        descriptor_keys = ['ByteOrder', 'HeaderID', 'VersionNumber']
-        metadata = dict([(key, metadata[key]) for key in descriptor_keys])
-        return start_doc(start_uid=start_uid)
 
-    @staticmethod
-    def getEventDocs(paths, descriptor_uid):
-        shape = EDFPlugin.Handler(paths[0])().shape # Assumes each frame has same shape
-        for path in paths:
-            metadata = EDFPlugin.parseTXTFile(path)
-            metadata.update(EDFPlugin.parseEDFFile(path))
-            yield embedded_local_event_doc(descriptor_uid, 'image', EDFPlugin.Handler, (path,), metadata=metadata)
-
-    @staticmethod
-    def getDescriptorUIDs(paths):
-        return str(uuid.uuid4())
-
-    @staticmethod
-    def getDescriptorDocs(paths, start_uid, descriptor_uid):
-        metadata = EDFPlugin.parseTXTFile(paths[0])
-        metadata.update(EDFPlugin.parseEDFFile(paths[0]))
-        descriptor_keys = ['Dim_1', 'Dim_2', 'count_time']
-        metadata = dict([(key, metadata[key]) for key in descriptor_keys])
-        yield descriptor_doc(start_uid, descriptor_uid, metadata=metadata)
-
-    @staticmethod
-    def getStopDoc(paths, start_uid):
-        return stop_doc(start_uid=start_uid)
-
-    @staticmethod
-    def ingest(paths):
-        start_uid = str(uuid.uuid4())
-        descriptor_uids = EDFPlugin.getDescriptorUIDs(paths)
-        return {'start': EDFPlugin.getStartDoc(paths, start_uid),
-                'descriptors': list(EDFPlugin.getDescriptorDocs(paths, start_uid, descriptor_uids)),
-                'events': list(EDFPlugin.getEventDocs(paths, descriptor_uids)),
-                'stop': EDFPlugin.getStopDoc(paths, start_uid)}
 
     @staticmethod
     @functools.lru_cache(maxsize=10, typed=False)
@@ -96,7 +58,7 @@ class EDFPlugin(DataHandlerPlugin):
 
     @staticmethod
     @functools.lru_cache(maxsize=10, typed=False)
-    def parseEDFFile(path):
+    def parseDataFile(path):
         return fabio.open(path).header
 
 

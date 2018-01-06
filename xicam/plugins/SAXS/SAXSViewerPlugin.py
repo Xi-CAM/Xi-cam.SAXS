@@ -3,7 +3,9 @@ from pyqtgraph import ImageView, PlotItem
 from xicam.core.data import NonDBHeader
 from qtpy.QtWidgets import *
 from qtpy.QtCore import *
+from qtpy.QtGui import *
 import numpy as np
+
 
 class SAXSViewerPlugin(ImageView, QWidgetPlugin):
     def __init__(self, *args, **kwargs):
@@ -44,13 +46,10 @@ class SAXSViewerPlugin(ImageView, QWidgetPlugin):
 
         # Setup coordinates label
         self.coordinatesLbl = QLabel('--COORDINATES WILL GO HERE--')
-        self.ui.gridLayout.addWidget(self.coordinatesLbl,2,0,1,1,alignment=Qt.AlignHCenter)
+        self.ui.gridLayout.addWidget(self.coordinatesLbl, 2, 0, 1, 1, alignment=Qt.AlignHCenter)
 
         # Use Viridis by default
         self.setPredefinedGradient('viridis')
-
-        # Set background style #TODO: Make this styleable globally
-        self.setStyleSheet('background-color:black;')
 
         self.document = None
 
@@ -68,6 +67,6 @@ class SAXSViewerPlugin(ImageView, QWidgetPlugin):
     def setDocument(self, document: NonDBHeader, *args, **kwargs):
         # make lazy array from document
         data = document.meta_array('image')
+        kwargs['transform'] = QTransform(0,-1,1,0,0,data.shape[-2])
 
-        super(SAXSViewerPlugin, self).setImage(img=data,*args,**kwargs)
-
+        super(SAXSViewerPlugin, self).setImage(img=data, *args, **kwargs)
