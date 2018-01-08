@@ -7,13 +7,15 @@ from xicam.core import msg
 from xicam.core.data import load_header
 
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
+from xicam.gui.widgets.dataresourcebrowser import DataResourceBrowser
 
 class SAXSPlugin(GUIPlugin):
     name = 'SAXS'
     sigLog = Signal(int, str, str, np.ndarray)
 
     def __init__(self):
-        self.stages = {'Calibrate': GUILayout(pluginmanager.getPluginByName('SAXSViewerPlugin','WidgetPlugin').plugin_object()),
+        self.stages = {'Calibrate': GUILayout(pluginmanager.getPluginByName('SAXSViewerPlugin','WidgetPlugin').plugin_object(),
+                                              left=DataResourceBrowser()),
                        'Mask': GUILayout(QLabel('Mask')),
                        'Reduce': GUILayout(QLabel('Reduce')),
                        'Compare': GUILayout(QLabel('Compare'))
