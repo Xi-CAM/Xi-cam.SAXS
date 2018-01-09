@@ -51,8 +51,6 @@ class SAXSViewerPlugin(ImageView, QWidgetPlugin):
         # Use Viridis by default
         self.setPredefinedGradient('viridis')
 
-        self.document = None
-
     def quickMinMax(self, data):
         """
         Estimate the min/max values of *data* by subsampling. MODIFIED TO USE THE 99TH PERCENTILE instead of max.
@@ -64,9 +62,9 @@ class SAXSViewerPlugin(ImageView, QWidgetPlugin):
             data = data[sl]
         return np.nanmin(data), np.nanpercentile(data, 99)
 
-    def setDocument(self, document: NonDBHeader, *args, **kwargs):
+    def setHeader(self, header: NonDBHeader, *args, **kwargs):
         # make lazy array from document
-        data = document.meta_array('image')
+        data = header.meta_array('image')
         kwargs['transform'] = QTransform(0,-1,1,0,0,data.shape[-2])
 
         super(SAXSViewerPlugin, self).setImage(img=data, *args, **kwargs)

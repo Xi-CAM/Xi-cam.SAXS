@@ -285,7 +285,7 @@ conversions = {'int': lambda x: int(x.strip()),
                'float': lambda x: float(x.strip()),
                'str': lambda x: x.strip(),
                'date': lambda x: x.strip(),
-               'tabdelimitedfloat': lambda x: list(map(float, x.split('\t')))}
+               'tabdelimitedfloat': lambda x: list(map(float, x.split('\t'))) if x else []}
 
 
 def _data_keys_from_value(v, src_name, object_name):
