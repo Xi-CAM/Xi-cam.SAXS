@@ -5,10 +5,10 @@ from qtpy.QtWidgets import *
 from qtpy.QtCore import *
 from qtpy.QtGui import *
 import numpy as np
-
+from xicam.core import msg
 
 class SAXSViewerPlugin(ImageView, QWidgetPlugin):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, header: NonDBHeader, field: str, *args, **kwargs):
 
         # Add q axes
         self.axesItem = PlotItem()
@@ -51,20 +51,29 @@ class SAXSViewerPlugin(ImageView, QWidgetPlugin):
         # Use Viridis by default
         self.setPredefinedGradient('viridis')
 
+        # Set header
+        if header: self.setHeader(header, field)
+
     def quickMinMax(self, data):
         """
         Estimate the min/max values of *data* by subsampling. MODIFIED TO USE THE 99TH PERCENTILE instead of max.
         """
         while data.size > 1e6:
             ax = np.argmax(data.shape)
-            sl = [slice(None)] * data.ndim
+            sl = [slice(0, 1)] + [slice(None)] * (data.ndim - 1)
             sl[ax] = slice(None, None, 2)
             data = data[sl]
         return np.nanmin(data), np.nanpercentile(data, 99)
 
-    def setHeader(self, header: NonDBHeader, *args, **kwargs):
+    def setHeader(self, header: NonDBHeader, field: str, *args, **kwargs):
+        self.header = header
         # make lazy array from document
-        data = header.meta_array('image')
-        kwargs['transform'] = QTransform(0,-1,1,0,0,data.shape[-2])
+        data = None
+        try:
+            data = header.meta_array(field)
+        except IndexError:
+            msg.logMessage('Header object contained no frames with field ''{field}''.', msg.ERROR)
 
-        super(SAXSViewerPlugin, self).setImage(img=data, *args, **kwargs)
+        if data:
+            kwargs['transform'] = QTransform(0, -1, 1, 0, 0, data.shape[-2])
+            super(SAXSViewerPlugin, self).setImage(img=data, *args, **kwargs)
