@@ -9,7 +9,7 @@ from xicam.core.data import load_header, NonDBHeader
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
 from .calibration import CalibrationPanel
 from .masking import MaskingPanel
-from .widgets.SAXSSpectra import SAXSSpectra
+
 from xicam.gui.widgets.tabview import TabView
 
 
@@ -30,9 +30,10 @@ class SAXSPlugin(GUIPlugin):
                                    rightbottom=CalibrationPanel(),
                                    top=pluginmanager.getPluginByName('SAXSToolbar', 'WidgetPlugin').plugin_object(
                                        self.tabview)),
-            'Mask': GUILayout(QLabel('Mask'),
+            'Mask': GUILayout(self.tabview,
                               right=MaskingPanel()),
-            'Reduce': GUILayout(QLabel('Reduce'), bottom=SAXSSpectra()),
+            'Reduce': GUILayout(QLabel('Reduce'),
+                                bottom=pluginmanager.getPluginByName('SAXSSpectra', 'WidgetPlugin').plugin_object()),
             'Compare': GUILayout(QLabel('Compare'))
         }
         super(SAXSPlugin, self).__init__()
