@@ -17,6 +17,6 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
 
     def updatedetectorcombobox(self, start, end):
         if self.tabwidget.count():
-            fields = self.tabwidget.currentWidget().header.fields()
+            devices = self.tabwidget.currentWidget().header.devices()
             self.detectorcombobox.clear()
-            self.detectorcombobox.addItems([fields])
+            self.detectorcombobox.addItems(devices)
