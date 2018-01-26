@@ -7,8 +7,6 @@ import uuid
 import re
 import functools
 from pathlib import Path
-from lazyarray import larray
-
 
 class EDFPlugin(DataHandlerPlugin):
     name = 'EDFPlugin'
