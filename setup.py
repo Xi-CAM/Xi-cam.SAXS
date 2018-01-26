@@ -55,7 +55,8 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=['xicam.plugins.log'],
+    packages=['xicam.plugins.SAXS', 'xicam.plugins.SAXS.calibration', 'xicam.plugins.SAXS.masking',
+              'xicam.plugins.SAXS.processing', 'xicam.plugins.SAXS.widgets'],
 
     package_dir={},
 
@@ -83,7 +84,7 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    package_data={'xicam.plugins.log': ['*.yapsy-plugin']},
+    package_data={'xicam.plugins.SAXS': ['*.yapsy-plugin']},
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

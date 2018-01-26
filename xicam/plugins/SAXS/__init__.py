@@ -9,6 +9,10 @@ from xicam.core.data import load_header, NonDBHeader
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
 from .calibration import CalibrationPanel
 from .masking import MaskingPanel
+from .widgets.SAXSMultiViewer import SAXSMultiViewerPlugin
+from .widgets.SAXSViewerPlugin import SAXSViewerPlugin
+from .widgets.SAXSToolbar import SAXSToolbar
+from .widgets.SAXSSpectra import SAXSSpectra
 
 from xicam.gui.widgets.tabview import TabView
 
@@ -22,19 +26,19 @@ class SAXSPlugin(GUIPlugin):
         self.headermodel = QStandardItemModel()
         self.tabview.setModel(self.headermodel)
         self.tabview.setWidgetClass(pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object)
+        self.toolbar = SAXSToolbar(self.tabview)
         self.stages = {
             'Calibrate': GUILayout(self.tabview,
                                    # pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object()
-                                   right=pluginmanager.getPluginByName('CalibrationSettings',
+                                   right=pluginmanager.getPluginByName('DeviceProfiles',
                                                                        'SettingsPlugin').plugin_object.widget,
                                    rightbottom=CalibrationPanel(),
-                                   top=pluginmanager.getPluginByName('SAXSToolbar', 'WidgetPlugin').plugin_object(
-                                       self.tabview)),
+                                   top=self.toolbar),
             'Mask': GUILayout(self.tabview,
                               right=MaskingPanel()),
             'Reduce': GUILayout(QLabel('Reduce'),
                                 bottom=pluginmanager.getPluginByName('SAXSSpectra', 'WidgetPlugin').plugin_object()),
-            'Compare': GUILayout(QLabel('Compare'))
+            'Compare': GUILayout(SAXSMultiViewerPlugin(self.headermodel), top=self.toolbar, bottom=SAXSSpectra())
         }
         super(SAXSPlugin, self).__init__()
 

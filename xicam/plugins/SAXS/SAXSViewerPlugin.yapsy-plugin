@@ -1,6 +1,6 @@
 [Core]
-Name = CalibrationSettings
-Module = __init__.py
+Name = SAXSViewerPlugin
+Module = widgets/SAXSViewerPlugin.py
 
 [Documentation]
 Author = Ronald J. Pandolfi

@@ -8,7 +8,7 @@ import numpy as np
 from xicam.core import msg
 
 class SAXSViewerPlugin(ImageView, QWidgetPlugin):
-    def __init__(self, header: NonDBHeader, field: str, *args, **kwargs):
+    def __init__(self, header: NonDBHeader = None, field: str = 'primary', *args, **kwargs):
 
         # Add q axes
         self.axesItem = PlotItem()
@@ -29,27 +29,35 @@ class SAXSViewerPlugin(ImageView, QWidgetPlugin):
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.resetAxesBtn.sizePolicy().hasHeightForWidth())
         self.resetAxesBtn.setSizePolicy(sizePolicy)
-        self.resetAxesBtn.setObjectName("resetBtn")
+        self.resetAxesBtn.setObjectName("resetAxes")
         self.ui.gridLayout.addWidget(self.resetAxesBtn, 2, 1, 1, 1)
         self.resetAxesBtn.clicked.connect(self.autoRange)
 
         # Setup LUT reset button
         self.resetLUTBtn = QPushButton('Reset LUT')
-        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.resetLUTBtn.sizePolicy().hasHeightForWidth())
-        self.resetLUTBtn.setSizePolicy(sizePolicy)
-        self.resetLUTBtn.setObjectName("resetLUTBtn")
-        self.ui.gridLayout.addWidget(self.resetLUTBtn, 2, 2, 1, 1)
+        # self.resetLUTBtn.setSizePolicy(sizePolicy)
+        # self.resetLUTBtn.setObjectName("resetLUTBtn")
+        self.ui.gridLayout.addWidget(self.resetLUTBtn, 3, 1, 1, 1)
         self.resetLUTBtn.clicked.connect(self.autoLevels)
+
+        # Hide ROI button and rearrange
+        self.ui.roiBtn.setParent(None)
+        self.ui.gridLayout.addWidget(self.ui.menuBtn, 1, 1, 1, 1)
+        self.ui.gridLayout.addWidget(self.ui.graphicsView, 0, 0, 3, 1)
 
         # Setup coordinates label
         self.coordinatesLbl = QLabel('--COORDINATES WILL GO HERE--')
-        self.ui.gridLayout.addWidget(self.coordinatesLbl, 2, 0, 1, 1, alignment=Qt.AlignHCenter)
+        self.ui.gridLayout.addWidget(self.coordinatesLbl, 3, 0, 1, 1, alignment=Qt.AlignHCenter)
 
         # Use Viridis by default
         self.setPredefinedGradient('viridis')
+
+        # Shrink LUT
+        self.getHistogramWidget().setMinimumWidth(10)
 
         # Set header
         if header: self.setHeader(header, field)
