@@ -1,6 +1,6 @@
 [Core]
-Name = SAXSToolbar
-Module = SAXSToolbar.py
+Name = DeviceProfiles
+Module = calibration/__init__.py
 
 [Documentation]
 Author = Ronald J. Pandolfi

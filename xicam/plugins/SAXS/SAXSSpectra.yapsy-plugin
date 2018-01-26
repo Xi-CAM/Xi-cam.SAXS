@@ -1,6 +1,6 @@
 [Core]
 Name = SAXSSpectra
-Module = SAXSSpectra.py
+Module = widgets/SAXSSpectra.py
 
 [Documentation]
 Author = Ronald J. Pandolfi

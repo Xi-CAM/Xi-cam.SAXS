@@ -1,6 +1,6 @@
 [Core]
-Name = DeviceProfiles
-Module = __init__.py
+Name = SAXSToolbar
+Module = widgets/SAXSToolbar.py
 
 [Documentation]
 Author = Ronald J. Pandolfi

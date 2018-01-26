@@ -1,6 +1,6 @@
 [Core]
 Name = SAXSViewerPlugin
-Module = SAXSViewerPlugin.py
+Module = widgets/SAXSViewerPlugin.py
 
 [Documentation]
 Author = Ronald J. Pandolfi
