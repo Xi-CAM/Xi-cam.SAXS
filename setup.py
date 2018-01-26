@@ -55,7 +55,8 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=['xicam.plugins.SAXS'],
+    packages=['xicam.plugins.SAXS', 'xicam.plugins.SAXS.calibration', 'xicam.plugins.SAXS.masking',
+              'xicam.plugins.SAXS.processing', 'xicam.plugins.SAXS.widgets'],
 
     package_dir={},
 
