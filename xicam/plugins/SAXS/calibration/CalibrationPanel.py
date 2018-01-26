@@ -1,4 +1,5 @@
-from qtpy import QtGui, QtCore
+from qtpy.QtCore import *
+from qtpy.QtWidgets import *
 import pyqtgraph.parametertree.parameterTypes as pTypes
 from pyqtgraph.parametertree import Parameter, ParameterTree, ParameterItem, registerParameterType
 from pyFAI import calibrant
@@ -10,8 +11,8 @@ class CalibrationPanel(ParameterTree):
         [('Fourier Autocorrelation', None),
          ('2D Ricker Wavelet', None),
          ('DPDAK Refinement', None)])
-    sigCalibrate = QtCore.Signal(object, str)
-    sigSimulateCalibrant = QtCore.Signal(str)
+    sigCalibrate = Signal(object, str)
+    sigSimulateCalibrant = Signal(str)
 
     def __init__(self):
         super(CalibrationPanel, self).__init__()

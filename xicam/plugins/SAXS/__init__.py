@@ -30,7 +30,7 @@ class SAXSPlugin(GUIPlugin):
         self.stages = {
             'Calibrate': GUILayout(self.tabview,
                                    # pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object()
-                                   right=pluginmanager.getPluginByName('CalibrationSettings',
+                                   right=pluginmanager.getPluginByName('DeviceProfiles',
                                                                        'SettingsPlugin').plugin_object.widget,
                                    rightbottom=CalibrationPanel(),
                                    top=self.toolbar),

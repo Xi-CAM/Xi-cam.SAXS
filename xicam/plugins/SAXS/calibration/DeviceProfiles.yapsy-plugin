@@ -1,5 +1,5 @@
 [Core]
-Name = CalibrationSettings
+Name = DeviceProfiles
 Module = __init__.py
 
 [Documentation]
