@@ -66,6 +66,16 @@ class DeviceProfiles(SettingsPlugin):
         self.parameter.sigValueChanged.connect(self.sigRequestRedraw)
         self.parameter.sigValueChanged.connect(self.sigRequestReduce)
 
+    def setModel(self, headermodel):
+        self.headermodel = headermodel
+        self.headermodel.dataChanged.connect(self.dataChanged)
+
+    def dataChanged(self, start, end):
+        previousdevice = self.parameter['Device']
+        devices = self.headermodel.item(0).header.devices()
+        self.parameter.param('Device').setLimits(devices)
+        if previousdevice in devices: self.parameter.param('Device').setValue(previousdevice)
+
     def apply(self):
         AI = AzimuthalIntegrator(
             wavelength=self.parameter.child('Device')['Wavelength'])

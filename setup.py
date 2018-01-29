@@ -9,7 +9,7 @@ Usage: pip install -e .
 from setuptools import setup
 
 setup(
-    name='xicam.plugins.SAXS',
+    name='xicam.SAXS',
 
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
@@ -55,8 +55,8 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=['xicam.plugins.SAXS', 'xicam.plugins.SAXS.calibration', 'xicam.plugins.SAXS.masking',
-              'xicam.plugins.SAXS.processing', 'xicam.plugins.SAXS.widgets'],
+    packages=['xicam.SAXS', 'xicam.SAXS.calibration', 'xicam.SAXS.masking',
+              'xicam.SAXS.processing', 'xicam.SAXS.widgets'],
 
     package_dir={},
 
@@ -84,7 +84,7 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    package_data={'xicam.plugins.SAXS': ['*.yapsy-plugin']},
+    package_data={'xicam.SAXS': ['*.yapsy-plugin']},
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

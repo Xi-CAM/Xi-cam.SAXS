@@ -1,0 +1,7 @@
+numpy
+qtpy
+pyFAI
+
+[tests]
+pytest
+coverage

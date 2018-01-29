@@ -17,7 +17,7 @@ class QconversionSAXS(ProcessingPlugin):
         chi = self.integrator.chiArray()
         twotheta = self.integrator.twoThetaArray()
 
-        #Doble check what is chi = 0
+        # Doble check what is chi = 0
         qx = 2 * np.pi / self.integrator.getvalue('Wavelength') * np.sin(twotheta) * np.sin(chi)
         qz = 2 * np.pi / self.integrator.getvalue('Wavelength') * np.sin(twotheta) * np.cos(chi)
 

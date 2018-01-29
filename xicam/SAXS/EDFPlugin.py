@@ -8,6 +8,7 @@ import re
 import functools
 from pathlib import Path
 
+
 class EDFPlugin(DataHandlerPlugin):
     name = 'EDFPlugin'
 
@@ -19,8 +20,6 @@ class EDFPlugin(DataHandlerPlugin):
 
     def __call__(self, *args, **kwargs):
         return fabio.open(self.path).data
-
-
 
     @staticmethod
     @functools.lru_cache(maxsize=10, typed=False)

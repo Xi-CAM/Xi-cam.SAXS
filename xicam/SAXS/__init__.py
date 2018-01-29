@@ -27,6 +27,8 @@ class SAXSPlugin(GUIPlugin):
         self.tabview.setModel(self.headermodel)
         self.tabview.setWidgetClass(pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object)
         self.toolbar = SAXSToolbar(self.tabview)
+        pluginmanager.getPluginByName('DeviceProfiles', 'SettingsPlugin').plugin_object.setModel(self.headermodel)
+
         self.stages = {
             'Calibrate': GUILayout(self.tabview,
                                    # pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object()

@@ -7,6 +7,7 @@ from qtpy.QtGui import *
 import numpy as np
 from xicam.core import msg
 
+
 class SAXSViewerPlugin(ImageView, QWidgetPlugin):
     def __init__(self, header: NonDBHeader = None, field: str = 'primary', *args, **kwargs):
 

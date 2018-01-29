@@ -16,10 +16,10 @@ class QconversionGISAXS(ProcessingPlugin):
     def qconverion(self):
         chi = self.integrator.chiArray()
         twotheta = self.integrator.twoThetaArray()
-        #find alphai
+        # find alphai
         alphai = self.integrator.getvalue('Wavelength')
 
-        #Doble check what is chi = 0
+        # Doble check what is chi = 0
         qx = 2 * np.pi / self.integrator.getvalue('Wavelength') * np.sin(twotheta) * np.sin(chi)
         qz = 2 * np.pi / self.integrator.getvalue('Wavelength') * np.sin(twotheta) * np.cos(chi)
 

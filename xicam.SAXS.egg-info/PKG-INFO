@@ -1,0 +1,17 @@
+Metadata-Version: 1.1
+Name: xicam.SAXS
+Version: 0.1.0
+Summary: The CAMERA platform for synchrotron data management, visualization, and reduction. The xicam.gui package contains all gui code of the Xi-cam platform, as part of the xicam namespace package. For the backend components, see "xicam.core".
+Home-page: https://github.com/ronpandolfi/Xi-cam
+Author: Ronald J Pandolfi
+Author-email: ronpandolfi@lbl.gov
+License: BSD
+Description-Content-Type: UNKNOWN
+Description: UNKNOWN
+Keywords: synchrotron analysis x-ray scattering tomography
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Physics
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python :: 3.6
