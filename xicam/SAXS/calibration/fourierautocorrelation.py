@@ -4,6 +4,8 @@ from xicam.plugins import ProcessingPlugin, Input, Output
 
 
 class fourierAutocorrelation(ProcessingPlugin):
+    name = 'Fourier Autocorrelation'
+
     data = Input(description='Calibrant frame image data',
                  type=np.ndarray)
     mask = Input(description='Array (same size as image) with 1 for masked pixels, and 0 for valid pixels',
