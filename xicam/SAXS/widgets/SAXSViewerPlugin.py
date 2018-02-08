@@ -6,9 +6,10 @@ from qtpy.QtCore import *
 from qtpy.QtGui import *
 import numpy as np
 from xicam.core import msg
+from xicam.gui.widgets.dynimageview import DynImageView
 
 
-class SAXSViewerPlugin(ImageView, QWidgetPlugin):
+class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
     def __init__(self, header: NonDBHeader = None, field: str = 'primary', *args, **kwargs):
 
         # Add q axes
@@ -54,25 +55,8 @@ class SAXSViewerPlugin(ImageView, QWidgetPlugin):
         self.coordinatesLbl = QLabel('--COORDINATES WILL GO HERE--')
         self.ui.gridLayout.addWidget(self.coordinatesLbl, 3, 0, 1, 1, alignment=Qt.AlignHCenter)
 
-        # Use Viridis by default
-        self.setPredefinedGradient('viridis')
-
-        # Shrink LUT
-        self.getHistogramWidget().setMinimumWidth(10)
-
         # Set header
         if header: self.setHeader(header, field)
-
-    def quickMinMax(self, data):
-        """
-        Estimate the min/max values of *data* by subsampling. MODIFIED TO USE THE 99TH PERCENTILE instead of max.
-        """
-        while data.size > 1e6:
-            ax = np.argmax(data.shape)
-            sl = [slice(0, 1)] + [slice(None)] * (data.ndim - 1)
-            sl[ax] = slice(None, None, 2)
-            data = data[sl]
-        return np.nanmin(data), np.nanpercentile(data, 99)
 
     def setHeader(self, header: NonDBHeader, field: str, *args, **kwargs):
         self.header = header
