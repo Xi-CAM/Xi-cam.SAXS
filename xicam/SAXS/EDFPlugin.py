@@ -12,14 +12,12 @@ from pathlib import Path
 class EDFPlugin(DataHandlerPlugin):
     name = 'EDFPlugin'
 
+    DEFAULT_EXTENTIONS = ['.edf']
+
     descriptor_keys = ['ByteOrder', 'HeaderID', 'VersionNumber', 'Dim_1', 'Dim_2', 'count_time', 'object_keys']
 
-    def __init__(self, path):
-        self.path = path
-        super(EDFPlugin, self).__init__()
-
-    def __call__(self, *args, **kwargs):
-        return fabio.open(self.path).data
+    def __call__(self, path, *args, **kwargs):
+        return fabio.open(path).data
 
     @staticmethod
     @functools.lru_cache(maxsize=10, typed=False)
@@ -59,6 +57,10 @@ class EDFPlugin(DataHandlerPlugin):
         md = fabio.open(path).header
         md.update({'object_keys': {'pilatus2M': ['pilatus2M_image']}})
         return md
+
+    @staticmethod
+    def title(path):
+        return Path(path).resolve().stem
 
 
 def key_cast(key, value):
