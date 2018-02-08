@@ -12,7 +12,7 @@ from pathlib import Path
 class EDFPlugin(DataHandlerPlugin):
     name = 'EDFPlugin'
 
-    descriptor_keys = ['ByteOrder', 'HeaderID', 'VersionNumber']
+    descriptor_keys = ['ByteOrder', 'HeaderID', 'VersionNumber', 'Dim_1', 'Dim_2', 'count_time', 'object_keys']
 
     def __init__(self, path):
         self.path = path
