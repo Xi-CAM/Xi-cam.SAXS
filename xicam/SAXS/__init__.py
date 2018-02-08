@@ -22,10 +22,10 @@ class SAXSPlugin(GUIPlugin):
     sigLog = Signal(int, str, str, np.ndarray)
 
     def __init__(self):
-        self.tabview = TabView()
         self.headermodel = QStandardItemModel()
-        self.tabview.setModel(self.headermodel)
-        self.tabview.setWidgetClass(pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object)
+        self.tabview = TabView(self.headermodel,
+                               pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object,
+                               'pilatus2M_image')
         self.toolbar = SAXSToolbar(self.tabview)
         pluginmanager.getPluginByName('DeviceProfiles', 'SettingsPlugin').plugin_object.setModel(self.headermodel)
 
