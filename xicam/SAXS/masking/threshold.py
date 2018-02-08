@@ -7,12 +7,15 @@ class ThresholdMaskPlugin(ProcessingPlugin):
     data = Input(description='Frame image data',
                  type=np.ndarray)
     minimum = Input(description='Threshold floor',
-                    type=int)
+                    type=int,
+                    default=3)
     maximum = Input(description='Threshold ceiling',
-                    type=int)
+                    type=int,
+                    default=1e10)
     neighborhood = Input(description='Neighborhood size in pixels for morphological opening. Only clusters of this size'
                                      ' that fail the threshold are masked',
-                         type=int)
+                         type=int,
+                         default=2)
     mask = Output(description='Thresholded mask (1 is masked)',
                   type=np.ndarray)
 
