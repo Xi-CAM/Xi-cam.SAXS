@@ -58,10 +58,6 @@ class EDFPlugin(DataHandlerPlugin):
         md.update({'object_keys': {'pilatus2M': ['pilatus2M_image']}})
         return md
 
-    @staticmethod
-    def title(path):
-        return Path(path).resolve().stem
-
 
 def key_cast(key, value):
     return conversions[key_type_map.get(key, 'str')](value)
