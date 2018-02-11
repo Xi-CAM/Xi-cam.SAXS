@@ -20,8 +20,7 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
         self.axesItem.axes['top']['item'].setZValue(10)
         if 'view' not in kwargs: kwargs['view'] = self.axesItem
 
-        super(SAXSViewerPlugin, self).__init__()
-        ImageView.__init__(self, *args, **kwargs)
+        super(SAXSViewerPlugin, self).__init__(**kwargs)
         self.axesItem.invertY(False)
 
         # Setup axes reset button
