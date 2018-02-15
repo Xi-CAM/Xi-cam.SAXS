@@ -3,6 +3,9 @@ from qtpy.QtCore import *
 from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 
+from . import patches
+
+
 from xicam.core import msg
 from xicam.core.data import load_header, NonDBHeader
 
