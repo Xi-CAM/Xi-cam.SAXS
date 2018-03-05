@@ -4,6 +4,7 @@ import pyqtgraph.parametertree.parameterTypes as pTypes
 from pyqtgraph.parametertree import Parameter, ParameterTree, ParameterItem, registerParameterType
 from pyFAI import calibrant
 from collections import OrderedDict
+from .workflows import FourierCalibrationWorkflow
 
 
 class CalibrationPanel(ParameterTree):
@@ -13,6 +14,7 @@ class CalibrationPanel(ParameterTree):
          ('DPDAK Refinement', None)])
     sigCalibrate = Signal(object, str)
     sigSimulateCalibrant = Signal(str)
+    sigDoWorkflow = Signal(object)
 
     def __init__(self):
         super(CalibrationPanel, self).__init__()
@@ -27,16 +29,18 @@ class CalibrationPanel(ParameterTree):
 
         self.autoCalibrateMethod = pTypes.ListParameter(name='Algorithm', values=self.algorithms)
 
-        self.overlayAction = pTypes.ActionParameter(name='Simulate Calibrant')
-        self.overlayAction.sigActivated.connect(self.simulatecalibrant)
+        # self.overlayAction = pTypes.ActionParameter(name='Simulate Calibrant')
+        # self.overlayAction.sigActivated.connect(self.simulatecalibrant)
 
-        self.setParameters(pTypes.GroupParameter(name='Calibration', children=[self.autoCalibrateAction, self.calibrant,
+        self.setParameters(pTypes.GroupParameter(name='Calibration', children=[self.calibrant,
                                                                                self.autoCalibrateMethod,
-                                                                               self.overlayAction]),
+                                                                               self.autoCalibrateAction, ]),
                            showTop=False)
 
+        self.workflow = FourierCalibrationWorkflow()
+
     def calibrate(self):
-        self.sigCalibrate.emit(self.autoCalibrateMethod.value(), self.calibrant.value())
+        self.sigDoWorkflow.emit(self.workflow)
 
     def simulatecalibrant(self):
         self.sigSimulateCalibrant.emit(self.calibrant.value())
