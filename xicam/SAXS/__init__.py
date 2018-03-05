@@ -16,6 +16,7 @@ from .widgets.SAXSMultiViewer import SAXSMultiViewerPlugin
 from .widgets.SAXSViewerPlugin import SAXSViewerPlugin
 from .widgets.SAXSToolbar import SAXSToolbar
 from .widgets.SAXSSpectra import SAXSSpectra
+from pyFAI import AzimuthalIntegrator, detectors, calibrant
 
 from xicam.gui.widgets.tabview import TabView
 
@@ -31,13 +32,15 @@ class SAXSPlugin(GUIPlugin):
                                'pilatus2M_image')
         self.toolbar = SAXSToolbar(self.tabview)
         pluginmanager.getPluginByName('DeviceProfiles', 'SettingsPlugin').plugin_object.setModel(self.headermodel)
+        self.calibrationpanel = CalibrationPanel()
+        self.calibrationpanel.sigDoWorkflow.connect(self.doWorkflow)
 
         self.stages = {
             'Calibrate': GUILayout(self.tabview,
                                    # pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object()
                                    right=pluginmanager.getPluginByName('DeviceProfiles',
                                                                        'SettingsPlugin').plugin_object.widget,
-                                   rightbottom=CalibrationPanel(),
+                                   rightbottom=self.calibrationpanel,
                                    top=self.toolbar),
             'Mask': GUILayout(self.tabview,
                               right=MaskingPanel()),
@@ -52,3 +55,12 @@ class SAXSPlugin(GUIPlugin):
         item.header = header
         self.headermodel.appendRow(item)
         self.headermodel.dataChanged.emit(QModelIndex(), QModelIndex())
+
+    def doWorkflow(self, workflow):
+        data = self.tabview.currentWidget().header.meta_array('pilatus2M_image')[0]
+        ai = AzimuthalIntegrator()
+        ai.set_wavelength(124e-12)
+        ai.detector = detectors.Pilatus2M()
+        c = calibrant.ALL_CALIBRANTS('AgBh')
+
+        print(workflow.execute(None, data=data, ai=ai, calibrant=c)[0]['ai'].value.getFit2D())
