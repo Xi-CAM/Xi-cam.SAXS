@@ -21,8 +21,8 @@ class FourierCalibrationWorkflow(Workflow):
         self.processes = [rotate, transpose, autocor, sdd]
         self.autoConnectAll()
 
-    def execute(self, connection, data=None, ai=None, calibrant=None):
-        self.processes[0].data.value = data
-        self.processes[2].ai.value = ai
-        self.processes[3].calibrant.value = calibrant
-        return super(FourierCalibrationWorkflow, self).execute(connection)
+    # def execute(self, connection, data=None, ai=None, calibrant=None, **kwargs):
+    #     self.processes[0].data.value = data
+    #     self.processes[2].ai.value = ai
+    #     self.processes[3].calibrant.value = calibrant
+    #     return super(FourierCalibrationWorkflow, self).execute(connection,**kwargs)

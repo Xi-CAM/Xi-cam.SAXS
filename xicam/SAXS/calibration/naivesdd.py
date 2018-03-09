@@ -14,12 +14,12 @@ class NaiveSDD(ProcessingPlugin):
                  type=np.ndarray)
     calibrant = Input(description='Calibrant standard record', type=calibrant.Calibrant)
     ai = InOut(description='Azimuthal integrator; the SDD will be modified in-place', type=AzimuthalIntegrator)
-    npts = Input(description='Resolution in q of the azimuthal integration  used for ring detection', default=1000)
+    npts = Input(description='Resolution in q of the azimuthal integration  used for ring detection', default=2000)
 
     # TODO: use Multigeometry
     def evaluate(self):
         # Un-calibrated azimuthal integration
-        radialprofile = self.ai.value.integrate1d(self.data.value, self.npts.value)[1]
+        r, radialprofile = self.ai.value.integrate1d(self.data.value, self.npts.value, unit='r_mm')
 
         # find peaks
         peaks = np.array(self.findpeaks(np.arange(len(radialprofile)), radialprofile)).T
@@ -40,9 +40,10 @@ class NaiveSDD(ProcessingPlugin):
         calibrant1stpeak = self.calibrant.value.dSpacing[N - 1]
 
         # Calculate sample to detector distance for lowest q peak
+
         tth = 2 * np.arcsin(0.5 * self.ai.value.wavelength / calibrant1stpeak / 1.e-10)
         tantth = np.tan(tth)
-        sdd = bestpeak * self.ai.value.pixel1 / tantth
+        sdd = r[int(round(bestpeak))] / 1000. / tantth
 
         # set sdd back on azimuthal integrator
         fit2dcal = self.ai.value.getFit2D()

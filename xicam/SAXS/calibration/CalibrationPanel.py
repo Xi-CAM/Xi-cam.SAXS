@@ -14,7 +14,7 @@ class CalibrationPanel(ParameterTree):
          ('DPDAK Refinement', None)])
     sigCalibrate = Signal(object, str)
     sigSimulateCalibrant = Signal(str)
-    sigDoWorkflow = Signal(object)
+    sigDoCalibrateWorkflow = Signal(object)
 
     def __init__(self):
         super(CalibrationPanel, self).__init__()
@@ -27,7 +27,7 @@ class CalibrationPanel(ParameterTree):
         calibrants = sorted(calibrant.ALL_CALIBRANTS.all.keys())
         self.calibrant = pTypes.ListParameter(name='Calibrant Material', values=calibrants)
 
-        self.autoCalibrateMethod = pTypes.ListParameter(name='Algorithm', values=self.algorithms)
+        self.autoCalibrateMethod = pTypes.ListParameter(name='Algorithm', values=self.algorithms.keys())
 
         # self.overlayAction = pTypes.ActionParameter(name='Simulate Calibrant')
         # self.overlayAction.sigActivated.connect(self.simulatecalibrant)
@@ -40,7 +40,7 @@ class CalibrationPanel(ParameterTree):
         self.workflow = FourierCalibrationWorkflow()
 
     def calibrate(self):
-        self.sigDoWorkflow.emit(self.workflow)
+        self.sigDoCalibrateWorkflow.emit(self.workflow)
 
     def simulatecalibrant(self):
         self.sigSimulateCalibrant.emit(self.calibrant.value())
