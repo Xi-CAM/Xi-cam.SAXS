@@ -20,6 +20,7 @@ def test_Detector_pickle():
 def test_AzimuthalIntegrator_pickle():
     import cloudpickle
     import numpy as np
+    from pyFAI import AzimuthalIntegrator
 
     det = pyFAI.detectors.detector_factory('pilatus2m')
     ai = AzimuthalIntegrator(detector=det)
