@@ -7,6 +7,7 @@ from qtpy.QtGui import *
 import numpy as np
 from xicam.core import msg
 from xicam.gui.widgets.dynimageview import DynImageView
+import pyqtgraph as pg
 
 
 class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
@@ -54,6 +55,10 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
         self.coordinatesLbl = QLabel('--COORDINATES WILL GO HERE--')
         self.ui.gridLayout.addWidget(self.coordinatesLbl, 3, 0, 1, 1, alignment=Qt.AlignHCenter)
 
+        # Setup mask layer
+        self.maskimage = pg.ImageItem(opacity=.25)
+        self.view.addItem(self.maskimage)
+
         # Set header
         if header: self.setHeader(header, field)
 
@@ -69,3 +74,7 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
         if data:
             kwargs['transform'] = QTransform(0, -1, 1, 0, 0, data.shape[-2])
             super(SAXSViewerPlugin, self).setImage(img=data, *args, **kwargs)
+
+    def setMaskImage(self, mask):
+        self.maskimage.setImage(mask, lut=np.array([[0, 0, 0, 0], [255, 0, 0, 255]]))
+        self.maskimage.setTransform(QTransform(0, -1, 1, 0, 0, mask.shape[-2]))

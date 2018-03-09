@@ -4,6 +4,8 @@ from scipy.ndimage import morphology
 
 
 class ThresholdMaskPlugin(ProcessingPlugin):
+    name = 'Threshold Mask'
+
     data = Input(description='Frame image data',
                  type=np.ndarray)
     minimum = Input(description='Threshold floor',
@@ -27,3 +29,4 @@ class ThresholdMaskPlugin(ProcessingPlugin):
         kernel = x ** 2 + y ** 2 <= self.neighborhood.value ** 2
 
         morphology.binary_opening(self.mask.value, kernel, output=self.mask.value)  # write-back to mask
+        self.mask.value = self.mask.value.astype(np.int, copy=False)
