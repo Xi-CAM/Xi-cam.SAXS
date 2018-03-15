@@ -15,4 +15,4 @@ class DetectorMaskPlugin(ProcessingPlugin):
         if self.ai.value and self.ai.value.detector:
             mask = self.ai.value.detector.calc_mask()
             if mask is None: mask = np.zeros(self.ai.value.detector.shape)
-            self.mask.value = mask
+            self.mask.value = np.logical_or(self.mask.value, mask)
