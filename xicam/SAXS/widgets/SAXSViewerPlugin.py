@@ -59,6 +59,12 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
         self.maskimage = pg.ImageItem(opacity=.25)
         self.view.addItem(self.maskimage)
 
+        # Empty ROI for later use
+        self.maskROI = pg.PolyLineROI([], closed=True, movable=False, pen=pg.mkPen(color='r', width=2))
+        self.maskROI.handlePen = pg.mkPen(color='r', width=2)
+        self.maskROI.handleSize = 10
+        self.view.addItem(self.maskROI)
+
         # Set header
         if header: self.setHeader(header, field)
 
@@ -76,5 +82,8 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
             super(SAXSViewerPlugin, self).setImage(img=data, *args, **kwargs)
 
     def setMaskImage(self, mask):
-        self.maskimage.setImage(mask, lut=np.array([[0, 0, 0, 0], [255, 0, 0, 255]]))
-        self.maskimage.setTransform(QTransform(0, -1, 1, 0, 0, mask.shape[-2]))
+        if mask is not None:
+            self.maskimage.setImage(mask, lut=np.array([[0, 0, 0, 0], [255, 0, 0, 255]]))
+            self.maskimage.setTransform(QTransform(0, -1, 1, 0, 0, mask.shape[-2]))
+        else:
+            self.maskimage.clear()
