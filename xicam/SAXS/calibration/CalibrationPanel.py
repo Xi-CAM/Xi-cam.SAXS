@@ -13,34 +13,45 @@ class CalibrationPanel(ParameterTree):
          ('2D Ricker Wavelet', None),
          ('DPDAK Refinement', None)])
     sigCalibrate = Signal(object, str)
-    sigSimulateCalibrant = Signal(str)
     sigDoCalibrateWorkflow = Signal(object)
 
     def __init__(self):
         super(CalibrationPanel, self).__init__()
 
+        self.selectionmodel = None
+        self.headermodel = None
+
         self.header().close()
 
+        calibrants = dict(zip(calibrant.ALL_CALIBRANTS.keys(), calibrant.ALL_CALIBRANTS.values()))
+        self.device = pTypes.ListParameter(name='Device', type='list', values=[], value='')
+        self.calibrant = pTypes.ListParameter(name='Calibrant Material', values=calibrants, value=calibrants['AgBh'])
+        self.autoCalibrateMethod = pTypes.ListParameter(name='Algorithm', values=self.algorithms.keys())
         self.autoCalibrateAction = pTypes.ActionParameter(name='Auto Calibrate')
         self.autoCalibrateAction.sigActivated.connect(self.calibrate)
+        self.calibratetext = pTypes.TextParameter(name='Instructions', value='', readonly=True, visible=False)
 
-        calibrants = sorted(calibrant.ALL_CALIBRANTS.all.keys())
-        self.calibrant = pTypes.ListParameter(name='Calibrant Material', values=calibrants)
+        self.parameter = pTypes.GroupParameter(name='Calibration', children=[self.device,
+                                                                             self.calibrant,
+                                                                             self.autoCalibrateMethod,
+                                                                             self.autoCalibrateAction,
+                                                                             self.autoCalibrateAction,
+                                                                             self.calibratetext
+                                                                             ])
 
-        self.autoCalibrateMethod = pTypes.ListParameter(name='Algorithm', values=self.algorithms.keys())
-
-        # self.overlayAction = pTypes.ActionParameter(name='Simulate Calibrant')
-        # self.overlayAction.sigActivated.connect(self.simulatecalibrant)
-
-        self.setParameters(pTypes.GroupParameter(name='Calibration', children=[self.calibrant,
-                                                                               self.autoCalibrateMethod,
-                                                                               self.autoCalibrateAction, ]),
-                           showTop=False)
+        self.setParameters(self.parameter, showTop=False)
 
         self.workflow = FourierCalibrationWorkflow()
 
     def calibrate(self):
         self.sigDoCalibrateWorkflow.emit(self.workflow)
 
-    def simulatecalibrant(self):
-        self.sigSimulateCalibrant.emit(self.calibrant.value())
+    def dataChanged(self, start, end):
+        devices = self.headermodel.item(self.selectionmodel.currentIndex()).header.devices()
+        self.parameter.param('Device').setLimits(list(set(devices)))
+        self.parameter.param('Device').setValue(list(devices)[0])
+
+    def setModels(self, headermodel, selectionmodel):
+        self.headermodel = headermodel
+        self.headermodel.dataChanged.connect(self.dataChanged)
+        self.selectionmodel = selectionmodel

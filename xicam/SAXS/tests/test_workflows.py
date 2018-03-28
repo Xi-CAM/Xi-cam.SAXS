@@ -12,4 +12,4 @@ def test_FourierCalibrationWorkflow():
     ai.detector = detectors.Pilatus2M()
     c = calibrant.ALL_CALIBRANTS('AgBh')
 
-    print(workflow.execute(None, data=data, ai=ai, calibrant=c)[0]['ai'].value.getFit2D())
+    print(workflow.execute(None, data=data, ai=ai, calibrant=c, callback_slot=print))

@@ -59,6 +59,10 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
         self.maskimage = pg.ImageItem(opacity=.25)
         self.view.addItem(self.maskimage)
 
+        # Setup calibration layer
+        self.calibrantimage = pg.ImageItem(opacity=.25)
+        self.view.addItem(self.calibrantimage)
+
         # Empty ROI for later use
         self.maskROI = pg.PolyLineROI([], closed=True, movable=False, pen=pg.mkPen(color='r', width=2))
         self.maskROI.handlePen = pg.mkPen(color='r', width=2)
@@ -87,3 +91,14 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
             self.maskimage.setTransform(QTransform(0, -1, 1, 0, 0, mask.shape[-2]))
         else:
             self.maskimage.clear()
+
+    def setCalibrantImage(self, data):
+        print('calibrantimageset:', data.max())
+        if data is not None:
+            self.calibrantimage.setImage(data, lut=calibrantlut)
+            self.calibrantimage.setTransform(QTransform(0, 1, 1, 0, 0, 0))
+        else:
+            self.calibrantimage.clear()
+
+
+calibrantlut = np.array([[0, i, 0, i] for i in range(256)])

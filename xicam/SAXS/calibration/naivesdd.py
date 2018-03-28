@@ -43,7 +43,7 @@ class NaiveSDD(ProcessingPlugin):
 
         tth = 2 * np.arcsin(0.5 * self.ai.value.wavelength / calibrant1stpeak / 1.e-10)
         tantth = np.tan(tth)
-        sdd = r[int(round(bestpeak))] / 1000. / tantth
+        sdd = r[int(round(bestpeak))] / tantth
 
         # set sdd back on azimuthal integrator
         fit2dcal = self.ai.value.getFit2D()

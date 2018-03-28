@@ -12,4 +12,5 @@ class SimulateCalibrant(ProcessingPlugin):
     data = Output(description='Simulated data for given calibrant', type=np.ndarray)
 
     def evaluate(self):
-        self.data.value = self.calibrant.value.fake_calibrant_image(self.ai.value, Imax=self.Imax.value)
+        self.calibrant.value.set_wavelength(self.ai.value.get_wavelength())
+        self.data.value = self.calibrant.value.fake_calibration_image(self.ai.value, Imax=self.Imax.value)

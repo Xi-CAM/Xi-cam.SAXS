@@ -49,8 +49,10 @@ class SAXSPlugin(GUIPlugin):
             [self.calibrationtabview, self.masktabview, self.reducetabview, self.comparemultiview.leftTabView])
         self.toolbar = SAXSToolbar(self.calibrationtabview)
         self.calibrationsettings = pluginmanager.getPluginByName('DeviceProfiles', 'SettingsPlugin').plugin_object
-        self.calibrationsettings.setModel(self.headermodel)
+        self.calibrationsettings.setModels(self.headermodel, self.calibrationtabview.selectionmodel)
+        self.calibrationsettings.sigSimulateCalibrant.connect(self.doSimulateWorkflow)
         self.calibrationpanel = CalibrationPanel()
+        self.calibrationpanel.setModels(self.headermodel, self.calibrationtabview.selectionmodel)
         self.calibrationpanel.sigDoCalibrateWorkflow.connect(self.doCalibrateWorkflow)
 
         self.maskingworkflow = Workflow('Masking')
@@ -79,7 +81,7 @@ class SAXSPlugin(GUIPlugin):
 
     def doCalibrateWorkflow(self, workflow: Workflow):
         data = self.calibrationtabview.currentWidget().header.meta_array('pilatus2M_image')[0]
-        device = self.calibrationsettings.parameter['Device']
+        device = self.calibrationpanel.parameter['Device']
         ai = self.calibrationsettings.AI('pilatus2M')
         ai.detector = detectors.Pilatus2M()
         c = calibrant.ALL_CALIBRANTS('AgBh')
@@ -104,9 +106,22 @@ class SAXSPlugin(GUIPlugin):
 
             workflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
 
+    def doSimulateWorkflow(self, workflow: Workflow):
+        data = self.calibrationtabview.currentWidget().header.meta_array('pilatus2M_image')[0]
+        ai = self.calibrationsettings.AI('pilatus2M')
+        ai.detector = detectors.Pilatus2M()
+        calibrant = self.calibrationpanel.parameter['Calibrant Material']
+        outputwidget = self.calibrationtabview.currentWidget()
+
+        def showSimulatedCalibrant(result=None):
+            outputwidget.setCalibrantImage(result['data'].value)
+
+        workflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=showSimulatedCalibrant,
+                         threadkey='simulate')
+
     def checkPolygonsSet(self, workflow: Workflow):
         """
-        Check for any unset polygonmask processes
+        Check for any unset polygonmask processes; start masking mode if found
 
         Parameters
         ----------
