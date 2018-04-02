@@ -17,6 +17,9 @@ from .widgets.SAXSViewerPlugin import SAXSViewerPlugin
 from .widgets.SAXSToolbar import SAXSToolbar
 from .widgets.SAXSSpectra import SAXSSpectra
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
+from .processing.workflows import ReduceWorkflow, DisplayWorkflow
+from .calibration.workflows import SimulateWorkflow
+from .masking.workflows import MaskingWorkflow
 from pyFAI import AzimuthalIntegrator, detectors, calibrant
 import pyqtgraph as pg
 from functools import partial
@@ -32,44 +35,72 @@ class SAXSPlugin(GUIPlugin):
     sigLog = Signal(int, str, str, np.ndarray)
 
     def __init__(self):
+        # Data model
         self.headermodel = QStandardItemModel()
+
+        # Setup TabViews
         self.calibrationtabview = TabView(self.headermodel,
                                           pluginmanager.getPluginByName('SAXSViewerPlugin',
                                                                         'WidgetPlugin').plugin_object,
-                                          'pilatus2M_image')
+                                          'primary')
         self.masktabview = TabView(self.headermodel,
                                    pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object,
-                                   'pilatus2M_image')
+                                   'primary')
         self.reducetabview = TabView(self.headermodel,
-                               pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object,
-                               'pilatus2M_image')
+                                     pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object,
+                                     'primary')
         self.comparemultiview = SAXSMultiViewerPlugin(self.headermodel)
 
         self.tabviewsynchronizer = TabViewSynchronizer(
             [self.calibrationtabview, self.masktabview, self.reducetabview, self.comparemultiview.leftTabView])
-        self.toolbar = SAXSToolbar(self.calibrationtabview)
+
+        # Setup toolbars
+        self.calibrationtoolbar = SAXSToolbar(self.calibrationtabview)
+        self.reducetoolbar = SAXSToolbar(self.reducetabview)
+        self.calibrationtabview.kwargs['toolbar'] = self.calibrationtoolbar
+        self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
+
+        # Setup calibration widgets
         self.calibrationsettings = pluginmanager.getPluginByName('DeviceProfiles', 'SettingsPlugin').plugin_object
         self.calibrationsettings.setModels(self.headermodel, self.calibrationtabview.selectionmodel)
-        self.calibrationsettings.sigSimulateCalibrant.connect(self.doSimulateWorkflow)
         self.calibrationpanel = CalibrationPanel()
         self.calibrationpanel.setModels(self.headermodel, self.calibrationtabview.selectionmodel)
         self.calibrationpanel.sigDoCalibrateWorkflow.connect(self.doCalibrateWorkflow)
 
-        self.maskingworkflow = Workflow('Masking')
+        # Setup masking widgets
+        self.maskingworkflow = MaskingWorkflow()
         self.maskeditor = WorkflowEditor(self.maskingworkflow)
         self.maskeditor.sigWorkflowChanged.connect(self.doMaskingWorkflow)
+
+        # Setup reduction widgets
+        self.simulateworkflow = SimulateWorkflow()
+        self.displayworkflow = DisplayWorkflow()
+        self.displayeditor = WorkflowEditor(self.displayworkflow)
+        self.reduceworkflow = ReduceWorkflow()
+        self.reduceworkflow.attach(partial(self.doReduceWorkflow, self.reduceworkflow))
+        self.reduceeditor = WorkflowEditor(self.reduceworkflow)
+        self.reduceplot = pluginmanager.getPluginByName('SAXSSpectra', 'WidgetPlugin').plugin_object(
+            self.reduceworkflow)
+        self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
+        self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
+        self.reducetabview.currentChanged.connect(partial(self.doReduceWorkflow, self.reduceworkflow))
+        self.reducetabview.currentChanged.connect(partial(self.doDisplayWorkflow, self.displayworkflow))
+
+        # Setup more bindings
+        self.calibrationsettings.sigSimulateCalibrant.connect(partial(self.doSimulateWorkflow, self.simulateworkflow))
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
                                    # pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object()
                                    right=self.calibrationsettings.widget,
                                    rightbottom=self.calibrationpanel,
-                                   top=self.toolbar),
+                                   top=self.calibrationtoolbar),
             'Mask': GUILayout(self.masktabview,
                               right=self.maskeditor),
             'Reduce': GUILayout(self.reducetabview,
-                                bottom=pluginmanager.getPluginByName('SAXSSpectra', 'WidgetPlugin').plugin_object()),
-            'Compare': GUILayout(self.comparemultiview, top=self.toolbar, bottom=SAXSSpectra())
+                                bottom=self.reduceplot, right=self.reduceeditor, righttop=self.displayeditor,
+                                top=self.reducetoolbar),
+            'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar, bottom=SAXSSpectra(self.reduceworkflow))
         }
         super(SAXSPlugin, self).__init__()
 
@@ -80,7 +111,7 @@ class SAXSPlugin(GUIPlugin):
         self.headermodel.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def doCalibrateWorkflow(self, workflow: Workflow):
-        data = self.calibrationtabview.currentWidget().header.meta_array('pilatus2M_image')[0]
+        data = self.calibrationtabview.currentWidget().header.meta_array('primary')[0]
         device = self.calibrationpanel.parameter['Device']
         ai = self.calibrationsettings.AI('pilatus2M')
         ai.detector = detectors.Pilatus2M()
@@ -88,26 +119,12 @@ class SAXSPlugin(GUIPlugin):
 
         def setAI(result):
             self.calibrationsettings.setAI(result['ai'].value, device)
+            self.doMaskingWorkflow(self.maskingworkflow)
 
         workflow.execute(None, data=data, ai=ai, calibrant=c, callback_slot=setAI, threadkey='calibrate')
 
-    def doMaskingWorkflow(self, workflow: Workflow):
-        if not self.checkPolygonsSet(workflow):
-            data = self.calibrationtabview.currentWidget().header.meta_array('pilatus2M_image')[0]
-            ai = self.calibrationsettings.AI('pilatus2M')
-            ai.detector = detectors.Pilatus2M()
-            outputwidget = self.masktabview.currentWidget()
-
-            def showMask(result=None):
-                if result:
-                    outputwidget.setMaskImage(result['mask'].value)
-                else:
-                    outputwidget.setMaskImage(None)
-
-            workflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
-
     def doSimulateWorkflow(self, workflow: Workflow):
-        data = self.calibrationtabview.currentWidget().header.meta_array('pilatus2M_image')[0]
+        data = self.calibrationtabview.currentWidget().header.meta_array('primary')[0]
         ai = self.calibrationsettings.AI('pilatus2M')
         ai.detector = detectors.Pilatus2M()
         calibrant = self.calibrationpanel.parameter['Calibrant Material']
@@ -118,6 +135,50 @@ class SAXSPlugin(GUIPlugin):
 
         workflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=showSimulatedCalibrant,
                          threadkey='simulate')
+
+    def doMaskingWorkflow(self, workflow: Workflow):
+        if not self.checkPolygonsSet(workflow):
+            data = self.calibrationtabview.currentWidget().header.meta_array('primary')[0]
+            ai = self.calibrationsettings.AI('pilatus2M')
+            ai.detector = detectors.Pilatus2M()
+            outputwidget = self.masktabview.currentWidget()
+
+            def showMask(result=None):
+                if result:
+                    outputwidget.setMaskImage(result['mask'].value)
+                else:
+                    outputwidget.setMaskImage(None)
+                self.doDisplayWorkflow(self.displayworkflow)
+                self.doReduceWorkflow(self.reduceworkflow)
+
+            workflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
+
+    def doDisplayWorkflow(self, workflow: Workflow):
+        data = self.calibrationtabview.currentWidget().header.meta_array('primary')[
+            self.reducetabview.selectionmodel.currentIndex()]
+        ai = self.calibrationsettings.AI('pilatus2M')
+        ai.detector = detectors.Pilatus2M()
+        mask = self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None
+        outputwidget = self.reducetabview.currentWidget()
+
+        def showDisplay(*results):
+            outputwidget.setResults(results)
+
+        workflow.execute(None, data=data, ai=ai, mask=mask, callback_slot=showDisplay, threadkey='display')
+
+    def doReduceWorkflow(self, workflow: Workflow):
+        data = self.calibrationtabview.currentWidget().header.meta_array('primary')[
+            self.reducetabview.selectionmodel.currentIndex()]
+        ai = self.calibrationsettings.AI('pilatus2M')
+        ai.detector = detectors.Pilatus2M()
+        mask = self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None
+        outputwidget = self.reduceplot
+
+        def showReduce(*results):
+            outputwidget.clear()
+            outputwidget.setResults(results)
+
+        workflow.execute(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
 
     def checkPolygonsSet(self, workflow: Workflow):
         """
