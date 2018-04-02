@@ -11,7 +11,7 @@ import pyqtgraph as pg
 
 
 class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
-    def __init__(self, header: NonDBHeader = None, field: str = 'primary', *args, **kwargs):
+    def __init__(self, header: NonDBHeader = None, field: str = 'primary', toolbar: QToolBar = None, *args, **kwargs):
 
         # Add q axes
         self.axesItem = PlotItem()
@@ -69,11 +69,20 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
         self.maskROI.handleSize = 10
         self.view.addItem(self.maskROI)
 
+        # Connect toolbar handlers
+        self.toolbar = toolbar
+        if self.toolbar:
+            self.toolbar.modegroup.triggered.connect(self.redraw)
+
+        # Setup results cache
+        self.results = []
+
         # Set header
         if header: self.setHeader(header, field)
 
     def setHeader(self, header: NonDBHeader, field: str, *args, **kwargs):
         self.header = header
+        self.field = field
         # make lazy array from document
         data = None
         try:
@@ -99,6 +108,24 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
             self.calibrantimage.setTransform(QTransform(0, 1, 1, 0, 0, 0))
         else:
             self.calibrantimage.clear()
+
+    def redraw(self):
+        if not self.parent().currentWidget() == self: return  # Don't redraw when not shown
+
+        for result in self.results:
+            try:
+                if self.toolbar.cakeaction.isChecked():
+                    self.setImage(result['cake'].value)
+                elif self.toolbar.remeshaction.isChecked():
+                    self.setImage(result['remesh'].value)
+                elif self.toolbar.rawaction.isChecked():
+                    self.setHeader(self.header, self.field)
+            except TypeError:
+                continue
+
+    def setResults(self, results):
+        self.results = results
+        self.redraw()
 
 
 calibrantlut = np.array([[0, i, 0, i] for i in range(256)])

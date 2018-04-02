@@ -5,13 +5,17 @@ from xicam.plugins.WidgetPlugin import QWidgetPlugin
 from pyqtgraph import PlotWidget
 import numpy as np
 from xicam.gui.static import path
+from xicam.core.execution.workflow import Workflow
 
 
 class SAXSSpectra(QWidgetPlugin):
     name = 'SAXSSpectra'
 
-    def __init__(self):
+    def __init__(self, workflow: Workflow):
         super(SAXSSpectra, self).__init__()
+
+        self.results = []
+        self.workflow = workflow
 
         self.plotwidget = PlotWidget(
             labels={'bottom': 'q (\u212B\u207B\u00B9)', 'left': 'I (a.u.)', 'top': 'd (nm)'})
@@ -21,6 +25,7 @@ class SAXSSpectra(QWidgetPlugin):
 
         self.plotwidget.plotItem.axes['top']['item'].tickStrings = tickStrings
         self.toolbar = SAXSSpectraToolbar()
+        self.toolbar.sigReplot.connect(self.replot)
 
         hbox = QHBoxLayout()
         hbox.addWidget(self.toolbar)
@@ -28,6 +33,27 @@ class SAXSSpectra(QWidgetPlugin):
         self.setLayout(hbox)
         self.setContentsMargins(0, 0, 0, 0)
         hbox.setSpacing(0)
+
+    def setResults(self, results):
+        self.results = results
+        self.replot()
+
+    def replot(self):
+        self.clear()
+        mode = self.toolbar.modeActionGroup.checkedAction().text()
+
+        for result in self.results:
+            try:
+                if mode == 'q (Azimuthal) Integration':
+                    self.plot(result['q'].value, result['I'].value)
+                elif mode == 'χ (chi/Radial) Integration':
+                    self.plot(result['chi'].value, result['I'].value)
+                elif mode == 'X (Horizontal) Integration':
+                    self.plot(result['qx'].value, result['I'].value)
+                elif mode == 'Z (Vertical) Integration':
+                    self.plot(result['qz'].value, result['I'].value)
+            except KeyError:
+                continue
 
     def __getattr__(self, attr):  ## implicitly wrap methods from plotWidget
         if hasattr(self.plotwidget, attr):
@@ -38,6 +64,8 @@ class SAXSSpectra(QWidgetPlugin):
 
 
 class SAXSSpectraToolbar(QWidget):
+    sigReplot = Signal()
+
     def __init__(self):
         super(SAXSSpectraToolbar, self).__init__()
 
@@ -53,19 +81,24 @@ class SAXSSpectraToolbar(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         self.modeActionGroup = QActionGroup(self)
-        qbtn = self.mkGroupToggle('icons/q.png', text='q (Azimuthal) Integration')
+        qbtn = self.mkGroupToggle('icons/q.png', text='q (Azimuthal) Integration', receiver=self.sigReplot.emit)
         qbtn.setChecked(True)
         modetoolbar.addAction(qbtn)
-        modetoolbar.addAction(self.mkGroupToggle('icons/chi.png', text='χ (chi/Radial) Integration'))
-        modetoolbar.addAction(self.mkGroupToggle('icons/x.png', text='X (Horizontal) Integration'))
-        modetoolbar.addAction(self.mkGroupToggle('icons/z.png', text='Z (Vertical) Integration'))
-        modetoolbar.addAction(self.mkGroupToggle('icons/G.png', text='Guinier Plot'))
-        modetoolbar.addAction(self.mkGroupToggle('icons/P.png', text='Porod Plot'))
-        modetoolbar.addAction(self.mkGroupToggle('icons/Iq2.png', text='I×q\u00B2'))
-        modetoolbar.addAction(self.mkGroupToggle('icons/Iq3.png', text='I×q\u00B3'))
-        modetoolbar.addAction(self.mkGroupToggle('icons/Iq4.png', text='I×q\u0074'))
-        modetoolbar.addAction(self.mkGroupToggle('icons/gofr.png', text='Electron Density Correlation Function'))
-        modetoolbar.addAction(self.mkGroupToggle('icons/gofrvec.png', text='Pair Distribution Function'))
+        modetoolbar.addAction(
+            self.mkGroupToggle('icons/chi.png', text='χ (chi/Radial) Integration', receiver=self.sigReplot.emit))
+        modetoolbar.addAction(
+            self.mkGroupToggle('icons/x.png', text='X (Horizontal) Integration', receiver=self.sigReplot.emit))
+        modetoolbar.addAction(
+            self.mkGroupToggle('icons/z.png', text='Z (Vertical) Integration', receiver=self.sigReplot.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/G.png', text='Guinier Plot', receiver=self.sigReplot.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/P.png', text='Porod Plot', receiver=self.sigReplot.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/Iq2.png', text='I×q\u00B2', receiver=self.sigReplot.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/Iq3.png', text='I×q\u00B3', receiver=self.sigReplot.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/Iq4.png', text='I×q\u0074', receiver=self.sigReplot.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/gofr.png', text='Electron Density Correlation Function',
+                                                 receiver=self.sigReplot.emit))
+        modetoolbar.addAction(
+            self.mkGroupToggle('icons/gofrvec.png', text='Pair Distribution Function', receiver=self.sigReplot.emit))
 
         multiplot = QAction(self)
         multiplot.setIcon(QIcon(str(path('icons/multiplot.png'))))
@@ -79,10 +112,11 @@ class SAXSSpectraToolbar(QWidget):
         optionstoolbar.setOrientation(Qt.Vertical)
         modetoolbar.setOrientation(Qt.Vertical)
 
-    def mkGroupToggle(self, iconpath: str = None, text=None):
+    def mkGroupToggle(self, iconpath: str = None, text=None, receiver=None):
         actn = QAction(self)
         if iconpath: actn.setIcon(QIcon(QPixmap(str(path(iconpath)))))
         if text: actn.setText(text)
+        if receiver: actn.triggered.connect(receiver)
         actn.setCheckable(True)
         actn.setActionGroup(self.modeActionGroup)
         return actn
