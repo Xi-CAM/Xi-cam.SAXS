@@ -7,7 +7,6 @@ from pyFAI.multi_geometry import MultiGeometry
 
 from xicam.plugins import SettingsPlugin
 from .CalibrationPanel import CalibrationPanel
-from .workflows import SimulateWorkflow
 
 from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree.parameterTypes import GroupParameter, ListParameter, SimpleParameter
@@ -49,7 +48,7 @@ class DeviceParameter(GroupParameter):
 class DeviceProfiles(SettingsPlugin):
     sigRequestRedraw = Signal()
     sigRequestReduce = Signal()
-    sigSimulateCalibrant = Signal(object)
+    sigSimulateCalibrant = Signal()
 
     name = 'Device Profiles'
 
@@ -75,10 +74,8 @@ class DeviceProfiles(SettingsPlugin):
 
         self.parameter.sigValueChanged.connect(self.simulateCalibrant)
 
-        self.simulateworkflow = SimulateWorkflow()
-
     def simulateCalibrant(self, *args):
-        self.sigSimulateCalibrant.emit(self.simulateworkflow)
+        self.sigSimulateCalibrant.emit()
 
     def genAIs(self, parent, changes):
         for parameter, key, value in changes:
@@ -108,7 +105,7 @@ class DeviceProfiles(SettingsPlugin):
 
     def AI(self, device):
         if device not in self.AIs:
-            self.AIs[device] = AzimuthalIntegrator(wavelength=self.parameter['Wavelength'])
+            self.addDevice(device)
         return self.AIs[device]
 
     def setAI(self, ai: AzimuthalIntegrator, device: str):
@@ -117,18 +114,20 @@ class DeviceProfiles(SettingsPlugin):
 
         # propagate new ai to parameter
         fit2d = ai.getFit2D()
-        self.setSilence(True)
-        self.parameter.child(device, 'Detector').setValue(type(ai.detector))
-        self.parameter.child(device, 'Binning').setValue(ai.detector.binning[0])
-        self.parameter.child(device, 'Detector Tilt').setValue(fit2d['tiltPlanRotation'])
-        self.parameter.child(device, 'Detector Rotation').setValue(fit2d['tilt'])
-        self.parameter.child(device, 'Pixel Size X').setValue(ai.pixel1)
-        self.parameter.child(device, 'Pixel Size Y').setValue(ai.pixel2)
-        self.parameter.child(device, 'Center X').setValue(fit2d['centerX'])
-        self.parameter.child(device, 'Center Y').setValue(fit2d['centerY'])
-        self.parameter.child(device, 'Detector Distance').setValue(fit2d['directDist'] / 1000)
-        self.parameter.child('Wavelength').setValue(ai.wavelength)
-        self.setSilence(False)
+        try:
+            self.setSilence(True)
+            self.parameter.child(device, 'Detector').setValue(type(ai.detector))
+            self.parameter.child(device, 'Binning').setValue(ai.detector.binning[0])
+            self.parameter.child(device, 'Detector Tilt').setValue(fit2d['tiltPlanRotation'])
+            self.parameter.child(device, 'Detector Rotation').setValue(fit2d['tilt'])
+            self.parameter.child(device, 'Pixel Size X').setValue(ai.pixel1)
+            self.parameter.child(device, 'Pixel Size Y').setValue(ai.pixel2)
+            self.parameter.child(device, 'Center X').setValue(fit2d['centerX'])
+            self.parameter.child(device, 'Center Y').setValue(fit2d['centerY'])
+            self.parameter.child(device, 'Detector Distance').setValue(fit2d['directDist'] / 1000)
+            self.parameter.child('Wavelength').setValue(ai.wavelength)
+        finally:
+            self.setSilence(False)
         self.simulateCalibrant()
 
     def setSilence(self, silence):
@@ -141,11 +140,15 @@ class DeviceProfiles(SettingsPlugin):
 
 
     def addDevice(self, device):
-        devicechild = DeviceParameter(device)
-        self.parameter.addChild(devicechild)
-        ai = AzimuthalIntegrator(wavelength=self.parameter['Wavelength'])
-        self.AIs[device] = ai
-        self.multiAI.ais = list(self.AIs.values())
+        try:
+            self.setSilence(True)
+            devicechild = DeviceParameter(device)
+            self.parameter.addChild(devicechild)
+            ai = AzimuthalIntegrator(wavelength=self.parameter['Wavelength'])
+            self.AIs[device] = ai
+            self.multiAI.ais = list(self.AIs.values())
+        finally:
+            self.setSilence(False)
 
     def setModels(self, headermodel, selectionmodel):
         self.headermodel = headermodel
