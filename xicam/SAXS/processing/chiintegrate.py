@@ -3,12 +3,13 @@ import numpy as np
 from pyFAI import AzimuthalIntegrator, units
 
 
-class QIntegratePlugin(ProcessingPlugin):
+class ChiIntegratePlugin(ProcessingPlugin):
     ai = Input(description='A PyFAI.AzimuthalIntegrator object',
                type=AzimuthalIntegrator)
     data = Input(description='2d array representing intensity for each pixel',
                  type=np.ndarray)
-    npt = Input(description='Number of bins along q', default=1000, type=int)
+    npt_rad = Input(description='Number of bins along q', default=1000)
+    npt_azim = Input(description='Number of bins along chi', default=1000)
     polz_factor = Input(description='Polarization factor for correction',
                         type=float, default=0)
     unit = Input(description='Output units for q',
@@ -32,20 +33,24 @@ class QIntegratePlugin(ProcessingPlugin):
                    type=str, default='splitbbox')
     normalization_factor = Input(description='Value of a normalization monitor',
                                  type=float, default=1.)
-    q = Output(description='Q bin center positions',
-               type=np.array)
+    chi = Output(description='Q bin center positions',
+                 type=np.array)
     I = Output(description='Binned/pixel-split integrated intensity',
                type=np.array)
 
     def evaluate(self):
-        self.q.value, self.I.value = self.ai.value.integrate1d(data=np.flipud(self.data.value),
-                                                               npt=self.npt.value,
-                                                               radial_range=self.radial_range.value,
-                                                               azimuth_range=self.azimuth_range.value,
-                                                               mask=self.mask.value,
-                                                               polarization_factor=self.polz_factor.value,
-                                                               dark=self.dark.value,
-                                                               flat=self.flat.value,
-                                                               method=self.method.value,
-                                                               unit=self.unit.value,
-                                                               normalization_factor=self.normalization_factor.value)
+        self.I.value, q, chi = self.ai.value.integrate2d(data=np.flipud(self.data.value),
+                                                         npt_rad=self.npt_rad.value,
+                                                         npt_azim=self.npt_azim.value,
+                                                         radial_range=self.radial_range.value,
+                                                         azimuth_range=self.azimuth_range.value,
+                                                         mask=self.mask.value,
+                                                         polarization_factor=self.polz_factor.value,
+                                                         dark=self.dark.value,
+                                                         flat=self.flat.value,
+                                                         method=self.method.value,
+                                                         unit=self.unit.value,
+                                                         normalization_factor=self.normalization_factor.value)
+
+        self.I.value = np.sum(self.I.value, axis=1)
+        self.chi.value = chi
