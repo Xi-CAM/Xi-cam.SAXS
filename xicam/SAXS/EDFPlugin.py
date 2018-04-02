@@ -55,7 +55,7 @@ class EDFPlugin(DataHandlerPlugin):
     @functools.lru_cache(maxsize=10, typed=False)
     def parseDataFile(path):
         md = fabio.open(path).header
-        md.update({'object_keys': {'pilatus2M': ['pilatus2M_image']}})
+        md.update({'object_keys': {'pilatus2M': ['primary']}})
         return md
 
 
