@@ -1,6 +1,6 @@
 [Core]
-Name = EDFPlugin
-Module = EDFPlugin.py
+Name = TIFPlugin
+Module = TIFPlugin.py
 
 [Documentation]
 Author = Ronald J. Pandolfi

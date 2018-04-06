@@ -7,20 +7,23 @@ import uuid
 import re
 import functools
 from pathlib import Path
-from lazyarray import larray
 
 
 class TIFPlugin(DataHandlerPlugin):
     name = 'TIFPlugin'
 
-    def __init__(self, path):
-        self.path = path
-        super(TIFPlugin, self).__init__()
+    DEFAULT_EXTENTIONS = ['.tiff', '.tif']
 
-    def __call__(self, *args, **kwargs):
-        return fabio.open(self.path).data
+    def __call__(self, path,  *args, **kwargs):
+        return fabio.open(path).data
 
     @staticmethod
     @functools.lru_cache(maxsize=10, typed=False)
     def parseDataFile(path):
-        return fabio.open(path).header
+        md = fabio.open(path).header
+        md.update({'object_keys': {'Unkown Device': ['pilatus2M_image']}})
+        return md
+
+    @classmethod
+    def getStartDoc(cls, paths, start_uid):
+        return start_doc(start_uid=start_uid, metadata={'paths': paths})
