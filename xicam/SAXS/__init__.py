@@ -154,12 +154,12 @@ class SAXSPlugin(GUIPlugin):
             workflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
 
     def doDisplayWorkflow(self, workflow: Workflow):
-        data = self.calibrationtabview.currentWidget().header.meta_array('primary')[
-            self.reducetabview.selectionmodel.currentIndex()]
+        currentwidget = self.reducetabview.currentWidget()
+        data = currentwidget.header.meta_array('primary')[currentwidget.timeIndex(currentwidget.timeLine)[0]]
         ai = self.calibrationsettings.AI('pilatus2M')
         ai.detector = detectors.Pilatus2M()
         mask = self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None
-        outputwidget = self.reducetabview.currentWidget()
+        outputwidget = currentwidget
 
         def showDisplay(*results):
             outputwidget.setResults(results)
@@ -167,8 +167,8 @@ class SAXSPlugin(GUIPlugin):
         workflow.execute(None, data=data, ai=ai, mask=mask, callback_slot=showDisplay, threadkey='display')
 
     def doReduceWorkflow(self, workflow: Workflow):
-        data = self.calibrationtabview.currentWidget().header.meta_array('primary')[
-            self.reducetabview.selectionmodel.currentIndex()]
+        currentwidget = self.reducetabview.currentWidget()
+        data = currentwidget.header.meta_array('primary')[currentwidget.timeIndex(currentwidget.timeLine)[0]]
         ai = self.calibrationsettings.AI('pilatus2M')
         ai.detector = detectors.Pilatus2M()
         mask = self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None

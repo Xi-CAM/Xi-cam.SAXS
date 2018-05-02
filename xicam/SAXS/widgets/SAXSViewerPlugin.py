@@ -102,7 +102,6 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
             self.maskimage.clear()
 
     def setCalibrantImage(self, data):
-        print('calibrantimageset:', data.max())
         if data is not None:
             self.calibrantimage.setImage(data, lut=calibrantlut)
             self.calibrantimage.setTransform(QTransform(0, 1, 1, 0, 0, 0))
