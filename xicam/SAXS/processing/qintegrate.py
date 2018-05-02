@@ -38,14 +38,19 @@ class QIntegratePlugin(ProcessingPlugin):
                type=np.array)
 
     def evaluate(self):
-        self.q.value, self.I.value = self.ai.value.integrate1d(data=np.flipud(self.data.value),
+        self.q.value, self.I.value = self.ai.value.integrate1d(data=nonesafe_flipud(self.data.value),
                                                                npt=self.npt.value,
                                                                radial_range=self.radial_range.value,
                                                                azimuth_range=self.azimuth_range.value,
-                                                               mask=self.mask.value,
+                                                               mask=nonesafe_flipud(self.mask.value),
                                                                polarization_factor=self.polz_factor.value,
-                                                               dark=self.dark.value,
-                                                               flat=self.flat.value,
+                                                               dark=nonesafe_flipud(self.dark.value),
+                                                               flat=nonesafe_flipud(self.flat.value),
                                                                method=self.method.value,
                                                                unit=self.unit.value,
                                                                normalization_factor=self.normalization_factor.value)
+
+
+def nonesafe_flipud(data: np.ndarray):
+    if data is None: return None
+    return np.flipud(data).copy()

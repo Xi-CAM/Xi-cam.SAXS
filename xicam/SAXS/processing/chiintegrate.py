@@ -39,18 +39,23 @@ class ChiIntegratePlugin(ProcessingPlugin):
                type=np.array)
 
     def evaluate(self):
-        self.I.value, q, chi = self.ai.value.integrate2d(data=np.flipud(self.data.value),
+        self.I.value, q, chi = self.ai.value.integrate2d(data=nonesafe_flipud(self.data.value),
                                                          npt_rad=self.npt_rad.value,
                                                          npt_azim=self.npt_azim.value,
                                                          radial_range=self.radial_range.value,
                                                          azimuth_range=self.azimuth_range.value,
-                                                         mask=self.mask.value,
+                                                         mask=nonesafe_flipud(self.mask.value),
                                                          polarization_factor=self.polz_factor.value,
-                                                         dark=self.dark.value,
-                                                         flat=self.flat.value,
+                                                         dark=nonesafe_flipud(self.dark.value),
+                                                         flat=nonesafe_flipud(self.flat.value),
                                                          method=self.method.value,
                                                          unit=self.unit.value,
                                                          normalization_factor=self.normalization_factor.value)
 
         self.I.value = np.sum(self.I.value, axis=1)
         self.chi.value = chi
+
+
+def nonesafe_flipud(data: np.ndarray):
+    if data is None: return None
+    return np.flipud(data).copy()
