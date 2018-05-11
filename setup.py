@@ -56,7 +56,7 @@ setup(
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
     packages=['xicam.SAXS', 'xicam.SAXS.calibration', 'xicam.SAXS.masking',
-              'xicam.SAXS.processing', 'xicam.SAXS.widgets', 'xicam.SAXS.patches'],
+              'xicam.SAXS.processing', 'xicam.SAXS.widgets', 'xicam.SAXS.patches', 'xicam.SAXS.models'],
 
     package_dir={},
 
@@ -68,7 +68,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy', 'qtpy', 'pyFAI', 'scipy', 'dill', 'astroscrappy'],
+    install_requires=['numpy', 'qtpy', 'pyFAI', 'scipy', 'dill', 'astroscrappy', 'sasmodels'],
 
     setup_requires=[],
 
@@ -84,7 +84,7 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    package_data={'xicam.SAXS': ['*.yapsy-plugin']},
+    package_data={'xicam.SAXS': ['*.yapsy-plugin', '*.yml']},
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:

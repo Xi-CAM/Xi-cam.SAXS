@@ -1,0 +1,2936 @@
+Cylinder Functions:
+    Barbell:
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Cylinder bar length
+            name: length
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Cylindrical bar radius
+            name: radius
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Spherical bell radius
+            name: radius_bell
+            units: "\u212B"
+            value: 40.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Barbell scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Capped Cylinder:
+    -   param: !YMLParameter
+            description: deflection angle
+            name: phi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: inclination angle
+            name: theta
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Cylinder length
+            name: length
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Cap radius
+            name: radius_cap
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Cylinder radius
+            name: radius
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Cylinder scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Core Shell Bicelle:
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 90.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Cylinder rim scattering length density
+            name: sld_rim
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Cylinder face scattering length density
+            name: sld_face
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Cylinder core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Cylinder length
+            name: length
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Cylinder face thickness
+            name: thick_face
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Rim shell thickness
+            name: thick_rim
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Cylinder core radius
+            name: radius
+            units: "\u212B"
+            value: 80.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Core Shell Bicelle Elliptical:
+    -   param: !YMLParameter
+            description: Major axis angle relative to Q
+            name: psi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 90.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.0
+    -   param: !YMLParameter
+            description: Cylinder rim scattering length density
+            name: sld_rim
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Cylinder face scattering length density
+            name: sld_face
+            units: "10-6\u212B-2"
+            value: 7.0
+    -   param: !YMLParameter
+            description: Cylinder core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Cylinder length
+            name: length
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Cylinder face thickness
+            name: thick_face
+            units: "\u212B"
+            value: 14.0
+    -   param: !YMLParameter
+            description: Rim shell thickness
+            name: thick_rim
+            units: "\u212B"
+            value: 8.0
+    -   param: !YMLParameter
+            description: axial ratio of core, X = r_polar/r_equatorial
+            name: x_core
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: Cylinder core radius
+            name: radius
+            units: "\u212B"
+            value: 30.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Core Shell Cylinder:
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Cylinder length
+            name: length
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Cylinder shell thickness
+            name: thickness
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Cylinder core radius
+            name: radius
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Cylinder shell scattering length density
+            name: sld_shell
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Cylinder core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Cylinder:
+    -   param: !YMLParameter
+            description: longitude
+            name: phi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: latitude
+            name: theta
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Cylinder length
+            name: length
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Cylinder radius
+            name: radius
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Cylinder scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Elliptical Cylinder:
+    -   param: !YMLParameter
+            description: Major axis angle relative to Q
+            name: psi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 90.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Cylinder scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Length of the cylinder
+            name: length
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Ratio of major radius over minor radius
+            name: axis_ratio
+            units: None
+            value: 1.5
+    -   param: !YMLParameter
+            description: Ellipse minor radius
+            name: radius_minor
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Flexible Cylinder:
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Cylinder scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Radius of the flexible cylinder
+            name: radius
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Kuhn length of the flexible cylinder
+            name: kuhn_length
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: Length of the flexible cylinder
+            name: length
+            units: "\u212B"
+            value: 1000.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Flexible Cylinder Elliptical:
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Cylinder scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Axis_ratio (major_radius/minor_radius
+            name: axis_ratio
+            units: None
+            value: 1.5
+    -   param: !YMLParameter
+            description: Radius of the flexible cylinder
+            name: radius
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Kuhn length of the flexible cylinder
+            name: kuhn_length
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: Length of the flexible cylinder
+            name: length
+            units: "\u212B"
+            value: 1000.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Hollow Cylinder:
+    -   param: !YMLParameter
+            description: Phi angle
+            name: phi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Theta angle
+            name: theta
+            units: degree
+            value: 90.0
+    -   param: !YMLParameter
+            description: Solvent sld
+            name: sld_solvent
+            units: "\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Cylinder sld
+            name: sld
+            units: "\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Cylinder total length
+            name: length
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Cylinder wall thickness
+            name: thickness
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Cylinder core radius
+            name: radius
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Pearl Necklace:
+    -   param: !YMLParameter
+            description: Scattering length density of the solvent
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Scattering length density of the chain linkage
+            name: sld_string
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Scattering length density of the chained spheres
+            name: sld
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Number of pearls in the necklace (must be integer)
+            name: num_pearls
+            units: none
+            value: 3.0
+    -   param: !YMLParameter
+            description: Thickness of the chain linkage
+            name: thick_string
+            units: "\u212B"
+            value: 2.5
+    -   param: !YMLParameter
+            description: Mean separation of chained particles
+            name: edge_sep
+            units: "\u212B"
+            value: 350.0
+    -   param: !YMLParameter
+            description: Mean radius of the chained spheres
+            name: radius
+            units: "\u212B"
+            value: 80.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Pringle:
+    -   param: !YMLParameter
+            description: Solvent sld
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Pringle sld
+            name: sld
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Curvature paramter beta
+            name: beta
+            units: None
+            value: 0.02
+    -   param: !YMLParameter
+            description: Curvature parameter alpha
+            name: alpha
+            units: None
+            value: 0.001
+    -   param: !YMLParameter
+            description: Thickness of pringle
+            name: thickness
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Pringle radius
+            name: radius
+            units: "\u212B"
+            value: 60.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Stacked Disks:
+    -   param: !YMLParameter
+            description: Orientation of the stacked disk in the plane of the detector
+            name: phi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Orientation of the stacked disk axis w/respect incoming beam
+            name: theta
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 5.0
+    -   param: !YMLParameter
+            description: Layer scattering length density
+            name: sld_layer
+            units: "10-6\u212B-2"
+            value: 0.0
+    -   param: !YMLParameter
+            description: Core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Sigma of nearest neighbor spacing
+            name: sigma_d
+            units: "\u212B"
+            value: 0.0
+    -   param: !YMLParameter
+            description: Number of stacked layer/core/layer disks
+            name: n_stacking
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Radius of the stacked disk
+            name: radius
+            units: "\u212B"
+            value: 15.0
+    -   param: !YMLParameter
+            description: Thickness of layer each side of core
+            name: thick_layer
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Thickness of the core disk
+            name: thick_core
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+Ellipsoid Functions:
+    Core Shell Ellipsoid:
+    -   param: !YMLParameter
+            description: Oblate orientation in the plane of the detector
+            name: phi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Oblate orientation wrt incoming beam
+            name: theta
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Shell scattering length density
+            name: sld_shell
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 2.0
+    -   param: !YMLParameter
+            description: ratio of thickness of shell at pole to that at equator
+            name: x_polar_shell
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: thickness of shell at equator
+            name: thick_shell
+            units: "\u212B"
+            value: 30.0
+    -   param: !YMLParameter
+            description: axial ratio of core, X = r_polar/r_equatorial
+            name: x_core
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: Equatorial radius of core
+            name: radius_equat_core
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Ellipsoid:
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Equatorial radius
+            name: radius_equatorial
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Polar radius
+            name: radius_polar
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Ellipsoid scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Triaxial Ellipsoid:
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: psi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Polar radius
+            name: radius_polar
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Major equatorial radius
+            name: radius_equat_major
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Minor equatorial radius
+            name: radius_equat_minor
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Ellipsoid scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+Lamellae Functions:
+    Lamellar:
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.0
+    -   param: !YMLParameter
+            description: Layer scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: total layer thickness
+            name: thickness
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Lamellar Hg:
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.0
+    -   param: !YMLParameter
+            description: Head scattering length density
+            name: sld_head
+            units: "10-6\u212B-2"
+            value: 3.0
+    -   param: !YMLParameter
+            description: Tail scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 0.4
+    -   param: !YMLParameter
+            description: Head thickness
+            name: length_head
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Tail thickness ( total = H+T+T+H)
+            name: length_tail
+            units: "\u212B"
+            value: 15.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Lamellar Hg Stack Caille:
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.0
+    -   param: !YMLParameter
+            description: Head scattering length density
+            name: sld_head
+            units: "10-6\u212B-2"
+            value: 2.0
+    -   param: !YMLParameter
+            description: Tail scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 0.4
+    -   param: !YMLParameter
+            description: Caille parameter
+            name: Caille_parameter
+            units: None
+            value: 0.001
+    -   param: !YMLParameter
+            description: lamellar d-spacing of Caille S(Q)
+            name: d_spacing
+            units: "\u212B"
+            value: 40.0
+    -   param: !YMLParameter
+            description: Number of layers
+            name: Nlayers
+            units: None
+            value: 30.0
+    -   param: !YMLParameter
+            description: head thickness
+            name: length_head
+            units: "\u212B"
+            value: 2.0
+    -   param: !YMLParameter
+            description: Tail thickness
+            name: length_tail
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Lamellar Stack Caille:
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: layer scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Caille parameter
+            name: Caille_parameter
+            units: "\u212B-2"
+            value: 0.1
+    -   param: !YMLParameter
+            description: lamellar d-spacing of Caille S(Q)
+            name: d_spacing
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Number of layers
+            name: Nlayers
+            units: None
+            value: 20.0
+    -   param: !YMLParameter
+            description: sheet thickness
+            name: thickness
+            units: "\u212B"
+            value: 30.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Lamellar Stack Paracrystal:
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.34
+    -   param: !YMLParameter
+            description: layer scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Sigma (polydispersity) of the lamellar spacing
+            name: sigma_d
+            units: "\u212B"
+            value: 0.0
+    -   param: !YMLParameter
+            description: lamellar spacing of paracrystal stack
+            name: d_spacing
+            units: "\u212B"
+            value: 250.0
+    -   param: !YMLParameter
+            description: Number of layers
+            name: Nlayers
+            units: None
+            value: 20.0
+    -   param: !YMLParameter
+            description: sheet thickness
+            name: thickness
+            units: "\u212B"
+            value: 33.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+Paracrystal Functions:
+    Bcc Paracrystal:
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: psi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Particle scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Particle radius
+            name: radius
+            units: "\u212B"
+            value: 40.0
+    -   param: !YMLParameter
+            description: Paracrystal distortion factor
+            name: d_factor
+            units: None
+            value: 0.06
+    -   param: !YMLParameter
+            description: Nearest neighbour distance
+            name: dnn
+            units: "\u212B"
+            value: 220.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Fcc Paracrystal:
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: psi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Particle scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Particle radius
+            name: radius
+            units: "\u212B"
+            value: 40.0
+    -   param: !YMLParameter
+            description: Paracrystal distortion factor
+            name: d_factor
+            units: None
+            value: 0.06
+    -   param: !YMLParameter
+            description: Nearest neighbour distance
+            name: dnn
+            units: "\u212B"
+            value: 220.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Sc Paracrystal:
+    -   param: !YMLParameter
+            description: Orientation of the a3 in the plane of the detector
+            name: psi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Orientation of the a2 in the plane of the detector
+            name: phi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Orientation of the a1 axis w/respect incoming beam
+            name: theta
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Sphere scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 3.0
+    -   param: !YMLParameter
+            description: Radius of sphere
+            name: radius
+            units: "\u212B"
+            value: 40.0
+    -   param: !YMLParameter
+            description: Paracrystal distortion factor
+            name: d_factor
+            units: None
+            value: 0.06
+    -   param: !YMLParameter
+            description: Nearest neighbor distance
+            name: dnn
+            units: "\u212B"
+            value: 220.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+Parallelepiped Functions:
+    Core Shell Parallelepiped:
+    -   param: !YMLParameter
+            description: Rotation angle around its own c axis against q plane
+            name: psi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 0.0
+    -   param: !YMLParameter
+            description: Thickness of C rim
+            name: thick_rim_c
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Thickness of B rim
+            name: thick_rim_b
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Thickness of A rim
+            name: thick_rim_a
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Larger side of the parallelepiped
+            name: length_c
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Second side of the parallelepiped
+            name: length_b
+            units: "\u212B"
+            value: 75.0
+    -   param: !YMLParameter
+            description: Shorter side of the parallelepiped
+            name: length_a
+            units: "\u212B"
+            value: 35.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.0
+    -   param: !YMLParameter
+            description: Parallelepiped C rim scattering length density
+            name: sld_c
+            units: "10-6\u212B-2"
+            value: 2.0
+    -   param: !YMLParameter
+            description: Parallelepiped B rim scattering length density
+            name: sld_b
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Parallelepiped A rim scattering length density
+            name: sld_a
+            units: "10-6\u212B-2"
+            value: 2.0
+    -   param: !YMLParameter
+            description: Parallelepiped core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Hollow Rectangular Prism:
+    -   param: !YMLParameter
+            description: Thickness of parallelepiped
+            name: thickness
+            units: "\u212B"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Ratio sides c/a
+            name: c2a_ratio
+            units: "\u212B"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Ratio sides b/a
+            name: b2a_ratio
+            units: "\u212B"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Shorter side of the parallelepiped
+            name: length_a
+            units: "\u212B"
+            value: 35.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Parallelepiped scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Hollow Rectangular Prism Thin Walls:
+    -   param: !YMLParameter
+            description: Ratio sides c/a
+            name: c2a_ratio
+            units: "\u212B"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Ratio sides b/a
+            name: b2a_ratio
+            units: "\u212B"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Shorter side of the parallelepiped
+            name: length_a
+            units: "\u212B"
+            value: 35.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Parallelepiped scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Parallelepiped:
+    -   param: !YMLParameter
+            description: Rotation angle around its own c axis against q plane
+            name: psi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Out of plane angle
+            name: phi
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: In plane angle
+            name: theta
+            units: degree
+            value: 60.0
+    -   param: !YMLParameter
+            description: Larger side of the parallelepiped
+            name: length_c
+            units: "\u212B"
+            value: 400.0
+    -   param: !YMLParameter
+            description: Second side of the parallelepiped
+            name: length_b
+            units: "\u212B"
+            value: 75.0
+    -   param: !YMLParameter
+            description: Shorter side of the parallelepiped
+            name: length_a
+            units: "\u212B"
+            value: 35.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Parallelepiped scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 4.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Rectangular Prism:
+    -   param: !YMLParameter
+            description: Ratio sides c/a
+            name: c2a_ratio
+            units: "\u212B"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Ratio sides b/a
+            name: b2a_ratio
+            units: "\u212B"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Shorter side of the parallelepiped
+            name: length_a
+            units: "\u212B"
+            value: 35.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Parallelepiped scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+Shape-Independent Functions:
+    Be Polyelectrolyte:
+    -   param: !YMLParameter
+            description: Polymer molar concentration
+            name: polymer_concentration
+            units: mol/L
+            value: 0.7
+    -   param: !YMLParameter
+            description: Degree of ionization
+            name: ionization_degree
+            units: None
+            value: 0.05
+    -   param: !YMLParameter
+            description: Concentration of monovalent salt
+            name: salt_concentration
+            units: mol/L
+            value: 0.0
+    -   param: !YMLParameter
+            description: Monomer length
+            name: monomer_length
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Virial parameter
+            name: virial_param
+            units: "\u212B3/mol"
+            value: 12.0
+    -   param: !YMLParameter
+            description: Bjerrum length
+            name: bjerrum_length
+            units: "\u212B"
+            value: 7.1
+    -   param: !YMLParameter
+            description: Contrast factor of the polymer
+            name: contrast_factor
+            units: barns
+            value: 10.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Broad Peak:
+    -   param: !YMLParameter
+            description: Exponent of Lorentz function
+            name: lorentz_exp
+            units: None
+            value: 2.0
+    -   param: !YMLParameter
+            description: Peak position in q
+            name: peak_pos
+            units: "\u212B-1"
+            value: 0.1
+    -   param: !YMLParameter
+            description: Lorentzian screening length
+            name: lorentz_length
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Scale factor for broad Lorentzian peak
+            name: lorentz_scale
+            units: None
+            value: 10.0
+    -   param: !YMLParameter
+            description: Exponent of power law
+            name: porod_exp
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: Power law scale factor
+            name: porod_scale
+            units: None
+            value: 1.0e-05
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Correlation Length:
+    -   param: !YMLParameter
+            description: Lorentzian Exponent, m, in 1/( 1 + (q.xi)^m)
+            name: lorentz_exp
+            units: "\u212B-2"
+            value: 2.0
+    -   param: !YMLParameter
+            description: Porod Exponent, n, in q^-n
+            name: porod_exp
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: Correlation length, xi, in Lorentzian
+            name: cor_length
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Porod Scaling Factor
+            name: porod_scale
+            units: None
+            value: 1.0e-06
+    -   param: !YMLParameter
+            description: Lorentzian Scaling Factor
+            name: lorentz_scale
+            units: None
+            value: 10.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Dab:
+    -   param: !YMLParameter
+            description: correlation length
+            name: cor_length
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Fractal:
+    -   param: !YMLParameter
+            description: scattering length density of solvent
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.4
+    -   param: !YMLParameter
+            description: scattering length density of particles
+            name: sld_block
+            units: "10-6\u212B-2"
+            value: 2.0
+    -   param: !YMLParameter
+            description: cluster correlation length
+            name: cor_length
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: fractal dimension
+            name: fractal_dim
+            units: None
+            value: 2.0
+    -   param: !YMLParameter
+            description: radius of particles
+            name: radius
+            units: "\u212B"
+            value: 5.0
+    -   param: !YMLParameter
+            description: volume fraction of blocks
+            name: volfraction
+            units: None
+            value: 0.05
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Fractal Core Shell:
+    -   param: !YMLParameter
+            description: Correlation length of fractal-like aggregates
+            name: cor_length
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: Fractal dimension
+            name: fractal_dim
+            units: None
+            value: 2.0
+    -   param: !YMLParameter
+            description: Volume fraction of building block spheres
+            name: volfraction
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 3.0
+    -   param: !YMLParameter
+            description: Sphere shell scattering length density
+            name: sld_shell
+            units: "10-6\u212B-2"
+            value: 2.0
+    -   param: !YMLParameter
+            description: Sphere core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Sphere shell thickness
+            name: thickness
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Sphere core radius
+            name: radius
+            units: "\u212B"
+            value: 60.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Gauss Lorentz Gel:
+    -   param: !YMLParameter
+            description: Dynamic correlation length
+            name: cor_length_dynamic
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Lorentzian scale factor
+            name: lorentz_scale
+            units: None
+            value: 50.0
+    -   param: !YMLParameter
+            description: Static correlation length
+            name: cor_length_static
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: Gauss scale factor
+            name: gauss_scale
+            units: None
+            value: 100.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Gaussian Peak:
+    -   param: !YMLParameter
+            description: Peak width (standard deviation)
+            name: sigma
+            units: "\u212B-1"
+            value: 0.005
+    -   param: !YMLParameter
+            description: Peak position
+            name: peak_pos
+            units: "\u212B-1"
+            value: 0.05
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Gel Fit:
+    -   param: !YMLParameter
+            description: Correlation length
+            name: cor_length
+            units: "\u212B"
+            value: 16.0
+    -   param: !YMLParameter
+            description: Fractal exponent
+            name: fractal_dim
+            units: None
+            value: 2.0
+    -   param: !YMLParameter
+            description: Radius of gyration
+            name: rg
+            units: "\u212B"
+            value: 104.0
+    -   param: !YMLParameter
+            description: Lorentzian length scale
+            name: lorentz_scale
+            units: cm^-1
+            value: 3.5
+    -   param: !YMLParameter
+            description: Guinier length scale
+            name: guinier_scale
+            units: cm^-1
+            value: 1.7
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Guinier:
+    -   param: !YMLParameter
+            description: Radius of Gyration
+            name: rg
+            units: "\u212B"
+            value: 60.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Guinier Porod:
+    -   param: !YMLParameter
+            description: Porod exponent
+            name: porod_exp
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: Dimension variable
+            name: s
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Radius of gyration
+            name: rg
+            units: "\u212B"
+            value: 60.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Line:
+    -   param: !YMLParameter
+            description: slope in linear model
+            name: slope
+            units: "\u212B\xB7cm-1"
+            value: 1.0
+    -   param: !YMLParameter
+            description: intercept in linear model
+            name: intercept
+            units: cm-1
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Lorentz:
+    -   param: !YMLParameter
+            description: Screening length
+            name: cor_length
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Mass Fractal:
+    -   param: !YMLParameter
+            description: Cut-off length
+            name: cutoff_length
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: Mass fractal dimension
+            name: fractal_dim_mass
+            units: None
+            value: 1.9
+    -   param: !YMLParameter
+            description: Particle radius
+            name: radius
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Mass Surface Fractal:
+    -   param: !YMLParameter
+            description: Primary particle radius of gyration
+            name: rg_primary
+            units: "\u212B"
+            value: 4000.0
+    -   param: !YMLParameter
+            description: Cluster radius of gyration
+            name: rg_cluster
+            units: "\u212B"
+            value: 86.7
+    -   param: !YMLParameter
+            description: Surface fractal dimension
+            name: fractal_dim_surf
+            units: None
+            value: 2.3
+    -   param: !YMLParameter
+            description: Mass fractal dimension
+            name: fractal_dim_mass
+            units: None
+            value: 1.8
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Mono Gauss Coil:
+    -   param: !YMLParameter
+            description: Radius of gyration
+            name: rg
+            units: "\u212B"
+            value: 75.0
+    -   param: !YMLParameter
+            description: Intensity at q=0
+            name: i_zero
+            units: cm-1
+            value: 70.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Peak Lorentz:
+    -   param: !YMLParameter
+            description: HWHM of peak
+            name: peak_hwhm
+            units: "\u212B-1"
+            value: 0.005
+    -   param: !YMLParameter
+            description: Peak postion in q
+            name: peak_pos
+            units: "\u212B-1"
+            value: 0.05
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Poly Gauss Coil:
+    -   param: !YMLParameter
+            description: Polymer Mw/Mn
+            name: polydispersity
+            units: None
+            value: 2.0
+    -   param: !YMLParameter
+            description: Radius of gyration
+            name: rg
+            units: "\u212B"
+            value: 75.0
+    -   param: !YMLParameter
+            description: Intensity at q=0
+            name: i_zero
+            units: cm-1
+            value: 70.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Polymer Excl Volume:
+    -   param: !YMLParameter
+            description: Porod exponent
+            name: porod_exp
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: Radius of Gyration
+            name: rg
+            units: "\u212B"
+            value: 60.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Porod:
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Power Law:
+    -   param: !YMLParameter
+            description: Power law exponent
+            name: power
+            units: None
+            value: 4.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Rpa:
+    -   param: !YMLParameter
+            description: C:D interaction parameter
+            name: K34
+            units: None
+            value: -0.0004
+    -   param: !YMLParameter
+            description: B:D interaction parameter
+            name: K24
+            units: None
+            value: -0.0004
+    -   param: !YMLParameter
+            description: B:C interaction parameter
+            name: K23
+            units: None
+            value: -0.0004
+    -   param: !YMLParameter
+            description: A:D interaction parameter
+            name: K14
+            units: None
+            value: -0.0004
+    -   param: !YMLParameter
+            description: A:C interaction parameter
+            name: K13
+            units: None
+            value: -0.0004
+    -   param: !YMLParameter
+            description: A:B interaction parameter
+            name: K12
+            units: None
+            value: -0.0004
+    -   param: !YMLParameter
+            description: segment length
+            name: b[4]
+            units: "\u212B"
+            value: 5.0
+    -   param: !YMLParameter
+            description: scattering length
+            name: L[4]
+            units: fm
+            value: 10.0
+    -   param: !YMLParameter
+            description: molar volume
+            name: v[4]
+            units: mL/mol
+            value: 100.0
+    -   param: !YMLParameter
+            description: volume fraction
+            name: Phi[4]
+            units: None
+            value: 0.25
+    -   param: !YMLParameter
+            description: Degree of polymerization
+            name: N[4]
+            units: None
+            value: 1000.0
+    -   param: !YMLParameter
+            description: Component organization
+            name: case_num
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Spinodal:
+    -   param: !YMLParameter
+            description: Correlation peak position
+            name: q_0
+            units: "\u212B-1"
+            value: 0.1
+    -   param: !YMLParameter
+            description: Exponent
+            name: gamma
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: Scale factor
+            name: scale
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Star Polymer:
+    -   param: !YMLParameter
+            description: Number of arms in the model
+            name: arms
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: Ensemble radius of gyration SQUARED of an arm
+            name: rg_squared
+            units: Ang^2
+            value: 100.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Surface Fractal:
+    -   param: !YMLParameter
+            description: Cut-off Length
+            name: cutoff_length
+            units: "\u212B"
+            value: 500.0
+    -   param: !YMLParameter
+            description: Surface fractal dimension
+            name: fractal_dim_surf
+            units: None
+            value: 2.0
+    -   param: !YMLParameter
+            description: Particle radius
+            name: radius
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Teubner Strey:
+    -   param: !YMLParameter
+            description: Correlation length
+            name: xi
+            units: "\u212B"
+            value: 30.0
+    -   param: !YMLParameter
+            description: Domain size (periodicity)
+            name: d
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: SLD of phase b
+            name: sld_b
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: SLD of phase a
+            name: sld_a
+            units: "10-6\u212B-2"
+            value: 0.3
+    -   param: !YMLParameter
+            description: Volume fraction of phase a
+            name: volfraction_a
+            units: None
+            value: 0.5
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Two Lorentzian:
+    -   param: !YMLParameter
+            description: Second exponent of power law
+            name: lorentz_exp_2
+            units: None
+            value: 2.0
+    -   param: !YMLParameter
+            description: Second Lorentzian screening length
+            name: lorentz_length_2
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Second scale factor for broad Lorentzian peak
+            name: lorentz_scale_2
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: First exponent of power law
+            name: lorentz_exp_1
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: First Lorentzian screening length
+            name: lorentz_length_1
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: First power law scale factor
+            name: lorentz_scale_1
+            units: None
+            value: 10.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Two Power Law:
+    -   param: !YMLParameter
+            description: power law exponent at high Q
+            name: power_2
+            units: None
+            value: 4.0
+    -   param: !YMLParameter
+            description: power law exponent at low Q
+            name: power_1
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: crossover location
+            name: crossover
+            units: "\u212B-1"
+            value: 0.04
+    -   param: !YMLParameter
+            description: coefficent A in low Q region
+            name: coefficent_1
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Unified Power Rg:
+    -   param: !YMLParameter
+            description: "\_"
+            name: G[level]
+            units: cm-1
+            value: 400.0
+    -   param: !YMLParameter
+            description: "\_"
+            name: B[level]
+            units: cm-1
+            value: 4.5e-06
+    -   param: !YMLParameter
+            description: Power
+            name: power[level]
+            units: None
+            value: 4.0
+    -   param: !YMLParameter
+            description: Radius of gyration
+            name: rg[level]
+            units: "\u212B"
+            value: 15.8
+    -   param: !YMLParameter
+            description: Level number
+            name: level
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+Sphere Functions:
+    Adsorbed Layer:
+    -   param: !YMLParameter
+            description: Solvent SLD
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: Polymer shell SLD
+            name: sld_shell
+            units: "10-6\u212B-2"
+            value: 1.5
+    -   param: !YMLParameter
+            description: Core particle volume fraction
+            name: volfraction
+            units: None
+            value: 0.14
+    -   param: !YMLParameter
+            description: Core particle radius
+            name: radius
+            units: "\u212B"
+            value: 500.0
+    -   param: !YMLParameter
+            description: Bulk density of polymer in the shell
+            name: density_shell
+            units: "g\xB7cm-3"
+            value: 0.7
+    -   param: !YMLParameter
+            description: Adsorbed amount of polymer
+            name: adsorbed_amount
+            units: "mg\xB7m-2"
+            value: 1.9
+    -   param: !YMLParameter
+            description: Second moment of polymer distribution
+            name: second_moment
+            units: "\u212B"
+            value: 23.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Binary Hard Sphere:
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.36
+    -   param: !YMLParameter
+            description: scattering length density of small particle
+            name: sld_sm
+            units: "10-6\u212B-2"
+            value: 0.5
+    -   param: !YMLParameter
+            description: scattering length density of large particle
+            name: sld_lg
+            units: "10-6\u212B-2"
+            value: 3.5
+    -   param: !YMLParameter
+            description: volume fraction of small particle
+            name: volfraction_sm
+            units: None
+            value: 0.2
+    -   param: !YMLParameter
+            description: volume fraction of large particle
+            name: volfraction_lg
+            units: None
+            value: 0.1
+    -   param: !YMLParameter
+            description: radius of small particle
+            name: radius_sm
+            units: "\u212B"
+            value: 25.0
+    -   param: !YMLParameter
+            description: radius of large particle
+            name: radius_lg
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Core Multi Shell:
+    -   param: !YMLParameter
+            description: Thickness of shell k
+            name: thickness[n]
+            units: "\u212B"
+            value: 40.0
+    -   param: !YMLParameter
+            description: scattering length density of shell k
+            name: sld[n]
+            units: "10-6\u212B-2"
+            value: 1.7
+    -   param: !YMLParameter
+            description: number of shells
+            name: n
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.4
+    -   param: !YMLParameter
+            description: Radius of the core
+            name: radius
+            units: "\u212B"
+            value: 200.0
+    -   param: !YMLParameter
+            description: Core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Core Shell Sphere:
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 3.0
+    -   param: !YMLParameter
+            description: shell scattering length density
+            name: sld_shell
+            units: "10-6\u212B-2"
+            value: 2.0
+    -   param: !YMLParameter
+            description: core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Sphere shell thickness
+            name: thickness
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Sphere core radius
+            name: radius
+            units: "\u212B"
+            value: 60.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Fuzzy Sphere:
+    -   param: !YMLParameter
+            description: std deviation of Gaussian convolution for interface (must
+                be << radius)
+            name: fuzziness
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: Sphere radius
+            name: radius
+            units: "\u212B"
+            value: 60.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 3.0
+    -   param: !YMLParameter
+            description: Particle scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Linear Pearls:
+    -   param: !YMLParameter
+            description: SLD of the solvent
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.3
+    -   param: !YMLParameter
+            description: SLD of the pearl spheres
+            name: sld
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Number of the pearls
+            name: num_pearls
+            units: None
+            value: 3.0
+    -   param: !YMLParameter
+            description: Length of the string segment - surface to surface
+            name: edge_sep
+            units: "\u212B"
+            value: 350.0
+    -   param: !YMLParameter
+            description: Radius of the pearls
+            name: radius
+            units: "\u212B"
+            value: 80.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Multilayer Vesicle:
+    -   param: !YMLParameter
+            description: Number of shell plus solvent layer pairs
+            name: n_shells
+            units: None
+            value: 2.0
+    -   param: !YMLParameter
+            description: Shell scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 0.4
+    -   param: !YMLParameter
+            description: solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.4
+    -   param: !YMLParameter
+            description: solvent thickness between shells
+            name: thick_solvent
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: thickness of one shell
+            name: thick_shell
+            units: "\u212B"
+            value: 10.0
+    -   param: !YMLParameter
+            description: radius of solvent filled core
+            name: radius
+            units: "\u212B"
+            value: 60.0
+    -   param: !YMLParameter
+            description: volume fraction of vesicles
+            name: volfraction
+            units: None
+            value: 0.05
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Onion:
+    -   param: !YMLParameter
+            description: Decay rate of shell k
+            name: A[n_shells]
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Thickness of shell k
+            name: thickness[n_shells]
+            units: "\u212B"
+            value: 40.0
+    -   param: !YMLParameter
+            description: scattering length density at the outer radius of shell k
+            name: sld_out[n_shells]
+            units: "10-6\u212B-2"
+            value: 2.0
+    -   param: !YMLParameter
+            description: scattering length density at the inner radius of shell k
+            name: sld_in[n_shells]
+            units: "10-6\u212B-2"
+            value: 1.7
+    -   param: !YMLParameter
+            description: number of shells
+            name: n_shells
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.4
+    -   param: !YMLParameter
+            description: Radius of the core
+            name: radius_core
+            units: "\u212B"
+            value: 200.0
+    -   param: !YMLParameter
+            description: Core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Polymer Micelle:
+    -   param: !YMLParameter
+            description: Aggregation number of the micelle
+            name: n_aggreg
+            units: None
+            value: 6.0
+    -   param: !YMLParameter
+            description: Factor to mimic non-penetration of Gaussian chains
+            name: d_penetration
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Radius of gyration of chains in corona
+            name: rg
+            units: "\u212B"
+            value: 20.0
+    -   param: !YMLParameter
+            description: Radius of core ( must be >> rg )
+            name: radius_core
+            units: "\u212B"
+            value: 45.0
+    -   param: !YMLParameter
+            description: Corona scattering length density
+            name: sld_corona
+            units: "10-6\u212B-2"
+            value: 0.8
+    -   param: !YMLParameter
+            description: Core scattering length density
+            name: sld_core
+            units: "10-6\u212B-2"
+            value: 0.34
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.4
+    -   param: !YMLParameter
+            description: Corona volume
+            name: v_corona
+            units: "\u212B3"
+            value: 61940.0
+    -   param: !YMLParameter
+            description: Core volume
+            name: v_core
+            units: "\u212B3"
+            value: 62624.0
+    -   param: !YMLParameter
+            description: Number density of micelles
+            name: ndensity
+            units: 1015cm3
+            value: 8.94
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Raspberry:
+    -   param: !YMLParameter
+            description: fractional penetration depth of small spheres into large
+                sphere
+            name: penetration
+            units: "\u212B"
+            value: 0.0
+    -   param: !YMLParameter
+            description: radius of small spheres
+            name: radius_sm
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: radius of large spheres
+            name: radius_lg
+            units: "\u212B"
+            value: 5000.0
+    -   param: !YMLParameter
+            description: fraction of small spheres at surface
+            name: surface_fraction
+            units: None
+            value: 0.4
+    -   param: !YMLParameter
+            description: volume fraction of small spheres
+            name: volfraction_sm
+            units: None
+            value: 0.005
+    -   param: !YMLParameter
+            description: volume fraction of large spheres
+            name: volfraction_lg
+            units: None
+            value: 0.05
+    -   param: !YMLParameter
+            description: solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.36
+    -   param: !YMLParameter
+            description: small particle scattering length density
+            name: sld_sm
+            units: "10-6\u212B-2"
+            value: 3.5
+    -   param: !YMLParameter
+            description: large particle scattering length density
+            name: sld_lg
+            units: "10-6\u212B-2"
+            value: -0.4
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Sphere:
+    -   param: !YMLParameter
+            description: Sphere radius
+            name: radius
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.0
+    -   param: !YMLParameter
+            description: Layer scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Spherical Sld:
+    -   param: !YMLParameter
+            description: number of steps in each interface (must be an odd integer)
+            name: n_steps
+            units: None
+            value: 35.0
+    -   param: !YMLParameter
+            description: interface shape exponent
+            name: nu[n_shells]
+            units: None
+            value: 2.5
+    -   param: !YMLParameter
+            description: interface shape
+            name: shape[n_shells]
+            units: None
+            value: 0.0
+    -   param: !YMLParameter
+            description: thickness of the interface
+            name: interface[n_shells]
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: thickness shell
+            name: thickness[n_shells]
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: sld of the shell
+            name: sld[n_shells]
+            units: "10-6\u212B-2"
+            value: 4.06
+    -   param: !YMLParameter
+            description: solvent sld
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 1.0
+    -   param: !YMLParameter
+            description: number of shells
+            name: n_shells
+            units: None
+            value: 1.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Vesicle:
+    -   param: !YMLParameter
+            description: vesicle shell thickness
+            name: thickness
+            units: "\u212B"
+            value: 30.0
+    -   param: !YMLParameter
+            description: vesicle core radius
+            name: radius
+            units: "\u212B"
+            value: 100.0
+    -   param: !YMLParameter
+            description: volume fraction of shell
+            name: volfraction
+            units: None
+            value: 0.05
+    -   param: !YMLParameter
+            description: solvent scattering length density
+            name: sld_solvent
+            units: "10-6\u212B-2"
+            value: 6.36
+    -   param: !YMLParameter
+            description: vesicle shell scattering length density
+            name: sld
+            units: "10-6\u212B-2"
+            value: 0.5
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+Structure Factors:
+    Hardsphere:
+    -   param: !YMLParameter
+            description: volume fraction of hard spheres
+            name: volfraction
+            units: None
+            value: 0.2
+    -   param: !YMLParameter
+            description: effective radius of hard sphere
+            name: radius_effective
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Hayter Msa:
+    -   param: !YMLParameter
+            description: dielectric constant (relative permittivity) of solvent, default
+                water, for Debye length
+            name: dielectconst
+            units: None
+            value: 71.08
+    -   param: !YMLParameter
+            description: conc of salt, moles/litre, 1:1 electolyte, for Debye length
+            name: concentration_salt
+            units: M
+            value: 0.0
+    -   param: !YMLParameter
+            description: temperature, in Kelvin, for Debye length calculation
+            name: temperature
+            units: K
+            value: 318.16
+    -   param: !YMLParameter
+            description: charge on sphere (in electrons)
+            name: charge
+            units: e
+            value: 19.0
+    -   param: !YMLParameter
+            description: volume fraction of spheres
+            name: volfraction
+            units: None
+            value: 0.0192
+    -   param: !YMLParameter
+            description: effective radius of charged sphere
+            name: radius_effective
+            units: "\u212B"
+            value: 20.75
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Squarewell:
+    -   param: !YMLParameter
+            description: width of well in diameters (=2R) units, must be > 1
+            name: wellwidth
+            units: diameters
+            value: 1.2
+    -   param: !YMLParameter
+            description: depth of well, epsilon
+            name: welldepth
+            units: kT
+            value: 1.5
+    -   param: !YMLParameter
+            description: volume fraction of spheres
+            name: volfraction
+            units: None
+            value: 0.04
+    -   param: !YMLParameter
+            description: effective radius of hard sphere
+            name: radius_effective
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
+    Stickyhardsphere:
+    -   param: !YMLParameter
+            description: stickiness, tau
+            name: stickiness
+            units: None
+            value: 0.2
+    -   param: !YMLParameter
+            description: perturbation parameter, epsilon
+            name: perturb
+            units: None
+            value: 0.05
+    -   param: !YMLParameter
+            description: volume fraction of hard spheres
+            name: volfraction
+            units: None
+            value: 0.2
+    -   param: !YMLParameter
+            description: effective radius of hard sphere
+            name: radius_effective
+            units: "\u212B"
+            value: 50.0
+    -   param: !YMLParameter
+            description: Source background
+            name: background
+            units: cm-1
+            value: 0.001
+    -   param: !YMLParameter
+            description: Source intensity
+            name: scale
+            units: None
+            value: 1.0
