@@ -115,12 +115,19 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
             try:
                 if self.toolbar.cakeaction.isChecked():
                     self.setImage(result['cake'].value)
+                    break
                 elif self.toolbar.remeshaction.isChecked():
-                    self.setImage(result['remesh'].value)
-                elif self.toolbar.rawaction.isChecked():
-                    self.setHeader(self.header, self.field)
+                    self.setImage(result['remesh'].value)  # TODO: add checkbox to toolbar
+                    break
+                elif 'inpaint' in result:
+                    self.setImage(result['inpaint'].value)
+                    break
+
+
             except TypeError:
                 continue
+        else:  # if self.toolbar.rawaction.isChecked():
+            self.setHeader(self.header, self.field)
 
     def setResults(self, results):
         self.results = results
