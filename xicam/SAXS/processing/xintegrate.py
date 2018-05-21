@@ -27,7 +27,7 @@ class XIntegratePlugin(ProcessingPlugin):
         if self.flat.value is None: self.flat.value = np.ones_like(self.data.value)
         if self.mask.value is None: self.mask.value = np.zeros_like(self.data.value)
         self.I.value = np.sum((self.data.value - self.dark.value) * np.average(self.flat.value - self.dark.value) / (
-                    self.flat.value - self.dark.value), axis=0)
+                self.flat.value - self.dark.value) * np.logical_not(self.mask.value), axis=0)
         centerx = self.ai.value.getFit2D()['centerX']
         centerz = self.ai.value.getFit2D()['centerY']
         self.qx.value = self.ai.value.qFunction(np.array([centerz] * self.data.value.shape[1]),
