@@ -64,6 +64,7 @@ class SAXSPlugin(GUIPlugin):
         self.calibrationtoolbar = SAXSToolbar(self.calibrationtabview)
         self.reducetoolbar = SAXSToolbar(self.reducetabview)
         self.calibrationtabview.kwargs['toolbar'] = self.calibrationtoolbar
+        self.reducetoolbar = SAXSToolbar(self.reducetabview)
         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
 
         # Setup calibration widgets
@@ -81,8 +82,8 @@ class SAXSPlugin(GUIPlugin):
         self.displayeditor = WorkflowEditor(self.displayworkflow)
         self.reduceworkflow.attach(partial(self.doReduceWorkflow, self.reduceworkflow))
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
-        self.reduceplot = SAXSSpectra(self.reduceworkflow)
-        self.reduceplot.toolbar.sigDoWorkflow.connect(partial(self.doReduceWorkflow, self.reduceworkflow))
+        self.reduceplot = SAXSSpectra(self.reduceworkflow, self.reducetoolbar)
+        self.reducetoolbar.sigDoWorkflow.connect(partial(self.doReduceWorkflow, self.reduceworkflow))
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(partial(self.doReduceWorkflow, self.reduceworkflow))
@@ -102,7 +103,8 @@ class SAXSPlugin(GUIPlugin):
             'Reduce': GUILayout(self.reducetabview,
                                 bottom=self.reduceplot, right=self.reduceeditor, righttop=self.displayeditor,
                                 top=self.reducetoolbar),
-            'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar, bottom=SAXSSpectra(self.reduceworkflow))
+            'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar, bottom=self.reduceplot,
+                                 right=self.reduceeditor)
         }
         super(SAXSPlugin, self).__init__()
 
@@ -190,6 +192,7 @@ class SAXSPlugin(GUIPlugin):
         outputwidget.clear()
 
         def showReduce(*results):
+            self.reducetoolbar.updateReductionModes(results)
             outputwidget.appendResult(results)
 
         workflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')

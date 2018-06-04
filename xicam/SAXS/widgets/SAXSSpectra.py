@@ -15,7 +15,7 @@ from typing import Tuple
 class SAXSSpectra(QWidgetPlugin):
     name = 'SAXSSpectra'
 
-    def __init__(self, workflow: Workflow):
+    def __init__(self, workflow: Workflow, toolbar: QToolBar):
         super(SAXSSpectra, self).__init__()
 
         self._cache = {}  # cache is dict to allow future use of other keys as 'time' index
@@ -28,11 +28,11 @@ class SAXSSpectra(QWidgetPlugin):
             return ['{:.3f}'.format(.2 * np.pi / i) if i != 0 else '\u221E' for i in values]
 
         self.plotwidget.plotItem.axes['top']['item'].tickStrings = tickStrings
-        self.toolbar = SAXSSpectraToolbar()
+        self.toolbar = toolbar
         self.toolbar.sigPlotCache.connect(self.replot_all)
 
         hbox = QHBoxLayout()
-        hbox.addWidget(self.toolbar)
+        # hbox.addWidget(self.toolbar)
         hbox.addWidget(self.plotwidget)
         self.setLayout(hbox)
         self.setContentsMargins(0, 0, 0, 0)
@@ -49,26 +49,11 @@ class SAXSSpectra(QWidgetPlugin):
         self.plot_mode(result_cache)
 
     def plot_mode(self, resultset):
-        mode = self.toolbar.modeActionGroup.checkedAction().text()
+        xoutput, youtput = self.toolbar.reductionModes.currentData(256)
         for result in resultset:
-            try:
-                if mode == 'q (Azimuthal) Integration':
-                    self.plot(result['q'], result['I'])
-                    break
-                elif mode == 'χ (chi/Radial) Integration':
-                    self.plot(result['chi'], result['I'])
-                    break
-                elif mode == 'X (Horizontal) Integration':
-                    self.plot(result['qx'], result['I'])
-                    break
-                elif mode == 'Z (Vertical) Integration':
-                    self.plot(result['qz'], result['I'])
-                    break
-            except KeyError:
-                pass
-        else:
-            ex = KeyError('No data found in result')
-            msg.logError(ex)
+            if xoutput.name in result and youtput.name in result:
+                self.plot(result[xoutput.name], result[youtput.name])
+                return
 
     def replot_all(self, checked=True):
         if not checked: return
