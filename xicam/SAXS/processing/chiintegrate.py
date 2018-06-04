@@ -36,7 +36,7 @@ class ChiIntegratePlugin(ProcessingPlugin):
     chi = Output(description='Q bin center positions',
                  type=np.array)
     I = Output(description='Binned/pixel-split integrated intensity',
-               type=np.array)
+               type=np.array, hints={'plotx': ['chi']})
 
     def evaluate(self):
         self.I.value, q, chi = self.ai.value.integrate2d(data=nonesafe_flipud(self.data.value),

@@ -35,7 +35,7 @@ class QIntegratePlugin(ProcessingPlugin):
     q = Output(description='Q bin center positions',
                type=np.array)
     I = Output(description='Binned/pixel-split integrated intensity',
-               type=np.array)
+               type=np.array, hints={'plotx': ['q']})
 
     def evaluate(self):
         self.q.value, self.I.value = self.ai.value.integrate1d(data=nonesafe_flipud(self.data.value),
