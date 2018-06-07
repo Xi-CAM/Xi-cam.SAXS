@@ -1,4 +1,4 @@
-from xicam.plugins import ProcessingPlugin, Input, Output
+from xicam.plugins import ProcessingPlugin, Input, Output, PlotHint
 import numpy as np
 from pyFAI import AzimuthalIntegrator, units
 
@@ -34,21 +34,23 @@ class QIntegratePlugin(ProcessingPlugin):
                                  type=float, default=1.)
     q = Output(description='Q bin center positions',
                type=np.array)
-    I = Output(description='Binned/pixel-split integrated intensity',
-               type=np.array, hints={'plotx': ['q']})
+    Iq = Output(description='Binned/pixel-split integrated intensity',
+                type=np.array)
+
+    hints = [PlotHint(q, Iq)]
 
     def evaluate(self):
-        self.q.value, self.I.value = self.ai.value.integrate1d(data=nonesafe_flipud(self.data.value),
-                                                               npt=self.npt.value,
-                                                               radial_range=self.radial_range.value,
-                                                               azimuth_range=self.azimuth_range.value,
-                                                               mask=nonesafe_flipud(self.mask.value),
-                                                               polarization_factor=self.polz_factor.value,
-                                                               dark=nonesafe_flipud(self.dark.value),
-                                                               flat=nonesafe_flipud(self.flat.value),
-                                                               method=self.method.value,
-                                                               unit=self.unit.value,
-                                                               normalization_factor=self.normalization_factor.value)
+        self.q.value, self.Iq.value = self.ai.value.integrate1d(data=nonesafe_flipud(self.data.value),
+                                                                npt=self.npt.value,
+                                                                radial_range=self.radial_range.value,
+                                                                azimuth_range=self.azimuth_range.value,
+                                                                mask=nonesafe_flipud(self.mask.value),
+                                                                polarization_factor=self.polz_factor.value,
+                                                                dark=nonesafe_flipud(self.dark.value),
+                                                                flat=nonesafe_flipud(self.flat.value),
+                                                                method=self.method.value,
+                                                                unit=self.unit.value,
+                                                                normalization_factor=self.normalization_factor.value)
 
 
 def nonesafe_flipud(data: np.ndarray):

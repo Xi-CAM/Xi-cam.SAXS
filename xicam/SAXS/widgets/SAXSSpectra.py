@@ -49,11 +49,12 @@ class SAXSSpectra(QWidgetPlugin):
         self.plot_mode(result_cache)
 
     def plot_mode(self, resultset):
-        xoutput, youtput = self.toolbar.reductionModes.currentData(256)
-        for result in resultset:
-            if xoutput.name in result and youtput.name in result:
-                self.plot(result[xoutput.name], result[youtput.name])
-                return
+        checkedindices = self.toolbar.reductionModesModel.checkedIndices()
+        for xoutput, youtput in [(checkedindex.internalPointer().x, checkedindex.internalPointer().y) for checkedindex
+                                 in checkedindices]:
+            for result in resultset:
+                if xoutput.name in result and youtput.name in result:
+                    self.plot(result[xoutput.name], result[youtput.name])
 
     def replot_all(self, checked=True):
         if not checked: return

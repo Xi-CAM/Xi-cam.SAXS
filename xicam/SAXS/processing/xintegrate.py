@@ -1,4 +1,4 @@
-from xicam.plugins import ProcessingPlugin, Input, Output
+from xicam.plugins import ProcessingPlugin, Input, Output, PlotHint
 import numpy as np
 from pyFAI import AzimuthalIntegrator, units
 
@@ -19,14 +19,16 @@ class XIntegratePlugin(ProcessingPlugin):
                                  type=float, default=1.)
     qx = Output(description='Q_x bin center positions',
                 type=np.array)
-    I = Output(description='Binned/pixel-split integrated intensity',
-               type=np.array)
+    Ix = Output(description='Binned/pixel-split integrated intensity',
+                type=np.array)
+
+    hints = [PlotHint(qx, Ix)]
 
     def evaluate(self):
         if self.dark.value is None: self.dark.value = np.zeros_like(self.data.value)
         if self.flat.value is None: self.flat.value = np.ones_like(self.data.value)
         if self.mask.value is None: self.mask.value = np.zeros_like(self.data.value)
-        self.I.value = np.sum((self.data.value - self.dark.value) * np.average(self.flat.value - self.dark.value) / (
+        self.Ix.value = np.sum((self.data.value - self.dark.value) * np.average(self.flat.value - self.dark.value) / (
                 self.flat.value - self.dark.value) * np.logical_not(self.mask.value), axis=0)
         centerx = self.ai.value.getFit2D()['centerX']
         centerz = self.ai.value.getFit2D()['centerY']

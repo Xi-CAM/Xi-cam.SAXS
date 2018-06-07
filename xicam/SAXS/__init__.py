@@ -61,10 +61,9 @@ class SAXSPlugin(GUIPlugin):
             [self.calibrationtabview, self.masktabview, self.reducetabview, self.comparemultiview.leftTabView])
 
         # Setup toolbars
-        self.calibrationtoolbar = SAXSToolbar(self.calibrationtabview)
-        self.reducetoolbar = SAXSToolbar(self.reducetabview)
+        self.calibrationtoolbar = SAXSToolbar(self.calibrationtabview, workflow=self.reduceworkflow)
+        self.reducetoolbar = SAXSToolbar(self.reducetabview, workflow=self.reduceworkflow)
         self.calibrationtabview.kwargs['toolbar'] = self.calibrationtoolbar
-        self.reducetoolbar = SAXSToolbar(self.reducetabview)
         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
 
         # Setup calibration widgets
@@ -192,7 +191,6 @@ class SAXSPlugin(GUIPlugin):
         outputwidget.clear()
 
         def showReduce(*results):
-            self.reducetoolbar.updateReductionModes(results)
             outputwidget.appendResult(results)
 
         workflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
