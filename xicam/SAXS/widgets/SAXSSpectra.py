@@ -6,15 +6,19 @@ from pyqtgraph import PlotWidget
 import numpy as np
 from xicam.gui.static import path
 from xicam.core.execution.workflow import Workflow
+from xicam.core import msg
+from functools import partial
+from copy import deepcopy
+from typing import Tuple
 
 
 class SAXSSpectra(QWidgetPlugin):
     name = 'SAXSSpectra'
 
-    def __init__(self, workflow: Workflow):
+    def __init__(self, workflow: Workflow, toolbar: QToolBar):
         super(SAXSSpectra, self).__init__()
 
-        self.results = []
+        self._cache = {}  # cache is dict to allow future use of other keys as 'time' index
         self.workflow = workflow
 
         self.plotwidget = PlotWidget(
@@ -24,38 +28,45 @@ class SAXSSpectra(QWidgetPlugin):
             return ['{:.3f}'.format(.2 * np.pi / i) if i != 0 else '\u221E' for i in values]
 
         self.plotwidget.plotItem.axes['top']['item'].tickStrings = tickStrings
-        self.toolbar = SAXSSpectraToolbar()
-        self.toolbar.sigReplot.connect(self.replot)
+        self.toolbar = toolbar
+        self.toolbar.sigPlotCache.connect(self.replot_all)
 
         hbox = QHBoxLayout()
-        hbox.addWidget(self.toolbar)
+        # hbox.addWidget(self.toolbar)
         hbox.addWidget(self.plotwidget)
         self.setLayout(hbox)
         self.setContentsMargins(0, 0, 0, 0)
         hbox.setSpacing(0)
 
-    def setResults(self, results):
-        self.results = results
-        self.replot()
-
-    def replot(self):
+    def setResult(self, result: Tuple[dict]):
         self.clear()
-        mode = self.toolbar.modeActionGroup.checkedAction().text()
+        self._cache[0] = tuple({k: v.value for k, v in r.items()} for r in result)
+        self.replot_all()
 
-        for result in self.results:
-            try:
-                if mode == 'q (Azimuthal) Integration':
-                    self.plot(result['q'].value, result['I'].value)
-                elif mode == 'χ (chi/Radial) Integration':
-                    self.plot(result['chi'].value, result['I'].value)
-                elif mode == 'X (Horizontal) Integration':
-                    self.plot(result['qx'].value, result['I'].value)
-                elif mode == 'Z (Vertical) Integration':
-                    self.plot(result['qz'].value, result['I'].value)
-            except KeyError:
-                continue
+    def appendResult(self, result):
+        result_cache = tuple({k: v.value for k, v in r.items()} for r in result)
+        self._cache[len(self._cache)] = result_cache
+        self.plot_mode(result_cache)
 
-    def __getattr__(self, attr):  ## implicitly wrap methods from plotWidget
+    def plot_mode(self, resultset):
+        checkedindices = self.toolbar.reductionModesModel.checkedIndices()
+        for xoutput, youtput in [(checkedindex.internalPointer().x, checkedindex.internalPointer().y) for checkedindex
+                                 in checkedindices]:
+            for result in resultset:
+                if xoutput.name in result and youtput.name in result:
+                    self.plot(result[xoutput.name], result[youtput.name])
+
+    def replot_all(self, checked=True):
+        if not checked: return
+        self.plotwidget.clear()
+        for result in self._cache.values():
+            self.plot_mode(result)
+
+    def clear(self):
+        self.plotwidget.clear()
+        self._cache = {}
+
+    def __getattr__(self, attr):  # implicitly wrap methods from plotWidget
         if hasattr(self.plotwidget, attr):
             m = getattr(self.plotwidget, attr)
             if hasattr(m, '__call__'):
@@ -64,7 +75,8 @@ class SAXSSpectra(QWidgetPlugin):
 
 
 class SAXSSpectraToolbar(QWidget):
-    sigReplot = Signal()
+    sigPlotCache = Signal()
+    sigDoWorkflow = Signal()
 
     def __init__(self):
         super(SAXSSpectraToolbar, self).__init__()
@@ -81,31 +93,32 @@ class SAXSSpectraToolbar(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         self.modeActionGroup = QActionGroup(self)
-        qbtn = self.mkGroupToggle('icons/q.png', text='q (Azimuthal) Integration', receiver=self.sigReplot.emit)
+        qbtn = self.mkGroupToggle('icons/q.png', text='q (Azimuthal) Integration', receiver=self.sigPlotCache.emit)
         qbtn.setChecked(True)
         modetoolbar.addAction(qbtn)
         modetoolbar.addAction(
-            self.mkGroupToggle('icons/chi.png', text='χ (chi/Radial) Integration', receiver=self.sigReplot.emit))
+            self.mkGroupToggle('icons/chi.png', text='χ (chi/Radial) Integration', receiver=self.sigPlotCache.emit))
         modetoolbar.addAction(
-            self.mkGroupToggle('icons/x.png', text='X (Horizontal) Integration', receiver=self.sigReplot.emit))
+            self.mkGroupToggle('icons/x.png', text='X (Horizontal) Integration', receiver=self.sigPlotCache.emit))
         modetoolbar.addAction(
-            self.mkGroupToggle('icons/z.png', text='Z (Vertical) Integration', receiver=self.sigReplot.emit))
-        modetoolbar.addAction(self.mkGroupToggle('icons/G.png', text='Guinier Plot', receiver=self.sigReplot.emit))
-        modetoolbar.addAction(self.mkGroupToggle('icons/P.png', text='Porod Plot', receiver=self.sigReplot.emit))
-        modetoolbar.addAction(self.mkGroupToggle('icons/Iq2.png', text='I×q\u00B2', receiver=self.sigReplot.emit))
-        modetoolbar.addAction(self.mkGroupToggle('icons/Iq3.png', text='I×q\u00B3', receiver=self.sigReplot.emit))
-        modetoolbar.addAction(self.mkGroupToggle('icons/Iq4.png', text='I×q\u0074', receiver=self.sigReplot.emit))
+            self.mkGroupToggle('icons/z.png', text='Z (Vertical) Integration', receiver=self.sigPlotCache.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/G.png', text='Guinier Plot', receiver=self.sigPlotCache.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/P.png', text='Porod Plot', receiver=self.sigPlotCache.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/Iq2.png', text='I×q\u00B2', receiver=self.sigPlotCache.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/Iq3.png', text='I×q\u00B3', receiver=self.sigPlotCache.emit))
+        modetoolbar.addAction(self.mkGroupToggle('icons/Iq4.png', text='I×q\u0074', receiver=self.sigPlotCache.emit))
         modetoolbar.addAction(self.mkGroupToggle('icons/gofr.png', text='Electron Density Correlation Function',
-                                                 receiver=self.sigReplot.emit))
+                                                 receiver=self.sigPlotCache.emit))
         modetoolbar.addAction(
-            self.mkGroupToggle('icons/gofrvec.png', text='Pair Distribution Function', receiver=self.sigReplot.emit))
+            self.mkGroupToggle('icons/gofrvec.png', text='Pair Distribution Function', receiver=self.sigPlotCache.emit))
 
-        multiplot = QAction(self)
-        multiplot.setIcon(QIcon(str(path('icons/multiplot.png'))))
-        multiplot.setText('Plot Series')
-        multiplot.setCheckable(True)
+        self.multiplot = QAction(self)
+        self.multiplot.setIcon(QIcon(str(path('icons/multiplot.png'))))
+        self.multiplot.setText('Plot Series')
+        self.multiplot.setCheckable(True)
+        self.multiplot.triggered.connect(self.sigDoWorkflow)
         optionstoolbar.addSeparator()
-        optionstoolbar.addAction(multiplot)
+        optionstoolbar.addAction(self.multiplot)
         optionstoolbar.addAction(QIcon(str(path('icons/blackwhite.png'))), 'Toggle Theme')
         optionstoolbar.addAction(QIcon(str(path('icons/configure.png'))), 'Configure Plot')
 

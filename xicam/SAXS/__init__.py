@@ -38,6 +38,12 @@ class SAXSPlugin(GUIPlugin):
         # Data model
         self.headermodel = QStandardItemModel()
 
+        # Initialize workflows
+        self.maskingworkflow = MaskingWorkflow()
+        self.simulateworkflow = SimulateWorkflow()
+        self.displayworkflow = DisplayWorkflow()
+        self.reduceworkflow = ReduceWorkflow()
+
         # Setup TabViews
         self.calibrationtabview = TabView(self.headermodel,
                                           pluginmanager.getPluginByName('SAXSViewerPlugin',
@@ -48,15 +54,15 @@ class SAXSPlugin(GUIPlugin):
                                    'primary')
         self.reducetabview = TabView(self.headermodel,
                                      pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object,
-                                     'primary')
+                                     'primary', bindings=[('sigTimeChangeFinished', self.indexChanged)])
         self.comparemultiview = SAXSMultiViewerPlugin(self.headermodel)
 
         self.tabviewsynchronizer = TabViewSynchronizer(
             [self.calibrationtabview, self.masktabview, self.reducetabview, self.comparemultiview.leftTabView])
 
         # Setup toolbars
-        self.calibrationtoolbar = SAXSToolbar(self.calibrationtabview)
-        self.reducetoolbar = SAXSToolbar(self.reducetabview)
+        self.calibrationtoolbar = SAXSToolbar(self.calibrationtabview, workflow=self.reduceworkflow)
+        self.reducetoolbar = SAXSToolbar(self.reducetabview, workflow=self.reduceworkflow)
         self.calibrationtabview.kwargs['toolbar'] = self.calibrationtoolbar
         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
 
@@ -68,19 +74,15 @@ class SAXSPlugin(GUIPlugin):
         self.calibrationpanel.sigDoCalibrateWorkflow.connect(self.doCalibrateWorkflow)
 
         # Setup masking widgets
-        self.maskingworkflow = MaskingWorkflow()
         self.maskeditor = WorkflowEditor(self.maskingworkflow)
         self.maskeditor.sigWorkflowChanged.connect(self.doMaskingWorkflow)
 
         # Setup reduction widgets
-        self.simulateworkflow = SimulateWorkflow()
-        self.displayworkflow = DisplayWorkflow()
         self.displayeditor = WorkflowEditor(self.displayworkflow)
-        self.reduceworkflow = ReduceWorkflow()
         self.reduceworkflow.attach(partial(self.doReduceWorkflow, self.reduceworkflow))
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
-        self.reduceplot = pluginmanager.getPluginByName('SAXSSpectra', 'WidgetPlugin').plugin_object(
-            self.reduceworkflow)
+        self.reduceplot = SAXSSpectra(self.reduceworkflow, self.reducetoolbar)
+        self.reducetoolbar.sigDoWorkflow.connect(partial(self.doReduceWorkflow, self.reduceworkflow))
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(partial(self.doReduceWorkflow, self.reduceworkflow))
@@ -100,9 +102,17 @@ class SAXSPlugin(GUIPlugin):
             'Reduce': GUILayout(self.reducetabview,
                                 bottom=self.reduceplot, right=self.reduceeditor, righttop=self.displayeditor,
                                 top=self.reducetoolbar),
-            'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar, bottom=SAXSSpectra(self.reduceworkflow))
+            'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar, bottom=self.reduceplot,
+                                 right=self.reduceeditor)
         }
         super(SAXSPlugin, self).__init__()
+
+    def experimentChanged(self):
+        self.doReduceWorkflow(self.reduceworkflow)
+
+    def indexChanged(self):
+        if not self.reduceplot.toolbar.multiplot.isChecked():
+            self.doReduceWorkflow(self.reduceworkflow)
 
     def appendHeader(self, header: NonDBHeader, **kwargs):
         item = QStandardItem(header.startdoc.get('sample_name', '????'))
@@ -154,12 +164,12 @@ class SAXSPlugin(GUIPlugin):
             workflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
 
     def doDisplayWorkflow(self, workflow: Workflow):
-        data = self.calibrationtabview.currentWidget().header.meta_array('primary')[
-            self.reducetabview.selectionmodel.currentIndex()]
+        currentwidget = self.reducetabview.currentWidget()
+        data = currentwidget.header.meta_array('primary')[currentwidget.timeIndex(currentwidget.timeLine)[0]]
         ai = self.calibrationsettings.AI('pilatus2M')
         ai.detector = detectors.Pilatus2M()
         mask = self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None
-        outputwidget = self.reducetabview.currentWidget()
+        outputwidget = currentwidget
 
         def showDisplay(*results):
             outputwidget.setResults(results)
@@ -167,18 +177,23 @@ class SAXSPlugin(GUIPlugin):
         workflow.execute(None, data=data, ai=ai, mask=mask, callback_slot=showDisplay, threadkey='display')
 
     def doReduceWorkflow(self, workflow: Workflow):
-        data = self.calibrationtabview.currentWidget().header.meta_array('primary')[
-            self.reducetabview.selectionmodel.currentIndex()]
+        multimode = self.reduceplot.toolbar.multiplot.isChecked()
+        currentwidget = self.reducetabview.currentWidget()
+        data = currentwidget.header.meta_array('primary')
+        if not multimode:
+            data = [data[currentwidget.timeIndex(currentwidget.timeLine)[0]]]
         ai = self.calibrationsettings.AI('pilatus2M')
         ai.detector = detectors.Pilatus2M()
-        mask = self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None
+        ai = [ai] * len(data)
+        mask = [self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None] * len(
+            data)
         outputwidget = self.reduceplot
+        outputwidget.clear()
 
         def showReduce(*results):
-            outputwidget.clear()
-            outputwidget.setResults(results)
+            outputwidget.appendResult(results)
 
-        workflow.execute(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
+        workflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
 
     def checkPolygonsSet(self, workflow: Workflow):
         """
