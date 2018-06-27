@@ -1,15 +1,14 @@
-import pyFAI
-import numpy
-
-import logging
-
-logger = logging.getLogger("pyFAI.azimuthalIntegrator")
-
+# import pyFAI
+# import numpy
+#
+# import logging
+#
+# logger = logging.getLogger("pyFAI.azimuthalIntegrator")
+#
 # class Detector(pyFAI.Detector):
 #     __statevars = (
 #         '_pixel1', '_pixel2', '_pixel_corners', '_binning', '_mask', '_mask_crc', '_maskfile', '_splineFile', '_dx',
-#         '_dy',
-#         '_flatfield', '_flatfield_crc', '_darkcurrent', '_darkcurrent_crc', '_splineCache', 'shape')
+#         '_dy', '_flatfield', '_flatfield_crc', '_darkcurrent', '_darkcurrent_crc', '_splineCache', 'shape')
 #
 #     def __getnewargs_ex__(self):
 #         return ((self.pixel1, self.pixel2, self.splineFile, self.max_shape), {})
@@ -22,9 +21,9 @@ logger = logging.getLogger("pyFAI.azimuthalIntegrator")
 #         for statevar, varkey in zip(state, self.__statevars):
 #             setattr(self, varkey, statevar)
 #         self.engines = {}
-
-
-# monkey patch to correct auto-inversion of masks when 'numpy' is used
+#
+#
+# # monkey patch to correct auto-inversion of masks when 'numpy' is used
 # class AzimuthalIntegrator(pyFAI.AzimuthalIntegrator):
 #     def create_mask(self, data, mask=None,
 #                     dummy=None, delta_dummy=None, mode="normal"):
@@ -115,24 +114,24 @@ logger = logging.getLogger("pyFAI.azimuthalIntegrator")
 #
 #
 # pyFAI.__dict__['AzimuthalIntegrator'] = AzimuthalIntegrator
-
-
+#
+#
 # new_ALL_DETECTORS = {}
 # new_ALL_DETECTORS['Detector'] = pyFAI.detectors.__dict__['Detector'] = pyFAI.__dict__['Detector'] = Detector
-
-from distributed.protocol.serialize import register_serialization
-import dill
-def dilldumps(x):
-    return {}, [dill.dumps(x)]
-
-
-def dillloads(header, frames):
-    return dill.loads(frames[0])
-
-
-register_serialization(pyFAI.AzimuthalIntegrator, dilldumps, dillloads)
-register_serialization(pyFAI.Detector, dilldumps, dillloads)
-
+#
+# from distributed.protocol.serialize import register_serialization
+# import dill
+# def dilldumps(x):
+#     return {}, [dill.dumps(x)]
+#
+#
+# def dillloads(header, frames):
+#     return dill.loads(frames[0])
+#
+#
+# register_serialization(pyFAI.AzimuthalIntegrator, dilldumps, dillloads)
+# register_serialization(pyFAI.Detector, dilldumps, dillloads)
+#
 # for name, detector in pyFAI.detectors.ALL_DETECTORS.items():
 #     if name != 'detector':
 #         new_ALL_DETECTORS['name'] = type(detector.__name__, tuple(
@@ -140,7 +139,10 @@ register_serialization(pyFAI.Detector, dilldumps, dillloads)
 #                                          dict(detector.__dict__))
 #
 #     register_serialization(detector, dilldumps, dillloads)
-
-from pyFAI.calibrant import Calibrant
-
-register_serialization(Calibrant, dilldumps, dillloads)
+#
+# from pyFAI.calibrant import Calibrant
+#
+# register_serialization(Calibrant, dilldumps, dillloads)
+from pyFAI import geometry
+from pyFAI import detectors
+from pyFAI import calibrant
