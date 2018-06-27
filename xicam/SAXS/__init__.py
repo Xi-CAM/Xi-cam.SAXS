@@ -79,7 +79,6 @@ class SAXSPlugin(GUIPlugin):
 
         # Setup reduction widgets
         self.displayeditor = WorkflowEditor(self.displayworkflow)
-        self.reduceworkflow.attach(partial(self.doReduceWorkflow, self.reduceworkflow))
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
         self.reduceplot = SAXSSpectra(self.reduceworkflow, self.reducetoolbar)
         self.reducetoolbar.sigDoWorkflow.connect(partial(self.doReduceWorkflow, self.reduceworkflow))
@@ -128,7 +127,7 @@ class SAXSPlugin(GUIPlugin):
         c = calibrant.ALL_CALIBRANTS('AgBh')
 
         def setAI(result):
-            self.calibrationsettings.setAI(result['ai'].value, device)
+            self.calibrationsettings.setAI(result[0]['ai'].value, device)
             self.doMaskingWorkflow(self.maskingworkflow)
 
         workflow.execute(None, data=data, ai=ai, calibrant=c, callback_slot=setAI, threadkey='calibrate')
@@ -188,7 +187,7 @@ class SAXSPlugin(GUIPlugin):
         mask = [self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None] * len(
             data)
         outputwidget = self.reduceplot
-        outputwidget.clear()
+        outputwidget.clear_all()
 
         def showReduce(*results):
             outputwidget.appendResult(results)

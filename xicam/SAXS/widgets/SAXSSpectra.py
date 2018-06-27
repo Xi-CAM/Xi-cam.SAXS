@@ -2,13 +2,11 @@ from qtpy.QtWidgets import *
 from qtpy.QtGui import *
 from qtpy.QtCore import *
 from xicam.plugins.WidgetPlugin import QWidgetPlugin
-from pyqtgraph import PlotWidget
+from pyqtgraph import PlotWidget, PlotDataItem, intColor, mkPen
+from pyqtgraph.graphicsItems.LegendItem import ItemSample
 import numpy as np
 from xicam.gui.static import path
 from xicam.core.execution.workflow import Workflow
-from xicam.core import msg
-from functools import partial
-from copy import deepcopy
 from typing import Tuple
 
 
@@ -31,6 +29,8 @@ class SAXSSpectra(QWidgetPlugin):
         self.toolbar = toolbar
         self.toolbar.sigPlotCache.connect(self.replot_all)
 
+        self.legend = self.plotwidget.addLegend()
+
         hbox = QHBoxLayout()
         # hbox.addWidget(self.toolbar)
         hbox.addWidget(self.plotwidget)
@@ -39,7 +39,7 @@ class SAXSSpectra(QWidgetPlugin):
         hbox.setSpacing(0)
 
     def setResult(self, result: Tuple[dict]):
-        self.clear()
+        self.clear_all()
         self._cache[0] = tuple({k: v.value for k, v in r.items()} for r in result)
         self.replot_all()
 
@@ -50,11 +50,26 @@ class SAXSSpectra(QWidgetPlugin):
 
     def plot_mode(self, resultset):
         checkedindices = self.toolbar.reductionModesModel.checkedIndices()
-        for xoutput, youtput in [(checkedindex.internalPointer().x, checkedindex.internalPointer().y) for checkedindex
-                                 in checkedindices]:
+        for name, xoutput, youtput in [
+            (checkedindex.internalPointer().name, checkedindex.internalPointer().x, checkedindex.internalPointer().y)
+            for checkedindex
+            in checkedindices]:
             for result in resultset:
                 if xoutput.name in result and youtput.name in result:
-                    self.plot(result[xoutput.name], result[youtput.name])
+                    self.plot(result[xoutput.name], result[youtput.name], name=name)
+
+        self._auto_pen()
+
+    def plot(self, *args, **kwargs):
+        self.plotwidget.plotItem.plot(*args, **kwargs)
+
+    def _auto_pen(self):
+        count = len(self.plotwidget.scene().items())
+        self.clear_legend()
+        for i, item in enumerate(self.plotwidget.scene().items()):
+            if isinstance(item, PlotDataItem):
+                item.setPen(mkPen(intColor(i, values=count), width=2))
+                self.legend.addItem(item, item.name())
 
     def replot_all(self, checked=True):
         if not checked: return
@@ -62,16 +77,18 @@ class SAXSSpectra(QWidgetPlugin):
         for result in self._cache.values():
             self.plot_mode(result)
 
-    def clear(self):
+    def clear_all(self):
         self.plotwidget.clear()
+        self.legend.items = []
         self._cache = {}
 
-    def __getattr__(self, attr):  # implicitly wrap methods from plotWidget
-        if hasattr(self.plotwidget, attr):
-            m = getattr(self.plotwidget, attr)
-            if hasattr(m, '__call__'):
-                return m
-        raise NameError(attr)
+    def clear_legend(self):
+        self.legend.scene().removeItem(self.legend)
+        self.legend = self.plotwidget.addLegend()
+
+    @property
+    def inputs(self):
+        return super(SAXSSpectra, self).inputs()
 
 
 class SAXSSpectraToolbar(QWidget):

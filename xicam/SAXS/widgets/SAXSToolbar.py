@@ -44,6 +44,7 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
         self.addWidget(self.reductionModesButton)
         self.reductionModesModel = CheckableWorkflowOutputModel(workflow)
         self.reductionMenu.model = self.reductionModesModel
+        self.reductionMenu.action_triggered.connect(self.sigPlotCache.emit)
         # self.reductionModes.currentIndexChanged.connect(self.sigPlotCache)
 
         self.multiplot = QAction(self)
@@ -113,6 +114,7 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
         if isinstance(node, ProcessingPlugin):
             return QModelIndex()
         if isinstance(node, Hint):
+            if node.parent not in self.workflow.processes: return QModelIndex()
             return self.createIndex(self.workflow.processes.index(node.parent), 0, node.parent)
 
         return QModelIndex()
@@ -120,12 +122,10 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
     def rowCount(self, parent=None, *args, **kwargs):
 
         if parent is None or not parent.isValid():
-            print('root', 'has', len(self.workflow.processes), 'children')
             return len(self.workflow.processes)
 
         node = parent.internalPointer()
         if isinstance(node, ProcessingPlugin):
-            print(node, 'has', len(node.hints), 'children')
             return len(node.hints)
 
         return 0
@@ -136,7 +136,7 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
     def data(self, index: QModelIndex, role):
         if role == Qt.DisplayRole:
             return index.internalPointer().name
-        elif role == Qt.CheckStateRole:
+        elif role == Qt.CheckStateRole and isinstance(index.internalPointer(), Hint):
             return index.internalPointer().checked
 
     def setData(self, index: QModelIndex, value, role=Qt.EditRole):
