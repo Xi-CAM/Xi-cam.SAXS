@@ -1,0 +1,9 @@
+[Core]
+Name = Q Fit (SASView Model)
+Module = sasmodelfit.py
+
+[Documentation]
+Author = Ronald J. Pandolfi
+Version = 0.1.0
+Website = http://lotsofplugins.com
+Description = My first plugin

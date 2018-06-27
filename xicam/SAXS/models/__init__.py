@@ -19,7 +19,7 @@ class SASModelsWidget(QWidgetPlugin):
     '''
         documentation:
     '''
-    name = 'SASModel'
+    name = 'SASModels'
 
     fitters = OrderedDict({
         'LinearLSQFitter': fitting.LinearLSQFitter,
