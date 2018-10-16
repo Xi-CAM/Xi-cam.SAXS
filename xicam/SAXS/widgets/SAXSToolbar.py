@@ -14,6 +14,7 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
     name = 'SAXSToolbar'
     sigPlotCache = Signal()
     sigDoWorkflow = Signal()
+    sigDeviceChanged = Signal(str)
 
     def __init__(self, tabwidget: QTabWidget, workflow: Workflow):
         super(SAXSToolbar, self).__init__()
@@ -23,7 +24,7 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
         self.tabwidget = tabwidget
 
         self.detectorcombobox = QComboBox()
-        self.tabwidget.model.dataChanged.connect(self.updatedetectorcombobox)
+        self.detectorcombobox.currentTextChanged.connect(self.sigDeviceChanged)
 
         self.addWidget(self.detectorcombobox)
         self.addSeparator()
