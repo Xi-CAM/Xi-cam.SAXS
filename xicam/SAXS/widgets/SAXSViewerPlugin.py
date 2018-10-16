@@ -7,11 +7,13 @@ from qtpy.QtGui import *
 import numpy as np
 from xicam.core import msg
 from xicam.gui.widgets.dynimageview import DynImageView
+from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons
 import pyqtgraph as pg
 
 
-class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
-    def __init__(self, header: NonDBHeader = None, field: str = 'primary', toolbar: QToolBar = None, *args, **kwargs):
+class SAXSViewerPlugin(CenterMarker, BetterButtons, QCoordinates, Crosshair, DynImageView):
+
+    def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, *args, **kwargs):
 
         # Add q axes
         self.axesItem = PlotItem()
@@ -24,36 +26,9 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
         super(SAXSViewerPlugin, self).__init__(**kwargs)
         self.axesItem.invertY(False)
 
-        # Setup axes reset button
-        self.resetAxesBtn = QPushButton('Reset Axes')
-        sizePolicy = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.resetAxesBtn.sizePolicy().hasHeightForWidth())
-        self.resetAxesBtn.setSizePolicy(sizePolicy)
-        self.resetAxesBtn.setObjectName("resetAxes")
-        self.ui.gridLayout.addWidget(self.resetAxesBtn, 2, 1, 1, 1)
-        self.resetAxesBtn.clicked.connect(self.autoRange)
-
-        # Setup LUT reset button
-        self.resetLUTBtn = QPushButton('Reset LUT')
-        sizePolicy = QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.resetLUTBtn.sizePolicy().hasHeightForWidth())
-        # self.resetLUTBtn.setSizePolicy(sizePolicy)
-        # self.resetLUTBtn.setObjectName("resetLUTBtn")
-        self.ui.gridLayout.addWidget(self.resetLUTBtn, 3, 1, 1, 1)
-        self.resetLUTBtn.clicked.connect(self.autoLevels)
-
-        # Hide ROI button and rearrange
-        self.ui.roiBtn.setParent(None)
-        self.ui.gridLayout.addWidget(self.ui.menuBtn, 1, 1, 1, 1)
-        self.ui.gridLayout.addWidget(self.ui.graphicsView, 0, 0, 3, 1)
-
         # Setup coordinates label
-        self.coordinatesLbl = QLabel('--COORDINATES WILL GO HERE--')
-        self.ui.gridLayout.addWidget(self.coordinatesLbl, 3, 0, 1, 1, alignment=Qt.AlignHCenter)
+        # self.coordinatesLbl = QLabel('--COORDINATES WILL GO HERE--')
+        # self.ui.gridLayout.addWidget(self.coordinatesLbl, 3, 0, 1, 1, alignment=Qt.AlignHCenter)
 
         # Setup mask layer
         self.maskimage = pg.ImageItem(opacity=.25)
@@ -91,20 +66,20 @@ class SAXSViewerPlugin(DynImageView, QWidgetPlugin):
             msg.logMessage('Header object contained no frames with field ''{field}''.', msg.ERROR)
 
         if data:
-            kwargs['transform'] = QTransform(0, -1, 1, 0, 0, data.shape[-2])
+            kwargs['transform'] = QTransform(1, 0, 0, -1, 0, data.shape[-2])
             super(SAXSViewerPlugin, self).setImage(img=data, *args, **kwargs)
 
     def setMaskImage(self, mask):
         if mask is not None:
             self.maskimage.setImage(mask, lut=np.array([[0, 0, 0, 0], [255, 0, 0, 255]]))
-            self.maskimage.setTransform(QTransform(0, -1, 1, 0, 0, mask.shape[-2]))
+            self.maskimage.setTransform(QTransform(1, 0, 0, -1, 0, mask.shape[-2]))
         else:
             self.maskimage.clear()
 
     def setCalibrantImage(self, data):
         if data is not None:
             self.calibrantimage.setImage(data, lut=calibrantlut)
-            self.calibrantimage.setTransform(QTransform(0, 1, 1, 0, 0, 0))
+            # self.calibrantimage.setTransform(QTransform(0, 1, 1, 0, 0, 0))
         else:
             self.calibrantimage.clear()
 
