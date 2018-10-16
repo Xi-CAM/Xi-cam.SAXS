@@ -1,6 +1,6 @@
 [Core]
 Name = SAXS
-Module = __init__.py
+Module = SAXSGUIPlugin.py
 
 [Documentation]
 Author = Ronald J. Pandolfi
