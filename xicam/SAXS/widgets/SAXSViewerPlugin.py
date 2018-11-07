@@ -66,13 +66,13 @@ class SAXSViewerPlugin(CenterMarker, BetterButtons, QCoordinates, Crosshair, Dyn
             msg.logMessage('Header object contained no frames with field ''{field}''.', msg.ERROR)
 
         if data:
-            kwargs['transform'] = QTransform(1, 0, 0, -1, 0, data.shape[-2])
-            super(SAXSViewerPlugin, self).setImage(img=data, *args, **kwargs)
+            # kwargs['transform'] = QTransform(1, 0, 0, -1, 0, data.shape[-2])
+            self.setImage(img=data, *args, **kwargs)
 
     def setMaskImage(self, mask):
         if mask is not None:
             self.maskimage.setImage(mask, lut=np.array([[0, 0, 0, 0], [255, 0, 0, 255]]))
-            self.maskimage.setTransform(QTransform(1, 0, 0, -1, 0, mask.shape[-2]))
+            # self.maskimage.setTransform(QTransform(1, 0, 0, -1, 0, mask.shape[-2]))
         else:
             self.maskimage.clear()
 
