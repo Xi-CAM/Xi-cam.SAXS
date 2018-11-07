@@ -11,15 +11,16 @@ from .SAXSViewerPlugin import SAXSViewerPlugin
 
 
 class SAXSMultiViewerPlugin(QSplitter, QWidgetPlugin):
-    def __init__(self, headermodel):
+    def __init__(self, headermodel, selectionmodel):
         super(SAXSMultiViewerPlugin, self).__init__()
 
         self.leftTabView = TabView()
         self.leftTabView.setWidgetClass(SAXSViewerPlugin)
-        self.leftTabView.setModel(headermodel)
+        self.leftTabView.setHeaderModel(headermodel)
+        self.leftTabView.setSelectionModel(selectionmodel)
         self.rightTabView = TabView()
         self.rightTabView.setWidgetClass(SAXSViewerPlugin)
-        self.rightTabView.setModel(headermodel)
+        self.rightTabView.setHeaderModel(headermodel)
 
         self.addWidget(self.leftTabView)
         self.addWidget(self.rightTabView)
