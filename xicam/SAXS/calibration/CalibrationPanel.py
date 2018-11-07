@@ -1,5 +1,6 @@
 from qtpy.QtCore import *
 from qtpy.QtWidgets import *
+from qtpy.QtGui import *
 import pyqtgraph.parametertree.parameterTypes as pTypes
 from pyqtgraph.parametertree import Parameter, ParameterTree, ParameterItem, registerParameterType
 from pyFAI import calibrant
@@ -15,11 +16,11 @@ class CalibrationPanel(ParameterTree):
     sigCalibrate = Signal(object, str)
     sigDoCalibrateWorkflow = Signal(object)
 
-    def __init__(self):
+    def __init__(self, headermodel: QStandardItemModel, selectionmodel: QItemSelectionModel):
         super(CalibrationPanel, self).__init__()
 
-        self.selectionmodel = None
-        self.headermodel = None
+        self.selectionmodel = selectionmodel
+        self.headermodel = headermodel
 
         self.header().close()
 
@@ -47,11 +48,6 @@ class CalibrationPanel(ParameterTree):
         self.sigDoCalibrateWorkflow.emit(self.workflow)
 
     def dataChanged(self, start, end):
-        devices = self.headermodel.item(self.selectionmodel.currentIndex()).header.devices()
+        devices = self.headermodel.itemFromIndex(self.selectionmodel.currentIndex()).header.devices()
         self.parameter.param('Device').setLimits(list(set(devices)))
         self.parameter.param('Device').setValue(list(devices)[0])
-
-    def setModels(self, headermodel, selectionmodel):
-        self.headermodel = headermodel
-        self.headermodel.dataChanged.connect(self.dataChanged)
-        self.selectionmodel = selectionmodel

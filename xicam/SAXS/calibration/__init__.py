@@ -2,7 +2,8 @@ from qtpy.QtGui import *
 from qtpy.QtCore import Signal
 from qtpy.QtWidgets import *
 from xicam.gui.static import path
-from pyFAI import detectors, AzimuthalIntegrator
+from pyFAI import detectors
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 from pyFAI.multi_geometry import MultiGeometry
 
 from xicam.plugins import SettingsPlugin
@@ -46,8 +47,7 @@ class DeviceParameter(GroupParameter):
 
 
 class DeviceProfiles(SettingsPlugin):
-    sigRequestRedraw = Signal()
-    sigRequestReduce = Signal()
+    sigGeometryChanged = Signal(AzimuthalIntegrator)  # Emits the new geometry
     sigSimulateCalibrant = Signal()
 
     name = 'Device Profiles'
@@ -67,12 +67,12 @@ class DeviceProfiles(SettingsPlugin):
         icon = QIcon(str(path('icons/calibrate.png')))
         super(DeviceProfiles, self).__init__(icon, "Device Profiles", widget)
 
-        self.parameter.sigValueChanged.connect(self.sigRequestRedraw)
-        self.parameter.sigValueChanged.connect(self.sigRequestReduce)
         self.parameter.sigTreeStateChanged.connect(self.simulateCalibrant)
         self.parameter.sigTreeStateChanged.connect(self.genAIs)
+        self.parameter.sigTreeStateChanged.connect(self.geometryChanged)
 
-        self.parameter.sigValueChanged.connect(self.simulateCalibrant)
+    def geometryChanged(self, A, B):
+        self.sigGeometryChanged.emit('')
 
     def simulateCalibrant(self, *args):
         self.sigSimulateCalibrant.emit()
@@ -106,7 +106,7 @@ class DeviceProfiles(SettingsPlugin):
     def AI(self, device):
         if device not in self.AIs:
             self.addDevice(device)
-        return self.AIs[device]
+        return self.AIs.get(device, None)
 
     def setAI(self, ai: AzimuthalIntegrator, device: str):
         self.AIs[device] = ai
@@ -124,31 +124,36 @@ class DeviceProfiles(SettingsPlugin):
             self.parameter.child(device, 'Pixel Size Y').setValue(ai.pixel2)
             self.parameter.child(device, 'Center X').setValue(fit2d['centerX'])
             self.parameter.child(device, 'Center Y').setValue(fit2d['centerY'])
-            self.parameter.child(device, 'Detector Distance').setValue(fit2d['directDist'] / 1000)
+            self.parameter.child(device, 'Detector Distance').setValue(fit2d['directDist'] / 1000.)
             self.parameter.child('Wavelength').setValue(ai.wavelength)
         finally:
             self.setSilence(False)
-        self.simulateCalibrant()
+            self.simulateCalibrant()
+            self.sigGeometryChanged.emit(ai)
 
     def setSilence(self, silence):
         if silence:
             self.parameter.sigTreeStateChanged.disconnect(self.simulateCalibrant)
             self.parameter.sigTreeStateChanged.disconnect(self.genAIs)
+            self.parameter.sigTreeStateChanged.disconnect(self.geometryChanged)
         else:
             self.parameter.sigTreeStateChanged.connect(self.simulateCalibrant)
             self.parameter.sigTreeStateChanged.connect(self.genAIs)
+            self.parameter.sigTreeStateChanged.connect(self.geometryChanged)
 
 
     def addDevice(self, device):
-        try:
-            self.setSilence(True)
-            devicechild = DeviceParameter(device)
-            self.parameter.addChild(devicechild)
-            ai = AzimuthalIntegrator(wavelength=self.parameter['Wavelength'])
-            self.AIs[device] = ai
-            self.multiAI.ais = list(self.AIs.values())
-        finally:
-            self.setSilence(False)
+        if device:
+            try:
+                self.setSilence(True)
+                devicechild = DeviceParameter(device)
+                self.parameter.addChild(devicechild)
+                ai = AzimuthalIntegrator(wavelength=self.parameter['Wavelength'])
+                ai.detector = detectors.Pilatus2M()
+                self.AIs[device] = ai
+                self.multiAI.ais = list(self.AIs.values())
+            finally:
+                self.setSilence(False)
 
     def setModels(self, headermodel, selectionmodel):
         self.headermodel = headermodel
@@ -157,7 +162,7 @@ class DeviceProfiles(SettingsPlugin):
 
 
     def dataChanged(self, start, end):
-        devices = self.headermodel.item(self.selectionmodel.currentIndex()).header.devices()
+        devices = self.headermodel.item(self.selectionmodel.currentIndex().row()).header.devices()
         for device in devices:
             if device not in self.AIs:
                 self.addDevice(device)
