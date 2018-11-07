@@ -30,6 +30,7 @@ class SAXSPlugin(GUIPlugin):
     def __init__(self):
         # Data model
         self.headermodel = QStandardItemModel()
+        self.selectionmodel = QItemSelectionModel(self.headermodel)
 
         # Initialize workflows
         self.maskingworkflow = MaskingWorkflow()
@@ -41,29 +42,32 @@ class SAXSPlugin(GUIPlugin):
         self.calibrationsettings = pluginmanager.getPluginByName('DeviceProfiles', 'SettingsPlugin').plugin_object
 
         # Setup TabViews
-        self.calibrationtabview = TabView(self.headermodel, SAXSViewerPlugin,
+        self.calibrationtabview = TabView(self.headermodel, widgetcls=SAXSViewerPlugin,
+                                          selectionmodel=self.selectionmodel,
+                                          bindings=[('sigTimeChangeFinished', self.indexChanged),
+                                                    (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                           geometry=self.getAI)
-        self.masktabview = TabView(self.headermodel, SAXSViewerPlugin,
+        self.masktabview = TabView(self.headermodel, widgetcls=SAXSViewerPlugin, selectionmodel=self.selectionmodel,
+                                   bindings=[('sigTimeChangeFinished', self.indexChanged),
+                                             (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                    geometry=self.getAI)
-        self.reducetabview = TabView(self.headermodel, SAXSViewerPlugin,
+        self.reducetabview = TabView(self.headermodel, widgetcls=SAXSViewerPlugin, selectionmodel=self.selectionmodel,
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
-                                               (self.calibrationsettings.sigGeometryChanged, 'sigGeometryChanged')],
+                                               (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
-        self.comparemultiview = SAXSMultiViewerPlugin(self.headermodel)
+        self.comparemultiview = SAXSMultiViewerPlugin(self.headermodel, self.selectionmodel)
 
-        self.tabviewsynchronizer = TabViewSynchronizer(
-            [self.calibrationtabview, self.masktabview, self.reducetabview, self.comparemultiview.leftTabView])
+        # self.tabviewsynchronizer = TabViewSynchronizer(
+        #     [self.calibrationtabview, self.masktabview, self.reducetabview, self.comparemultiview.leftTabView])
 
         # Setup toolbars
-        self.toolbar = SAXSToolbar(self.calibrationtabview, workflow=self.reduceworkflow)
-        self.headermodel.dataChanged.connect(SAXSToolbar.updatedetectorcombobox)
+        self.toolbar = SAXSToolbar(self.headermodel, self.selectionmodel, workflow=self.reduceworkflow)
         self.calibrationtabview.kwargs['toolbar'] = self.toolbar
         self.reducetabview.kwargs['toolbar'] = self.toolbar
 
         # Setup calibration widgets
         self.calibrationsettings.setModels(self.headermodel, self.calibrationtabview.selectionmodel)
-        self.calibrationpanel = CalibrationPanel()
-        self.calibrationpanel.setModels(self.headermodel, self.calibrationtabview.selectionmodel)
+        self.calibrationpanel = CalibrationPanel(self.headermodel, self.calibrationtabview.selectionmodel)
         self.calibrationpanel.sigDoCalibrateWorkflow.connect(self.doCalibrateWorkflow)
 
         # Setup masking widgets
@@ -117,6 +121,8 @@ class SAXSPlugin(GUIPlugin):
         item = QStandardItem(header.startdoc.get('sample_name', '????'))
         item.header = header
         self.headermodel.appendRow(item)
+        self.selectionmodel.setCurrentIndex(self.headermodel.index(self.headermodel.rowCount() - 1, 0),
+                                            QItemSelectionModel.Rows)
         self.headermodel.dataChanged.emit(QModelIndex(), QModelIndex())
 
     def doCalibrateWorkflow(self, workflow: Workflow):
