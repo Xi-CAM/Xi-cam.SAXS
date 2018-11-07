@@ -16,12 +16,14 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
     sigDoWorkflow = Signal()
     sigDeviceChanged = Signal(str)
 
-    def __init__(self, tabwidget: QTabWidget, workflow: Workflow):
+    def __init__(self, headermodel: QStandardItemModel, selectionmodel: QItemSelectionModel, workflow: Workflow):
         super(SAXSToolbar, self).__init__()
 
         self.results = []
 
-        self.tabwidget = tabwidget
+        self.headermodel = headermodel
+        self.selectionmodel = selectionmodel
+        self.headermodel.dataChanged.connect(self.updatedetectorcombobox)
 
         self.detectorcombobox = QComboBox()
         self.detectorcombobox.currentTextChanged.connect(self.sigDeviceChanged)
@@ -75,8 +77,8 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
 
 
     def updatedetectorcombobox(self, start, end):
-        if self.tabwidget.count():
-            devices = self.tabwidget.currentWidget().header.devices()
+        if self.headermodel.rowCount():
+            devices = self.headermodel.item(self.selectionmodel.currentIndex().row()).header.devices()
             self.detectorcombobox.clear()
             self.detectorcombobox.addItems(devices)
 
