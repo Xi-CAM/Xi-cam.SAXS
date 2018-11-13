@@ -69,6 +69,7 @@ class SAXSPlugin(GUIPlugin):
         self.calibrationsettings.setModels(self.headermodel, self.calibrationtabview.selectionmodel)
         self.calibrationpanel = CalibrationPanel(self.headermodel, self.calibrationtabview.selectionmodel)
         self.calibrationpanel.sigDoCalibrateWorkflow.connect(self.doCalibrateWorkflow)
+        self.calibrationsettings.sigGeometryChanged.connect(self.doSimulateWorkflow)
 
         # Setup masking widgets
         self.maskeditor = WorkflowEditor(self.maskingworkflow)
@@ -134,11 +135,11 @@ class SAXSPlugin(GUIPlugin):
 
         def setAI(result):
             self.calibrationsettings.setAI(result['ai'].value, device)
-            self.doMaskingWorkflow(self.maskingworkflow)
+            self.doMaskingWorkflow()
 
         workflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=setAI, threadkey='calibrate')
 
-    def doSimulateWorkflow(self, workflow: Workflow):
+    def doSimulateWorkflow(self):
         data = self.calibrationtabview.currentWidget().header.meta_array()[0]
         device = self.toolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
@@ -148,11 +149,11 @@ class SAXSPlugin(GUIPlugin):
         def showSimulatedCalibrant(result=None):
             outputwidget.setCalibrantImage(result['data'].value)
 
-        workflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=showSimulatedCalibrant,
-                         threadkey='simulate')
+        self.simulateworkflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=showSimulatedCalibrant,
+                                      threadkey='simulate')
 
-    def doMaskingWorkflow(self, workflow: Workflow):
-        if not self.checkPolygonsSet(workflow):
+    def doMaskingWorkflow(self):
+        if not self.checkPolygonsSet(self.maskingworkflow):
             data = self.calibrationtabview.currentWidget().header.meta_array()[0]
             device = self.toolbar.detectorcombobox.currentText()
             ai = self.calibrationsettings.AI(device)
@@ -163,12 +164,12 @@ class SAXSPlugin(GUIPlugin):
                     outputwidget.setMaskImage(result['mask'].value)
                 else:
                     outputwidget.setMaskImage(None)
-                self.doDisplayWorkflow(self.displayworkflow)
-                self.doReduceWorkflow(self.reduceworkflow)
+                self.doDisplayWorkflow()
+                self.doReduceWorkflow()
 
-            workflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
+            self.maskingworkflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
 
-    def doDisplayWorkflow(self, workflow: Workflow):
+    def doDisplayWorkflow(self):
         currentwidget = self.reducetabview.currentWidget()
         data = currentwidget.header.meta_array()[currentwidget.timeIndex(currentwidget.timeLine)[0]]
         device = self.toolbar.detectorcombobox.currentText()
@@ -179,9 +180,9 @@ class SAXSPlugin(GUIPlugin):
         def showDisplay(*results):
             outputwidget.setResults(results)
 
-        workflow.execute(None, data=data, ai=ai, mask=mask, callback_slot=showDisplay, threadkey='display')
+        self.displayworkflow.execute(None, data=data, ai=ai, mask=mask, callback_slot=showDisplay, threadkey='display')
 
-    def doReduceWorkflow(self, workflow: Workflow):
+    def doReduceWorkflow(self):
         multimode = self.reduceplot.toolbar.multiplot.isChecked()
         currentwidget = self.reducetabview.currentWidget()
         data = currentwidget.header.meta_array()
@@ -198,7 +199,7 @@ class SAXSPlugin(GUIPlugin):
         def showReduce(*results):
             outputwidget.appendResult(results)
 
-        workflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
+        self.reduceworkflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
 
     def checkPolygonsSet(self, workflow: Workflow):
         """

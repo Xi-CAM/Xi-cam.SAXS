@@ -72,7 +72,8 @@ class DeviceProfiles(SettingsPlugin):
         self.parameter.sigTreeStateChanged.connect(self.geometryChanged)
 
     def geometryChanged(self, A, B):
-        self.sigGeometryChanged.emit('')
+        name = B[0][0].parent().name()
+        self.sigGeometryChanged.emit(self.AI(name))
 
     def simulateCalibrant(self, *args):
         self.sigSimulateCalibrant.emit()

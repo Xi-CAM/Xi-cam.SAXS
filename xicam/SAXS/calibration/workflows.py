@@ -10,16 +10,11 @@ class FourierCalibrationWorkflow(Workflow):
     def __init__(self):
         super(FourierCalibrationWorkflow, self).__init__('Fourier Calibration')
 
-        rotate = ArrayRotate()
-        rotate.k.value = 3
-
-        transpose = ArrayTranspose()
-
         autocor = fourierAutocorrelation()
 
         sdd = NaiveSDD()
 
-        self.processes = [rotate, transpose, autocor, sdd]
+        self.processes = [autocor, sdd]
         self.autoConnectAll()
 
     # def execute(self, connection, data=None, ai=None, calibrant=None, **kwargs):
