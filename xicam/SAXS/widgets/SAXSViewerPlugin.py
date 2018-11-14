@@ -15,14 +15,6 @@ class SAXSViewerPlugin(CenterMarker, BetterButtons, QCoordinates, Crosshair, Dyn
 
     def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, *args, **kwargs):
 
-        # Add q axes
-        self.axesItem = PlotItem()
-        self.axesItem.setLabel('bottom', u'q (Å⁻¹)')  # , units='s')
-        self.axesItem.setLabel('left', u'q (Å⁻¹)')
-        self.axesItem.axes['left']['item'].setZValue(10)
-        self.axesItem.axes['top']['item'].setZValue(10)
-        if 'view' not in kwargs: kwargs['view'] = self.axesItem
-
         super(SAXSViewerPlugin, self).__init__(**kwargs)
         self.axesItem.invertY(False)
 
