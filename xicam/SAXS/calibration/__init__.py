@@ -6,7 +6,7 @@ from pyFAI import detectors
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 from pyFAI.multi_geometry import MultiGeometry
 
-from xicam.plugins import SettingsPlugin
+from xicam.plugins import ParameterSettingsPlugin
 from .CalibrationPanel import CalibrationPanel
 
 from pyqtgraph.parametertree import Parameter, ParameterTree
@@ -15,6 +15,7 @@ from pyqtgraph.parametertree.parameterTypes import GroupParameter, ListParameter
 
 # https://stackoverflow.com/questions/20866996/how-to-compress-slot-calls-when-using-queued-connection-in-qt
 
+# TODO: Refactor this class to be a view on the AI
 class DeviceParameter(GroupParameter):
     def __init__(self, device, **opts):
         opts['type'] = 'bool'
@@ -31,7 +32,7 @@ class DeviceParameter(GroupParameter):
         centerx = SimpleParameter(name='Center X', type='float', value=0, suffix=' px', decimals=4)
         centery = SimpleParameter(name='Center Y', type='float', value=0, suffix=' px', decimals=4)
         sdd = SimpleParameter(name='Detector Distance', type='float', value=1, siPrefix=True, suffix='m',
-                              limits=(0, 1000))
+                              limits=(0, 1000), step=1e-3)
         tilt = SimpleParameter(name='Detector Tilt', type='float', value=0, siPrefix=False, suffix=u'°')
         rotation = SimpleParameter(name='Detector Rotation', type='float', value=0, siPrefix=False, suffix=u'°')
 
@@ -46,11 +47,9 @@ class DeviceParameter(GroupParameter):
         #
 
 
-class DeviceProfiles(SettingsPlugin):
+class DeviceProfiles(ParameterSettingsPlugin):
     sigGeometryChanged = Signal(AzimuthalIntegrator)  # Emits the new geometry
     sigSimulateCalibrant = Signal()
-
-    name = 'Device Profiles'
 
     def __init__(self):
         self.headermodel = None
@@ -58,18 +57,18 @@ class DeviceProfiles(SettingsPlugin):
         self.multiAI = MultiGeometry([])
         self.AIs = dict()
 
-        widget = ParameterTree()
+
         energy = SimpleParameter(name='Energy', type='float', value=10000, siPrefix=True, suffix='eV')
         wavelength = SimpleParameter(name='Wavelength', type='float', value=1.239842e-6 / 10000, siPrefix=True,
                                      suffix='m')
-        self.parameter = Parameter(name="Device Profiles", type='group', children=[energy, wavelength])
-        widget.setParameters(self.parameter, showTop=False)
-        icon = QIcon(str(path('icons/calibrate.png')))
-        super(DeviceProfiles, self).__init__(icon, "Device Profiles", widget)
 
-        self.parameter.sigTreeStateChanged.connect(self.simulateCalibrant)
-        self.parameter.sigTreeStateChanged.connect(self.genAIs)
-        self.parameter.sigTreeStateChanged.connect(self.geometryChanged)
+        icon = QIcon(str(path('icons/calibrate.png')))
+        super(DeviceProfiles, self).__init__(icon, "Device Profiles", [energy, wavelength])
+
+        self.sigTreeStateChanged.connect(self.simulateCalibrant)
+        self.sigTreeStateChanged.connect(self.genAIs)
+        self.sigTreeStateChanged.connect(self.geometryChanged)
+        self.sigGeometryChanged.connect(self.save)
 
     def geometryChanged(self, A, B):
         name = B[0][0].parent().name()
@@ -81,17 +80,17 @@ class DeviceProfiles(SettingsPlugin):
     def genAIs(self, parent, changes):
         for parameter, key, value in changes:
             if parameter.name == 'Wavelength':
-                self.parameter.param('Energy').setValue(1.239842e-6 / self.param('Wavelength').value(),
-                                                        blockSignal=self.parameter.sigTreeStateChanged)
+                self.param('Energy').setValue(1.239842e-6 / self.param('Wavelength').value(),
+                                              blockSignal=self.parameter.sigTreeStateChanged)
             elif parameter.name == 'Energy':
-                self.parameter.param('Wavelength').setValue(1.239842e-6 / self.param('Energy').value(),
-                                                            blockSignal=self.WavelengthChanged)
+                self.param('Wavelength').setValue(1.239842e-6 / self.param('Energy').value(),
+                                                  blockSignal=self.WavelengthChanged)
 
-        for parameter in self.parameter.children():
+        for parameter in self.children():
             if isinstance(parameter, DeviceParameter):
                 device = parameter.name()
                 ai = self.AI(device)
-                ai.set_wavelength(self.parameter['Wavelength'])
+                ai.set_wavelength(self['Wavelength'])
                 ai.detector = parameter['Detector']()
                 ai.detector.set_binning([parameter['Binning']] * 2)
                 ai.detector.set_pixel1(parameter['Pixel Size X'])
@@ -117,16 +116,16 @@ class DeviceProfiles(SettingsPlugin):
         fit2d = ai.getFit2D()
         try:
             self.setSilence(True)
-            self.parameter.child(device, 'Detector').setValue(type(ai.detector))
-            self.parameter.child(device, 'Binning').setValue(ai.detector.binning[0])
-            self.parameter.child(device, 'Detector Tilt').setValue(fit2d['tiltPlanRotation'])
-            self.parameter.child(device, 'Detector Rotation').setValue(fit2d['tilt'])
-            self.parameter.child(device, 'Pixel Size X').setValue(ai.pixel1)
-            self.parameter.child(device, 'Pixel Size Y').setValue(ai.pixel2)
-            self.parameter.child(device, 'Center X').setValue(fit2d['centerX'])
-            self.parameter.child(device, 'Center Y').setValue(fit2d['centerY'])
-            self.parameter.child(device, 'Detector Distance').setValue(fit2d['directDist'] / 1000.)
-            self.parameter.child('Wavelength').setValue(ai.wavelength)
+            self.child(device, 'Detector').setValue(type(ai.detector))
+            self.child(device, 'Binning').setValue(ai.detector.binning[0])
+            self.child(device, 'Detector Tilt').setValue(fit2d['tiltPlanRotation'])
+            self.child(device, 'Detector Rotation').setValue(fit2d['tilt'])
+            self.child(device, 'Pixel Size X').setValue(ai.pixel1)
+            self.child(device, 'Pixel Size Y').setValue(ai.pixel2)
+            self.child(device, 'Center X').setValue(fit2d['centerX'])
+            self.child(device, 'Center Y').setValue(fit2d['centerY'])
+            self.child(device, 'Detector Distance').setValue(fit2d['directDist'] / 1000.)
+            self.child('Wavelength').setValue(ai.wavelength)
         finally:
             self.setSilence(False)
             self.simulateCalibrant()
@@ -134,13 +133,13 @@ class DeviceProfiles(SettingsPlugin):
 
     def setSilence(self, silence):
         if silence:
-            self.parameter.sigTreeStateChanged.disconnect(self.simulateCalibrant)
-            self.parameter.sigTreeStateChanged.disconnect(self.genAIs)
-            self.parameter.sigTreeStateChanged.disconnect(self.geometryChanged)
+            self.sigTreeStateChanged.disconnect(self.simulateCalibrant)
+            self.sigTreeStateChanged.disconnect(self.genAIs)
+            self.sigTreeStateChanged.disconnect(self.geometryChanged)
         else:
-            self.parameter.sigTreeStateChanged.connect(self.simulateCalibrant)
-            self.parameter.sigTreeStateChanged.connect(self.genAIs)
-            self.parameter.sigTreeStateChanged.connect(self.geometryChanged)
+            self.sigTreeStateChanged.connect(self.simulateCalibrant)
+            self.sigTreeStateChanged.connect(self.genAIs)
+            self.sigTreeStateChanged.connect(self.geometryChanged)
 
 
     def addDevice(self, device):
@@ -148,8 +147,8 @@ class DeviceProfiles(SettingsPlugin):
             try:
                 self.setSilence(True)
                 devicechild = DeviceParameter(device)
-                self.parameter.addChild(devicechild)
-                ai = AzimuthalIntegrator(wavelength=self.parameter['Wavelength'])
+                self.addChild(devicechild)
+                ai = AzimuthalIntegrator(wavelength=self['Wavelength'])
                 ai.detector = detectors.Pilatus2M()
                 self.AIs[device] = ai
                 self.multiAI.ais = list(self.AIs.values())
@@ -168,41 +167,22 @@ class DeviceProfiles(SettingsPlugin):
             if device not in self.AIs:
                 self.addDevice(device)
 
-    def apply(self):
-        AI = AzimuthalIntegrator(
-            wavelength=self.parameter.child('Wavelength').value())
-        # if Calibration.isChecked():
-        #     AI.setFit2D(self.getvalue('Detector Distance') * 1000.,
-        #                 self.getvalue('Center X'),
-        #                 self.getvalue('Center Y'),
-        #                 self.getvalue('Detector Tilt'),
-        #                 360. - self.getvalue('Detector Rotation'),
-        #                 self.getvalue('Pixel Size Y') * 1.e6,
-        #                 self.getvalue('Pixel Size X') * 1.e6)
-        # elif self.wxdiffstyle.isChecked():
-        #     AI.setFit2D(self.getvalue('Detector Distance') * 1000.,
-        #                 self.getvalue('Center X'),
-        #                 self.getvalue('Center Y'),
-        #                 self.getvalue('Detector Tilt') / 2. / np.pi * 360.,
-        #                 360. - (2 * np.pi - self.getvalue('Detector Rotation')) / 2. / np.pi * 360.,
-        #                 self.getvalue('Pixel Size Y') * 1.e6,
-        #                 self.getvalue('Pixel Size X') * 1.e6)
-        # AI.set_wavelength(self.getvalue('Wavelength'))
-        # # print AI
-
-        activeCalibration = AI
-
-    def save(self):
-        self.apply()
-        return self.parameter.saveState(filter='user')
-
-    def restore(self, state):
-        pass
-        # self.parameter.restoreState(state, addChildren=False, removeChildren=False)
-
     def wavelengthChanged(self):
         self.param('Energy').setValue(1.239842e-6 / self.param('Wavelength').value(), blockSignal=self.EnergyChanged)
 
     def energyChanged(self):
         self.param('Wavelength').setValue(1.239842e-6 / self.param('Energy').value(),
                                           blockSignal=self.WavelengthChanged)
+
+    def toState(self):
+        self.apply()
+        return self.saveState(filter='user'), self.AIs
+
+    def fromState(self, state):
+        self.restoreState(state[0], addChildren=False, removeChildren=False)
+        self.AIs = state[1]
+        for child in self.children()[2:]:
+            child.remove()
+        for name, ai in self.AIs.items():
+            self.addDevice(name)
+            self.setAI(ai, name)
