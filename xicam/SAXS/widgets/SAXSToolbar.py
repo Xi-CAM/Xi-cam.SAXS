@@ -16,7 +16,7 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
     sigDoWorkflow = Signal()
     sigDeviceChanged = Signal(str)
 
-    def __init__(self, headermodel: QStandardItemModel, selectionmodel: QItemSelectionModel, workflow: Workflow):
+    def __init__(self, headermodel: QStandardItemModel, selectionmodel: QItemSelectionModel):
         super(SAXSToolbar, self).__init__()
 
         self.results = []
@@ -38,17 +38,6 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
         self.remeshaction = self.mkAction('icons/remesh.png', 'Remesh (GIWAXS)', checkable=True, group=self.modegroup)
         self.addAction(self.remeshaction)
         self.addSeparator()
-
-        self.reductionModesButton = QToolButton(self)
-        self.reductionModesButton.setText('Reduction Mode')
-        self.reductionModesButton.setPopupMode(QToolButton.InstantPopup)
-        self.reductionMenu = MenuView('Reduction Mode', self)
-        self.reductionModesButton.setMenu(self.reductionMenu)
-        self.addWidget(self.reductionModesButton)
-        self.reductionModesModel = CheckableWorkflowOutputModel(workflow)
-        self.reductionMenu.model = self.reductionModesModel
-        self.reductionMenu.action_triggered.connect(self.sigPlotCache.emit)
-        # self.reductionModes.currentIndexChanged.connect(self.sigPlotCache)
 
         self.multiplot = QAction(self)
         self.multiplot.setIcon(QIcon(str(path('icons/multiplot.png'))))
