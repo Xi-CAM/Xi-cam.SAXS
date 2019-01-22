@@ -47,7 +47,8 @@ class CalibrationPanel(ParameterTree):
     def calibrate(self):
         self.sigDoCalibrateWorkflow.emit(self.workflow)
 
-    def dataChanged(self, start, end):
+    def dataChanged(self, start, end, _):
+        if not self.headermodel.itemFromIndex(self.selectionmodel.currentIndex()): return
         devices = self.headermodel.itemFromIndex(self.selectionmodel.currentIndex()).header.devices()
         self.parameter.param('Device').setLimits(list(set(devices)))
         self.parameter.param('Device').setValue(list(devices)[0])
