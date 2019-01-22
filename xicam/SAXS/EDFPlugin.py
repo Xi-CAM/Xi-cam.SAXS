@@ -16,8 +16,13 @@ class EDFPlugin(DataHandlerPlugin):
 
     descriptor_keys = ['ByteOrder', 'HeaderID', 'VersionNumber', 'Dim_1', 'Dim_2', 'count_time', 'object_keys']
 
-    def __call__(self, path, *args, **kwargs):
-        return fabio.open(path).data
+    def __init__(self, path):
+        super(EDFPlugin, self).__init__()
+        self.path = path
+        self.fimg = fabio.open(path)
+
+    def __call__(self, *args, **kwargs):
+        return self.fimg.data
 
     @staticmethod
     @functools.lru_cache(maxsize=10, typed=False)
