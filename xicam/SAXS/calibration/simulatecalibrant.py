@@ -13,4 +13,4 @@ class SimulateCalibrant(ProcessingPlugin):
 
     def evaluate(self):
         self.calibrant.value.set_wavelength(self.ai.value.get_wavelength())
-        self.data.value = self.calibrant.value.fake_calibration_image(self.ai.value, Imax=self.Imax.value)
+        self.data.value = self.calibrant.value.fake_calibration_image(self.ai.value, Imax=self.Imax.value).T
