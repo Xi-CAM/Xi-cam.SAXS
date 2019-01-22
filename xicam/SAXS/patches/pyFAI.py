@@ -1,4 +1,4 @@
-# import pyFAI
+from pyFAI import azimuthalIntegrator
 # import numpy
 #
 # import logging
@@ -24,7 +24,44 @@
 #
 #
 # # monkey patch to correct auto-inversion of masks when 'numpy' is used
-# class AzimuthalIntegrator(pyFAI.AzimuthalIntegrator):
+class AzimuthalIntegrator(azimuthalIntegrator.AzimuthalIntegrator):
+
+    def __deepcopy__(self, memo=None):
+        """deep copy
+        :param memo: dict with modified objects
+        :return: a deep copy of itself."""
+        numerical = ["_dist", "_poni1", "_poni2", "_rot1", "_rot2", "_rot3",
+                     "chiDiscAtPi", "_dssa_order", "_wavelength",
+                     '_oversampling', '_correct_solid_angle_for_spline',
+                     '_transmission_normal',
+                     ]
+        if memo is None:
+            memo = {}
+        new = self.__class__()
+        memo[id(self)] = new
+        new_det = self.detector.__deepcopy__(memo)
+        new.detector = new_det
+
+        for key in numerical:
+            old_value = self.__getattribute__(key)
+            memo[id(old_value)] = old_value
+            new.__setattr__(key, old_value)
+        new_param = [new._dist, new._poni1, new._poni2,
+                     new._rot1, new._rot2, new._rot3]
+        memo[id(self.param)] = new_param
+        new.param = new_param
+        cached = {}
+        memo[id(self._cached_array)] = cached
+        try:
+            for key, old_value in self._cached_array.copy().items():
+                if "copy" in dir(old_value):
+                    new_value = old_value.copy()
+                    memo[id(old_value)] = new_value
+            new._cached_array = cached
+        except Exception:
+            print('huh?')
+        return new
+
 #     def create_mask(self, data, mask=None,
 #                     dummy=None, delta_dummy=None, mode="normal"):
 #         """
@@ -113,7 +150,7 @@
 #         self.engines = {}
 #
 #
-# pyFAI.__dict__['AzimuthalIntegrator'] = AzimuthalIntegrator
+azimuthalIntegrator.__dict__['AzimuthalIntegrator'] = AzimuthalIntegrator
 #
 #
 # new_ALL_DETECTORS = {}
