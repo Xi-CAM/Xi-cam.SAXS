@@ -90,6 +90,9 @@ class SAXSSpectra(QWidgetPlugin):
     def inputs(self):
         return super(SAXSSpectra, self).inputs()
 
+    def sizeHint(self):
+        return QSize(150, 200)
+
 
 class SAXSSpectraToolbar(QWidget):
     sigPlotCache = Signal()
