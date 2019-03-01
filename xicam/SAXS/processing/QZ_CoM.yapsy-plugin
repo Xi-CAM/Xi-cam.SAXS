@@ -1,0 +1,9 @@
+[Core]
+Name = QZ_CoM
+Module = QZ_CoM.py
+
+[Documentation]
+Author = Qingteng Zhang
+Version = 0.1.0
+Website = http://lotsofplugins.com
+Description = My first plugin

@@ -3,6 +3,8 @@ qtpy
 pyFAI
 scipy
 dill
+astroscrappy
+xicam.hipies
 
 [tests]
 pytest
