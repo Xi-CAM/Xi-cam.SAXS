@@ -22,6 +22,8 @@ import numpy as np
 
 class CoM(ProcessingPlugin):
     data = Input(description='Array of two or more dimensions.', type=np.ndarray)
+    mask = Input(description='Array (same size as image) with 1 for masked pixels, and 0 for valid pixels',
+                 type=np.ndarray)
     x_min = Input(description='X pixel index, bottom left.', type=int, default=1)
     y_min = Input(description='Y pixel index, bottom left.', type=int, default=1)
 
@@ -32,7 +34,11 @@ class CoM(ProcessingPlugin):
     y_cen = InOut(description='Y pixel index, center of mass', type=float)
 
     def evaluate(self):
-        (self.y_cen.value,self.x_cen.value) = ndimage.measurements.center_of_mass(self.data.value[self.y_min.value:self.y_max.value,
-                                                                            self.x_min.value:self.x_max.value])
+        data = np.flipud(self.data.value)
+        mask = np.flipud(self.mask.value)
+        data = data * np.logical_not(mask)
+        (self.y_cen.value, self.x_cen.value) = ndimage.measurements.center_of_mass(
+            data[self.y_min.value:self.y_max.value,
+            self.x_min.value:self.x_max.value])
         self.x_cen.value = self.x_cen.value + self.x_min.value
         self.y_cen.value = self.y_cen.value + self.y_min.value

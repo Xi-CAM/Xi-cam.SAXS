@@ -1,6 +1,6 @@
 [Core]
-Name = TIFPlugin
-Module = TIFPlugin.py
+Name = File Mask
+Module = filemask.py
 
 [Documentation]
 Author = Ronald J. Pandolfi
