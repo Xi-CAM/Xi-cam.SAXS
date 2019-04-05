@@ -1,5 +1,5 @@
 [Core]
-Name = DeviceProfiles
+Name = xicam.SAXS.calibration
 Module = calibration/__init__.py
 
 [Documentation]
