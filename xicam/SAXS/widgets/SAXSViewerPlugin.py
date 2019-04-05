@@ -55,7 +55,7 @@ class SAXSViewerPlugin(CenterMarker, BetterButtons, QCoordinates, Crosshair, Dyn
         try:
             data = header.meta_array(field)
         except IndexError:
-            msg.logMessage('Header object contained no frames with field ''{field}''.', msg.ERROR)
+            msg.logMessage(f'Header object contained no frames with field "{field}".', msg.ERROR)
 
         if data:
             # kwargs['transform'] = QTransform(1, 0, 0, -1, 0, data.shape[-2])
