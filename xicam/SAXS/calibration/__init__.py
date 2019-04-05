@@ -63,12 +63,19 @@ class DeviceProfiles(ParameterSettingsPlugin):
                                      suffix='m')
 
         icon = QIcon(str(path('icons/calibrate.png')))
-        super(DeviceProfiles, self).__init__(icon, "Device Profiles", [energy, wavelength])
+        super(DeviceProfiles, self).__init__(icon, "Device Profiles", [energy, wavelength], addText='New Device')
 
         self.sigTreeStateChanged.connect(self.simulateCalibrant)
         self.sigTreeStateChanged.connect(self.genAIs)
         self.sigTreeStateChanged.connect(self.geometryChanged)
         self.sigGeometryChanged.connect(self.save)
+
+    def addNew(self, typ=None):
+        text, ok = QInputDialog().getText(self.widget, 'Enter Device Name', 'Device Name:')
+
+        if text and ok:
+            self.addDevice(text)
+
 
     def geometryChanged(self, A, B):
         if B[0][0].parent():
