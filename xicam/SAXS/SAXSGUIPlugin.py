@@ -39,7 +39,8 @@ class SAXSPlugin(GUIPlugin):
         self.reduceworkflow = ReduceWorkflow()
 
         # Grab the calibration plugin
-        self.calibrationsettings = pluginmanager.getPluginByName('DeviceProfiles', 'SettingsPlugin').plugin_object
+        self.calibrationsettings = pluginmanager.getPluginByName('xicam.SAXS.calibration',
+                                                                 'SettingsPlugin').plugin_object
 
         # Setup TabViews
         self.calibrationtabview = TabView(self.headermodel, widgetcls=SAXSViewerPlugin,
@@ -126,7 +127,6 @@ class SAXSPlugin(GUIPlugin):
         self.toolbar.updatedetectorcombobox(None, None)
         self.doReduceWorkflow()
         self.doDisplayWorkflow()
-
 
     def appendHeader(self, header: NonDBHeader, **kwargs):
         item = QStandardItem(header.startdoc.get('sample_name', '????'))

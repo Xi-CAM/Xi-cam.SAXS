@@ -1,9 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*- 
 
-from yapsy.IPlugin import IPlugin
 from xicam.plugins import QWidgetPlugin
-from xicam.gui import threads
+from xicam.core import threads
 from qtpy.QtWidgets import QVBoxLayout, QComboBox, QPushButton
 from collections import OrderedDict
 
