@@ -8,11 +8,7 @@ from xicam.core.data import load_header, NonDBHeader
 from xicam.core.execution.workflow import Workflow
 
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
-from xicam.SAXS.calibration import CalibrationPanel
-from xicam.SAXS.widgets.SAXSMultiViewer import SAXSMultiViewerPlugin
-from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPlugin
-from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbar
-from xicam.SAXS.widgets.SAXSSpectra import SAXSSpectra
+
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.SAXS.processing.workflows import ReduceWorkflow, DisplayWorkflow
 from xicam.SAXS.calibration.workflows import SimulateWorkflow
@@ -28,6 +24,13 @@ class SAXSPlugin(GUIPlugin):
     name = 'SAXS'
 
     def __init__(self):
+        # Late imports required due to plugin system
+        from xicam.SAXS.calibration import CalibrationPanel
+        from xicam.SAXS.widgets.SAXSMultiViewer import SAXSMultiViewerPlugin
+        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPlugin
+        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbar
+        from xicam.SAXS.widgets.SAXSSpectra import SAXSSpectra
+
         # Data model
         self.headermodel = QStandardItemModel()
         self.selectionmodel = QItemSelectionModel(self.headermodel)
