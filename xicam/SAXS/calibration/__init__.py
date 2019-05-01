@@ -141,9 +141,12 @@ class DeviceProfiles(ParameterSettingsPlugin):
 
     def setSilence(self, silence):
         if silence:
-            self.sigTreeStateChanged.disconnect(self.simulateCalibrant)
-            self.sigTreeStateChanged.disconnect(self.genAIs)
-            self.sigTreeStateChanged.disconnect(self.geometryChanged)
+            try:
+                self.sigTreeStateChanged.disconnect(self.simulateCalibrant)
+                self.sigTreeStateChanged.disconnect(self.genAIs)
+                self.sigTreeStateChanged.disconnect(self.geometryChanged)
+            except TypeError:
+                pass  # do nothing if no connected
         else:
             self.sigTreeStateChanged.connect(self.simulateCalibrant)
             self.sigTreeStateChanged.connect(self.genAIs)
