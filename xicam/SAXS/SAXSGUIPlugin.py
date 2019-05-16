@@ -8,11 +8,7 @@ from xicam.core.data import load_header, NonDBHeader
 from xicam.core.execution.workflow import Workflow
 
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
-from xicam.SAXS.calibration import CalibrationPanel
-from xicam.SAXS.widgets.SAXSMultiViewer import SAXSMultiViewerPlugin
-from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPlugin
-from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbar
-from xicam.SAXS.widgets.SAXSSpectra import SAXSSpectra
+
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.SAXS.processing.workflows import ReduceWorkflow, DisplayWorkflow
 from xicam.SAXS.calibration.workflows import SimulateWorkflow
@@ -28,6 +24,13 @@ class SAXSPlugin(GUIPlugin):
     name = 'SAXS'
 
     def __init__(self):
+        # Late imports required due to plugin system
+        from xicam.SAXS.calibration import CalibrationPanel
+        from xicam.SAXS.widgets.SAXSMultiViewer import SAXSMultiViewerPlugin
+        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPlugin
+        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbar
+        from xicam.SAXS.widgets.SAXSSpectra import SAXSSpectra
+
         # Data model
         self.headermodel = QStandardItemModel()
         self.selectionmodel = QItemSelectionModel(self.headermodel)
@@ -39,7 +42,8 @@ class SAXSPlugin(GUIPlugin):
         self.reduceworkflow = ReduceWorkflow()
 
         # Grab the calibration plugin
-        self.calibrationsettings = pluginmanager.getPluginByName('DeviceProfiles', 'SettingsPlugin').plugin_object
+        self.calibrationsettings = pluginmanager.getPluginByName('xicam.SAXS.calibration',
+                                                                 'SettingsPlugin').plugin_object
 
         # Setup TabViews
         self.calibrationtabview = TabView(self.headermodel, widgetcls=SAXSViewerPlugin,
@@ -126,7 +130,6 @@ class SAXSPlugin(GUIPlugin):
         self.toolbar.updatedetectorcombobox(None, None)
         self.doReduceWorkflow()
         self.doDisplayWorkflow()
-
 
     def appendHeader(self, header: NonDBHeader, **kwargs):
         item = QStandardItem(header.startdoc.get('sample_name', '????'))

@@ -23,7 +23,7 @@ class SAXSViewerPlugin(CenterMarker, BetterButtons, QCoordinates, Crosshair, Dyn
         # self.ui.gridLayout.addWidget(self.coordinatesLbl, 3, 0, 1, 1, alignment=Qt.AlignHCenter)
 
         # Setup mask layer
-        self.maskimage = pg.ImageItem(opacity=.25)
+        self.maskimage = pg.ImageItem(opacity=.25, axisOrder='row-major')
         self.view.addItem(self.maskimage)
 
         # Setup calibration layer
@@ -55,7 +55,7 @@ class SAXSViewerPlugin(CenterMarker, BetterButtons, QCoordinates, Crosshair, Dyn
         try:
             data = header.meta_array(field)
         except IndexError:
-            msg.logMessage(f'Header object contained no frames with field ''{field}''.', msg.ERROR)
+            msg.logMessage(f'Header object contained no frames with field "{field}".', msg.ERROR)
 
         if data:
             # kwargs['transform'] = QTransform(1, 0, 0, -1, 0, data.shape[-2])
