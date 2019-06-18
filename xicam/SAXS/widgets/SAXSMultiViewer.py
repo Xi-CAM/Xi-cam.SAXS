@@ -7,7 +7,7 @@ from qtpy.QtGui import *
 import numpy as np
 from xicam.core import msg
 from xicam.gui.widgets.tabview import TabView
-from .SAXSViewerPlugin import SAXSViewerPlugin
+from .SAXSViewerPlugin import SAXSViewerPluginBase
 
 
 class SAXSMultiViewerPlugin(QSplitter, QWidgetPlugin):
@@ -15,11 +15,11 @@ class SAXSMultiViewerPlugin(QSplitter, QWidgetPlugin):
         super(SAXSMultiViewerPlugin, self).__init__()
 
         self.leftTabView = TabView()
-        self.leftTabView.setWidgetClass(SAXSViewerPlugin)
+        self.leftTabView.setWidgetClass(SAXSViewerPluginBase)
         self.leftTabView.setHeaderModel(headermodel)
         self.leftTabView.setSelectionModel(selectionmodel)
         self.rightTabView = TabView()
-        self.rightTabView.setWidgetClass(SAXSViewerPlugin)
+        self.rightTabView.setWidgetClass(SAXSViewerPluginBase)
         self.rightTabView.setHeaderModel(headermodel)
 
         self.addWidget(self.leftTabView)

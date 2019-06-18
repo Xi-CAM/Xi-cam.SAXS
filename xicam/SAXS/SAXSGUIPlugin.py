@@ -27,7 +27,8 @@ class SAXSPlugin(GUIPlugin):
         # Late imports required due to plugin system
         from xicam.SAXS.calibration import CalibrationPanel
         from xicam.SAXS.widgets.SAXSMultiViewer import SAXSMultiViewerPlugin
-        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPlugin
+        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPluginBase, SAXSCalibrationViewer, SAXSMaskingViewer, \
+            SAXSReductionViewer
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbar
         from xicam.SAXS.widgets.SAXSSpectra import SAXSSpectra
 
@@ -46,16 +47,17 @@ class SAXSPlugin(GUIPlugin):
                                                                  'SettingsPlugin').plugin_object
 
         # Setup TabViews
-        self.calibrationtabview = TabView(self.headermodel, widgetcls=SAXSViewerPlugin,
+        self.calibrationtabview = TabView(self.headermodel, widgetcls=SAXSCalibrationViewer,
                                           selectionmodel=self.selectionmodel,
                                           bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                     (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                           geometry=self.getAI)
-        self.masktabview = TabView(self.headermodel, widgetcls=SAXSViewerPlugin, selectionmodel=self.selectionmodel,
+        self.masktabview = TabView(self.headermodel, widgetcls=SAXSMaskingViewer, selectionmodel=self.selectionmodel,
                                    bindings=[('sigTimeChangeFinished', self.indexChanged),
                                              (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                    geometry=self.getAI)
-        self.reducetabview = TabView(self.headermodel, widgetcls=SAXSViewerPlugin, selectionmodel=self.selectionmodel,
+        self.reducetabview = TabView(self.headermodel, widgetcls=SAXSReductionViewer,
+                                     selectionmodel=self.selectionmodel,
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
@@ -153,6 +155,9 @@ class SAXSPlugin(GUIPlugin):
         workflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=setAI, threadkey='calibrate')
 
     def doSimulateWorkflow(self):
+        # TEMPORARY HACK for demonstration
+        self.reducetabview.currentWidget().setTransform()
+
         if not self.calibrationtabview.currentWidget(): return
         data = self.calibrationtabview.currentWidget().header.meta_array()[0]
         device = self.toolbar.detectorcombobox.currentText()
@@ -212,9 +217,11 @@ class SAXSPlugin(GUIPlugin):
         mask = [self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None] * len(
             data)
         outputwidget = self.reduceplot
-        outputwidget.clear_all()
+
+        # outputwidget.clear_all()
 
         def showReduce(*results):
+            self.reduceplot.plot_mode(results)
             pass
 
         self.reduceworkflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
@@ -245,7 +252,7 @@ class SAXSPlugin(GUIPlugin):
         self.setEnabledOuterWidgets(False)
 
         # Start drawing mode
-        viewer = self.masktabview.currentWidget()  # type: SAXSViewerPlugin
+        viewer = self.masktabview.currentWidget()  # type: SAXSViewerPluginBase
         viewer.imageItem.setDrawKernel(kernel=np.array([[0]]), mask=None, center=(0, 0), mode='add')
         viewer.imageItem.drawMode = self.drawEvent
         viewer.maskROI.clearPoints()
@@ -266,11 +273,11 @@ class SAXSPlugin(GUIPlugin):
         mainwindow.pluginmodewidget.setEnabled(enabled)
 
     def clearMask(self):
-        viewer = self.masktabview.currentWidget()  # type: SAXSViewerPlugin
+        viewer = self.masktabview.currentWidget()  # type: SAXSViewerPluginBase
         viewer.maskROI.clearPoints()
 
     def finishMask(self, process, sender):
-        viewer = self.masktabview.currentWidget()  # type: SAXSViewerPlugin
+        viewer = self.masktabview.currentWidget()  # type: SAXSViewerPluginBase
         process.polygon.value = np.array([list(handle['pos']) for handle in viewer.maskROI.handles])
         self.setEnabledOuterWidgets(True)
 
@@ -283,7 +290,7 @@ class SAXSPlugin(GUIPlugin):
         self.doMaskingWorkflow()
 
     def drawEvent(self, kernel, imgdata, mask, ss, ts, event):
-        viewer = self.masktabview.currentWidget()  # type: SAXSViewerPlugin
+        viewer = self.masktabview.currentWidget()  # type: SAXSViewerPluginBase
         viewer.maskROI.addFreeHandle(viewer.view.vb.mapSceneToView(event.scenePos()))
         if len(viewer.maskROI.handles) > 1:
             viewer.maskROI.addSegment(viewer.maskROI.handles[-2]['item'], viewer.maskROI.handles[-1]['item'])
