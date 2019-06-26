@@ -11,7 +11,7 @@ from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMar
 import pyqtgraph as pg
 
 
-class SAXSViewerPluginBase(CenterMarker, BetterButtons, Crosshair, DynImageView):
+class SAXSViewerPluginBase(CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView):
 
     def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, *args, **kwargs):
 
@@ -112,5 +112,5 @@ class SAXSMaskingViewer(SAXSViewerPluginBase):
     pass
 
 
-class SAXSReductionViewer(EwaldCorrected, QCoordinates, SAXSViewerPluginBase):
+class SAXSReductionViewer(EwaldCorrected, SAXSViewerPluginBase):
     pass
