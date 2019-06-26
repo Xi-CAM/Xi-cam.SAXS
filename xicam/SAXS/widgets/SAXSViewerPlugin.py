@@ -7,15 +7,15 @@ from qtpy.QtGui import *
 import numpy as np
 from xicam.core import msg
 from xicam.gui.widgets.dynimageview import DynImageView
-from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons
+from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons, EwaldCorrected
 import pyqtgraph as pg
 
 
-class SAXSViewerPlugin(CenterMarker, BetterButtons, QCoordinates, Crosshair, DynImageView):
+class SAXSViewerPluginBase(CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView):
 
     def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, *args, **kwargs):
 
-        super(SAXSViewerPlugin, self).__init__(**kwargs)
+        super(SAXSViewerPluginBase, self).__init__(**kwargs)
         self.axesItem.invertY(False)
 
         # Setup coordinates label
@@ -102,3 +102,15 @@ class SAXSViewerPlugin(CenterMarker, BetterButtons, QCoordinates, Crosshair, Dyn
 
 
 calibrantlut = np.array([[0, i, 0, i] for i in range(256)])
+
+
+class SAXSCalibrationViewer(SAXSViewerPluginBase):
+    pass
+
+
+class SAXSMaskingViewer(SAXSViewerPluginBase):
+    pass
+
+
+class SAXSReductionViewer(EwaldCorrected, SAXSViewerPluginBase):
+    pass

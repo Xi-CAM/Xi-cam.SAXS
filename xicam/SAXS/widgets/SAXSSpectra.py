@@ -10,7 +10,7 @@ from xicam.core.execution.workflow import Workflow
 from typing import Tuple
 
 
-class SAXSSpectra(QWidgetPlugin):
+class SAXSSpectra(QTabWidget, QWidgetPlugin):
     name = 'SAXSSpectra'
 
     def __init__(self, workflow: Workflow, toolbar: QToolBar):
@@ -19,24 +19,17 @@ class SAXSSpectra(QWidgetPlugin):
         self._cache = {}  # cache is dict to allow future use of other keys as 'time' index
         self.workflow = workflow
 
-        self.plotwidget = PlotWidget(
-            labels={'bottom': 'q (\u212B\u207B\u00B9)', 'left': 'I (a.u.)', 'top': 'd (nm)'})
-
-        def tickStrings(values, scale, spacing):
-            return ['{:.3f}'.format(.2 * np.pi / i) if i != 0 else '\u221E' for i in values]
-
-        self.plotwidget.plotItem.axes['top']['item'].tickStrings = tickStrings
         self.toolbar = toolbar
         self.toolbar.sigPlotCache.connect(self.replot_all)
 
-        self.legend = self.plotwidget.addLegend()
+        # self.legend = self.plotwidget.addLegend()
 
-        hbox = QHBoxLayout()
-        # hbox.addWidget(self.toolbar)
-        hbox.addWidget(self.plotwidget)
-        self.setLayout(hbox)
-        self.setContentsMargins(0, 0, 0, 0)
-        hbox.setSpacing(0)
+        # hbox = QHBoxLayout()
+        # # hbox.addWidget(self.toolbar)
+        # hbox.addWidget(self.plotwidget)
+        # self.setLayout(hbox)
+        # self.setContentsMargins(0, 0, 0, 0)
+        # hbox.setSpacing(0)
 
     def setResult(self, result: Tuple[dict]):
         self.clear_all()
@@ -49,16 +42,33 @@ class SAXSSpectra(QWidgetPlugin):
         self.plot_mode(result_cache)
 
     def plot_mode(self, resultset):
-        checkedindices = self.toolbar.reductionModesModel.checkedIndices()
-        for name, xoutput, youtput in [
-            (checkedindex.internalPointer().name, checkedindex.internalPointer().x, checkedindex.internalPointer().y)
-            for checkedindex
-            in checkedindices]:
-            for result in resultset:
-                if xoutput.name in result and youtput.name in result:
-                    self.plot(result[xoutput.name], result[youtput.name], name=name)
+        self.clear()
 
-        self._auto_pen()
+        for result in resultset:
+            name = next(iter(result.keys()))
+            plotwidget = PlotWidget(
+                labels={'bottom': 'q (\u212B\u207B\u00B9)', 'left': 'I (a.u.)', 'top': 'd (nm)'})
+
+            def tickStrings(values, scale, spacing):
+                return ['{:.3f}'.format(.2 * np.pi / i) if i != 0 else '\u221E' for i in values]
+
+            plotwidget.plotItem.axes['top']['item'].tickStrings = tickStrings
+
+            plotwidget.plot(*list(output.value for output in result.values()), name=name)
+
+            self.addTab(plotwidget, name)
+
+        #
+        # checkedindices = self.toolbar.reductionModesModel.checkedIndices()
+        # for name, xoutput, youtput in [
+        #     (checkedindex.internalPointer().name, checkedindex.internalPointer().x, checkedindex.internalPointer().y)
+        #     for checkedindex
+        #     in checkedindices]:
+        #     for result in resultset:
+        #         if xoutput.name in result and youtput.name in result:
+        #             self.plot(result[xoutput.name], result[youtput.name], name=name)
+
+        # self._auto_pen()
 
     def plot(self, *args, **kwargs):
         self.plotwidget.plotItem.plot(*args, **kwargs)

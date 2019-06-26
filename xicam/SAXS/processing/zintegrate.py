@@ -21,7 +21,7 @@ class ZIntegratePlugin(ProcessingPlugin):
     qz = Output(description='Q_x bin center positions',
                 type=np.array)
     Iz = Output(description='Binned/pixel-split integrated intensity',
-                type=np.array, hints={'plotx': ['qz']})
+                type=np.array, )  # hints={'plotx': ['qz']})
 
     hints = [PlotHint(qz, Iz)]
 
