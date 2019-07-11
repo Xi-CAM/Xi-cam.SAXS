@@ -7,11 +7,12 @@ from qtpy.QtGui import *
 import numpy as np
 from xicam.core import msg
 from xicam.gui.widgets.dynimageview import DynImageView
-from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons, EwaldCorrected
+from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons, EwaldCorrected, \
+    LogScaleIntensity
 import pyqtgraph as pg
 
 
-class SAXSViewerPluginBase(CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView):
+class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView):
 
     def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, *args, **kwargs):
 
