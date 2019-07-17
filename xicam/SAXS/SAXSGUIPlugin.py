@@ -49,8 +49,7 @@ class SAXSPlugin(GUIPlugin):
         # Setup TabViews
         self.calibrationtabview = TabView(self.headermodel, widgetcls=SAXSCalibrationViewer,
                                           selectionmodel=self.selectionmodel,
-                                          bindings=[('sigTimeChangeFinished', self.indexChanged),
-                                                    (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
+                                          bindings=[(self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                           geometry=self.getAI)
         self.masktabview = TabView(self.headermodel, widgetcls=SAXSMaskingViewer, selectionmodel=self.selectionmodel,
                                    bindings=[('sigTimeChangeFinished', self.indexChanged),
