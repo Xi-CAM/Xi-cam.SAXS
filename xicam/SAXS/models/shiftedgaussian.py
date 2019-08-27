@@ -1,5 +1,5 @@
 from astropy.modeling.models import Gaussian1D, Shift
-from xicam.plugins.FittableModelPlugin import Fittable1DModelPlugin
+from xicam.plugins.fittablemodelplugin import Fittable1DModelPlugin
 
 ShiftedGaussian1D = Gaussian1D + Shift
 

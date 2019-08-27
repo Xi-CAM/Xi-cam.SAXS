@@ -1,7 +1,7 @@
 from qtpy.QtWidgets import *
 from qtpy.QtGui import *
 from qtpy.QtCore import *
-from xicam.plugins.WidgetPlugin import QWidgetPlugin
+from xicam.plugins.widgetplugin import QWidgetPlugin
 from pyqtgraph import PlotWidget, PlotDataItem, intColor, mkPen
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
 import numpy as np

@@ -1,7 +1,7 @@
 from qtpy.QtWidgets import *
 from qtpy.QtCore import *
 from qtpy.QtGui import *
-from xicam.plugins.WidgetPlugin import QWidgetPlugin
+from xicam.plugins.widgetplugin import QWidgetPlugin
 from xicam.gui.static import path
 from xicam.core.execution.workflow import Workflow
 from xicam.plugins import ProcessingPlugin, Output
