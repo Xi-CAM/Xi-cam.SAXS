@@ -155,7 +155,8 @@ class SAXSPlugin(GUIPlugin):
 
     def doSimulateWorkflow(self):
         # TEMPORARY HACK for demonstration
-        self.reducetabview.currentWidget().setTransform()
+        if self.reducetabview.currentWidget():
+            self.reducetabview.currentWidget().setTransform()
 
         if not self.calibrationtabview.currentWidget(): return
         data = self.calibrationtabview.currentWidget().header.meta_array()[0]
