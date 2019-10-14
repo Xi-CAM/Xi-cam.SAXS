@@ -33,11 +33,15 @@ class NaiveSDD(ProcessingPlugin):
                 break
 
         # identify order of selected peak
-        N = 1
-        stds = [np.std((peaks[:, 0] / (np.arange(len(peaks)) + i))[:4]) for i in range(1, 5)]
-        if min(stds) < 5:  # threshold accepting peak as higher N
-            N = np.argmin(stds) + 1  # index of the first detected peak
-        calibrant1stpeak = self.calibrant.value.dSpacing[N - 1]
+        best_order = (0, 0)
+
+        for i in range(1, 6):
+            peak_ratios = ((peaks[:, 0] / (np.arange(len(peaks)))) / (bestpeak / (i + 1)))
+            order = np.sum(np.logical_and(peak_ratios < 1.1, 0.9 < peak_ratios))
+            if order > best_order[0]:
+                best_order = (order, i)
+
+        calibrant1stpeak = self.calibrant.value.dSpacing[best_order[1]]
 
         # Calculate sample to detector distance for lowest q peak
 
