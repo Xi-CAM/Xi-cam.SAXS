@@ -35,7 +35,7 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
         self.addAction(self.rawaction)
         self.cakeaction = self.mkAction('icons/cake.png', 'Cake (q/chi plot)', checkable=True, group=self.modegroup)
         self.addAction(self.cakeaction)
-        self.remeshaction = self.mkAction('icons/remesh.png', 'Remesh (GIWAXS)', checkable=True, group=self.modegroup)
+        self.remeshaction = self.mkAction('icons/remesh.png', 'Remesh', checkable=True, group=self.modegroup)
         self.addAction(self.remeshaction)
         self.addSeparator()
 
