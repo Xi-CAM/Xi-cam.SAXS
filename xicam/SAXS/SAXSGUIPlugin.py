@@ -67,7 +67,6 @@ class SAXSPlugin(GUIPlugin):
 
         # Setup toolbars
         self.toolbar = SAXSToolbar(self.headermodel, self.selectionmodel)
-        self.calibrationtabview.kwargs['toolbar'] = self.toolbar
         self.reducetabview.kwargs['toolbar'] = self.toolbar
 
         # Setup calibration widgets

@@ -8,13 +8,13 @@ import numpy as np
 from xicam.core import msg
 from xicam.gui.widgets.dynimageview import DynImageView
 from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons, EwaldCorrected, \
-    LogScaleIntensity
+    LogScaleIntensity, DisplayMode
 import pyqtgraph as pg
 
 
 class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView):
 
-    def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, *args, **kwargs):
+    def __init__(self, header: NonDBHeader = None, field: str = None, *args, **kwargs):
 
         super(SAXSViewerPluginBase, self).__init__(**kwargs)
         self.axesItem.invertY(False)
@@ -36,11 +36,6 @@ class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Cross
         self.maskROI.handlePen = pg.mkPen(color='r', width=2)
         self.maskROI.handleSize = 10
         self.view.addItem(self.maskROI)
-
-        # Connect toolbar handlers
-        self.toolbar = toolbar
-        if self.toolbar:
-            self.toolbar.modegroup.triggered.connect(self.redraw)
 
         # Setup results cache
         self.results = []
@@ -114,4 +109,20 @@ class SAXSMaskingViewer(SAXSViewerPluginBase):
 
 
 class SAXSReductionViewer(EwaldCorrected, SAXSViewerPluginBase):
-    pass
+    def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, **kwargs):
+        # Connect toolbar handlers
+        self.toolbar = toolbar
+        if self.toolbar:
+            self.toolbar.modegroup.triggered.connect(self.setDisplayMode)
+
+        super(SAXSReductionViewer, self).__init__(header=header, field=field, **kwargs)
+
+    def setDisplayMode(self, mode):
+        if mode.text() == 'Remesh':
+            mode = DisplayMode.remesh
+        elif mode.text() == 'Raw':
+            mode = DisplayMode.raw
+        elif mode.text() == 'Cake (q/chi plot)':
+            mode = DisplayMode.cake
+
+        EwaldCorrected.setDisplayMode(self, mode)
