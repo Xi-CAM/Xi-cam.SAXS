@@ -7,6 +7,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 from pyFAI.multi_geometry import MultiGeometry
 
 from xicam.plugins import ParameterSettingsPlugin
+from xicam.core import msg
 from .CalibrationPanel import CalibrationPanel
 
 from pyqtgraph.parametertree import Parameter, ParameterTree
@@ -49,13 +50,14 @@ class DeviceParameter(GroupParameter):
 
 class DeviceProfiles(ParameterSettingsPlugin):
     sigGeometryChanged = Signal(AzimuthalIntegrator)  # Emits the new geometry
-    sigSimulateCalibrant = Signal()
 
     def __init__(self):
         self.headermodel = None
         self.selectionmodel = None
         self.multiAI = MultiGeometry([])
         self.AIs = dict()
+        self._changes = []
+        self.isSilent = False
 
 
         energy = SimpleParameter(name='Energy', type='float', value=10000, siPrefix=True, suffix='eV')
@@ -65,27 +67,9 @@ class DeviceProfiles(ParameterSettingsPlugin):
         icon = QIcon(str(path('icons/calibrate.png')))
         super(DeviceProfiles, self).__init__(icon, "Device Profiles", [energy, wavelength], addText='New Device')
 
-        self.sigTreeStateChanged.connect(self.simulateCalibrant)
-        self.sigTreeStateChanged.connect(self.genAIs)
-        self.sigTreeStateChanged.connect(self.geometryChanged)
-        self.sigGeometryChanged.connect(self.save)
+        self.sigTreeStateChanged.connect(self.stateChanged)
 
-    def addNew(self, typ=None):
-        text, ok = QInputDialog().getText(self.widget, 'Enter Device Name', 'Device Name:')
-
-        if text and ok:
-            self.addDevice(text)
-
-
-    def geometryChanged(self, A, B):
-        if B[0][0].parent():
-            name = B[0][0].parent().name()
-            self.sigGeometryChanged.emit(self.AI(name))
-
-    def simulateCalibrant(self, *args):
-        self.sigSimulateCalibrant.emit()
-
-    def genAIs(self, parent, changes):
+    def normalize(self, changes):
         for parameter, key, value in changes:
             if parameter.name == 'Wavelength':
                 self.param('Energy').setValue(1.239842e-6 / self.param('Wavelength').value(),
@@ -93,6 +77,39 @@ class DeviceProfiles(ParameterSettingsPlugin):
             elif parameter.name == 'Energy':
                 self.param('Wavelength').setValue(1.239842e-6 / self.param('Energy').value(),
                                                   blockSignal=self.WavelengthChanged)
+
+    def stateChanged(self, parent, changes):
+        self.normalize(changes)
+
+        self._changes.extend(changes)
+        if not self.isSilent:
+            self.emitChanges()
+            self.apply()
+            self.save()
+
+    def emitChanges(self):
+        modified_AIs = {self.AI(change[0].parent().name()) for change in self._changes if change[0].parent()}
+        self._changes = []
+
+        self.genAIs()
+        for ai in modified_AIs:
+            self.sigGeometryChanged.emit(ai)
+
+    def setSilence(self, silence):
+        self.isSilent = silence
+
+        if not silence:
+            self.emitChanges()
+            self.apply()
+            self.save()
+
+    def addNew(self, typ=None):
+        text, ok = QInputDialog().getText(self.widget, 'Enter Device Name', 'Device Name:')
+
+        if text and ok:
+            self.addDevice(text)
+
+    def genAIs(self):
 
         for parameter in self.children():
             if isinstance(parameter, DeviceParameter):
@@ -136,21 +153,7 @@ class DeviceProfiles(ParameterSettingsPlugin):
             self.child('Wavelength').setValue(ai.wavelength)
         finally:
             self.setSilence(False)
-            self.simulateCalibrant()
-            self.sigGeometryChanged.emit(ai)
 
-    def setSilence(self, silence):
-        if silence:
-            try:
-                self.sigTreeStateChanged.disconnect(self.simulateCalibrant)
-                self.sigTreeStateChanged.disconnect(self.genAIs)
-                self.sigTreeStateChanged.disconnect(self.geometryChanged)
-            except TypeError:
-                pass  # do nothing if no connected
-        else:
-            self.sigTreeStateChanged.connect(self.simulateCalibrant)
-            self.sigTreeStateChanged.connect(self.genAIs)
-            self.sigTreeStateChanged.connect(self.geometryChanged)
 
 
     def addDevice(self, device):
@@ -190,10 +193,17 @@ class DeviceProfiles(ParameterSettingsPlugin):
         return self.saveState(filter='user'), self.AIs
 
     def fromState(self, state):
-        self.restoreState(state[0], addChildren=False, removeChildren=False)
-        self.AIs = state[1]
-        for child in self.children()[2:]:
-            child.remove()
-        for name, ai in self.AIs.items():
-            self.addDevice(name)
-            self.setAI(ai, name)
+        self.setSilence(True)
+        try:
+            self.AIs = state[1]
+            for child in self.children()[2:]:
+                child.remove()
+            for name, ai in self.AIs.items():
+                self.addDevice(name)
+                self.setAI(ai, name)
+
+            self.restoreState(state[0], addChildren=False, removeChildren=False)
+        except Exception as ex:
+            msg.logError(ex)
+        finally:
+            self.setSilence(False)
