@@ -6,6 +6,7 @@ from qtpy.QtCore import *
 from qtpy.QtGui import *
 import numpy as np
 from xicam.core import msg
+from xicam.plugins import manager as pluginmanager
 from xicam.gui.widgets.dynimageview import DynImageView
 from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons, EwaldCorrected, \
     LogScaleIntensity, DisplayMode
@@ -57,6 +58,10 @@ class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Cross
             # kwargs['transform'] = QTransform(1, 0, 0, -1, 0, data.shape[-2])
             self.setImage(img=data, *args, **kwargs)
 
+        # TODO: Remove hack default field after transition to RunCatalog
+        self.setGeometry(pluginmanager.getPluginByName('xicam.SAXS.calibration', 'SettingsPlugin').plugin_object.AI(
+            field or 'pilatus2M'))
+
     def setMaskImage(self, mask):
         if mask is not None:
             self.maskimage.setImage(mask, lut=np.array([[0, 0, 0, 0], [255, 0, 0, 255]]))
@@ -74,23 +79,7 @@ class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Cross
     def redraw(self):
         if not self.parent().currentWidget() == self: return  # Don't redraw when not shown
 
-        for result in self.results:
-            try:
-                if self.toolbar.cakeaction.isChecked():
-                    self.setImage(result['cake'].value)
-                    break
-                elif self.toolbar.remeshaction.isChecked():
-                    self.setImage(result['remesh'].value)  # TODO: add checkbox to toolbar
-                    break
-                elif 'inpaint' in result:
-                    self.setImage(result['inpaint'].value)
-                    break
-
-
-            except TypeError:
-                continue
-        else:  # if self.toolbar.rawaction.isChecked():
-            self.setHeader(self.header, self.field)
+        self.setHeader(self.header, self.field)
 
     def setResults(self, results):
         self.results = results
