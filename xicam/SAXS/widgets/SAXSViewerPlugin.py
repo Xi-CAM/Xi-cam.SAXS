@@ -103,11 +103,15 @@ class SAXSReductionViewer(EwaldCorrected, SAXSViewerPluginBase):
         self.toolbar = toolbar
         if self.toolbar:
             self.toolbar.modegroup.triggered.connect(self.setDisplayMode)
+            self.toolbar.sigDeviceChanged.connect(self.deviceChanged)
 
         super(SAXSReductionViewer, self).__init__(header=header, field=field, **kwargs)
 
+    def deviceChanged(self, device_name):
+        self.setHeader(header=self.header, field=device_name)
+
     def setDisplayMode(self, mode):
-        if mode.text() == 'Remesh':
+        if mode.text() == 'Wrap Ewald Sphere':
             mode = DisplayMode.remesh
         elif mode.text() == 'Raw':
             mode = DisplayMode.raw
