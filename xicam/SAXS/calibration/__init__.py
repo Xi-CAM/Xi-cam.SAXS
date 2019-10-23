@@ -122,7 +122,7 @@ class DeviceProfiles(ParameterSettingsPlugin):
                 ai.detector.set_pixel2(parameter['Pixel Size Y'])
                 fit2d = ai.getFit2D()
                 fit2d['centerX'] = parameter['Center X']
-                fit2d['centerY'] = parameter['Center Y']
+                fit2d['centerY'] = ai.detector.shape[0] - parameter['Center Y']
                 fit2d['directDist'] = parameter['Detector Distance'] * 1000
                 fit2d['tilt'] = parameter['Detector Tilt']
                 fit2d['tiltPlanRotation'] = parameter['Detector Rotation']
@@ -148,7 +148,7 @@ class DeviceProfiles(ParameterSettingsPlugin):
             self.child(device, 'Pixel Size X').setValue(ai.pixel1)
             self.child(device, 'Pixel Size Y').setValue(ai.pixel2)
             self.child(device, 'Center X').setValue(fit2d['centerX'])
-            self.child(device, 'Center Y').setValue(fit2d['centerY'])
+            self.child(device, 'Center Y').setValue(ai.detector.shape[0] - fit2d['centerY'])
             self.child(device, 'Detector Distance').setValue(fit2d['directDist'] / 1000.)
             self.child('Wavelength').setValue(ai.wavelength)
         finally:
