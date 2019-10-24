@@ -6,15 +6,16 @@ from qtpy.QtCore import *
 from qtpy.QtGui import *
 import numpy as np
 from xicam.core import msg
+from xicam.plugins import manager as pluginmanager
 from xicam.gui.widgets.dynimageview import DynImageView
 from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons, EwaldCorrected, \
-    LogScaleIntensity
+    LogScaleIntensity, DisplayMode
 import pyqtgraph as pg
 
 
 class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView):
 
-    def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, *args, **kwargs):
+    def __init__(self, header: NonDBHeader = None, field: str = None, *args, **kwargs):
 
         super(SAXSViewerPluginBase, self).__init__(**kwargs)
         self.axesItem.invertY(False)
@@ -37,11 +38,6 @@ class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Cross
         self.maskROI.handleSize = 10
         self.view.addItem(self.maskROI)
 
-        # Connect toolbar handlers
-        self.toolbar = toolbar
-        if self.toolbar:
-            self.toolbar.modegroup.triggered.connect(self.redraw)
-
         # Setup results cache
         self.results = []
 
@@ -62,6 +58,10 @@ class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Cross
             # kwargs['transform'] = QTransform(1, 0, 0, -1, 0, data.shape[-2])
             self.setImage(img=data, *args, **kwargs)
 
+        # TODO: Remove hack default field after transition to RunCatalog
+        self.setGeometry(pluginmanager.getPluginByName('xicam.SAXS.calibration', 'SettingsPlugin').plugin_object.AI(
+            field or 'pilatus2M'))
+
     def setMaskImage(self, mask):
         if mask is not None:
             self.maskimage.setImage(mask, lut=np.array([[0, 0, 0, 0], [255, 0, 0, 255]]))
@@ -79,23 +79,7 @@ class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Cross
     def redraw(self):
         if not self.parent().currentWidget() == self: return  # Don't redraw when not shown
 
-        for result in self.results:
-            try:
-                if self.toolbar.cakeaction.isChecked():
-                    self.setImage(result['cake'].value)
-                    break
-                elif self.toolbar.remeshaction.isChecked():
-                    self.setImage(result['remesh'].value)  # TODO: add checkbox to toolbar
-                    break
-                elif 'inpaint' in result:
-                    self.setImage(result['inpaint'].value)
-                    break
-
-
-            except TypeError:
-                continue
-        else:  # if self.toolbar.rawaction.isChecked():
-            self.setHeader(self.header, self.field)
+        self.setHeader(self.header, self.field)
 
     def setResults(self, results):
         self.results = results
@@ -114,4 +98,24 @@ class SAXSMaskingViewer(SAXSViewerPluginBase):
 
 
 class SAXSReductionViewer(EwaldCorrected, SAXSViewerPluginBase):
-    pass
+    def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, **kwargs):
+        # Connect toolbar handlers
+        self.toolbar = toolbar
+        if self.toolbar:
+            self.toolbar.modegroup.triggered.connect(self.setDisplayMode)
+            self.toolbar.sigDeviceChanged.connect(self.deviceChanged)
+
+        super(SAXSReductionViewer, self).__init__(header=header, field=field, **kwargs)
+
+    def deviceChanged(self, device_name):
+        self.setHeader(header=self.header, field=device_name)
+
+    def setDisplayMode(self, mode):
+        if mode.text() == 'Wrap Ewald Sphere':
+            mode = DisplayMode.remesh
+        elif mode.text() == 'Raw':
+            mode = DisplayMode.raw
+        elif mode.text() == 'Cake (q/chi plot)':
+            mode = DisplayMode.cake
+
+        EwaldCorrected.setDisplayMode(self, mode)

@@ -10,66 +10,14 @@ from xicam.plugins import Hint
 from functools import partial
 
 
-class SAXSToolbar(QToolBar, QWidgetPlugin):
+class SAXSToolbarBase(QToolBar):
     name = 'SAXSToolbar'
     sigPlotCache = Signal()
     sigDoWorkflow = Signal()
     sigDeviceChanged = Signal(str)
 
-    def __init__(self, headermodel: QStandardItemModel, selectionmodel: QItemSelectionModel):
-        super(SAXSToolbar, self).__init__()
-
-        self.results = []
-
-        self.headermodel = headermodel
-        self.selectionmodel = selectionmodel
-        self.headermodel.dataChanged.connect(self.updatedetectorcombobox)
-
-        self.detectorcombobox = QComboBox()
-        self.detectorcombobox.currentTextChanged.connect(self.sigDeviceChanged)
-
-        self.addWidget(self.detectorcombobox)
-        self.addSeparator()
-        self.modegroup = QActionGroup(self)
-        self.rawaction = self.mkAction('icons/raw.png', 'Raw', checkable=True, group=self.modegroup, checked=True)
-        self.addAction(self.rawaction)
-        self.cakeaction = self.mkAction('icons/cake.png', 'Cake (q/chi plot)', checkable=True, group=self.modegroup)
-        self.addAction(self.cakeaction)
-        self.remeshaction = self.mkAction('icons/remesh.png', 'Remesh (GIWAXS)', checkable=True, group=self.modegroup)
-        self.addAction(self.remeshaction)
-        self.addSeparator()
-
-        self.multiplot = QAction(self)
-        self.multiplot.setIcon(QIcon(str(path('icons/multiplot.png'))))
-        self.multiplot.setText('Plot Series')
-        self.multiplot.setCheckable(True)
-        self.multiplot.triggered.connect(self.sigDoWorkflow)
-        self.addAction(self.multiplot)
-
-    # def updateReductionModes(self, results):
-    #     previousindex = self.reductionModes.currentIndex()
-    #     self.reductionModes.currentIndexChanged.disconnect(self.sigPlotCache)
-    #     self.reductionModesModel.clear()
-    #     for result in results:
-    #         for key, output in result.items():
-    #             for xname in output.hints.get('plotx', []):
-    #                 name = f'{result[key].name} vs. {xname} [{result[key].parent.name}]'
-    #                 item = QStandardItem(name)
-    #                 item.setData((result[xname], result[key]), role=256)
-    #                 item.setCheckState(Qt.Unchecked)
-    #                 self.reductionModesModel.appendRow(item)
-    #     self.reductionModes.setCurrentIndex(previousindex)
-    #     self.reductionModes.currentIndexChanged.connect(self.sigPlotCache)
-    #     if previousindex == -1:
-    #         self.reductionModes.setCurrentIndex(0)
-    #         self.reductionModesModel.item(0).setCheckState(Qt.Checked)
-
-
-    def updatedetectorcombobox(self, start, end):
-        if self.headermodel.rowCount():
-            devices = self.headermodel.item(self.selectionmodel.currentIndex().row()).header.devices()
-            self.detectorcombobox.clear()
-            self.detectorcombobox.addItems(devices)
+    def __init__(self):
+        super(SAXSToolbarBase, self).__init__()
 
     def mkAction(self, iconpath: str = None, text=None, receiver=None, group=None, checkable=False, checked=False):
         actn = QAction(self)
@@ -80,6 +28,64 @@ class SAXSToolbar(QToolBar, QWidgetPlugin):
         if checked: actn.setChecked(checked)
         if group: actn.setActionGroup(group)
         return actn
+
+
+class FieldSelector(SAXSToolbarBase):
+
+    def __init__(self, headermodel: QStandardItemModel, selectionmodel: QItemSelectionModel, *args, **kwargs):
+        self.headermodel = headermodel
+        self.selectionmodel = selectionmodel
+        self.headermodel.dataChanged.connect(self.updatedetectorcombobox)
+
+        super(FieldSelector, self).__init__()
+
+        self.detectorcombobox = QComboBox()
+        self.addWidget(self.detectorcombobox)
+        self.addSeparator()
+        self.detectorcombobox.currentTextChanged.connect(self.sigDeviceChanged)
+
+    def updatedetectorcombobox(self, start, end):
+        if self.headermodel.rowCount():
+            devices = self.headermodel.item(self.selectionmodel.currentIndex().row()).header.devices()
+            self.detectorcombobox.clear()
+            self.detectorcombobox.addItems(devices)
+
+
+class ModeSelector(SAXSToolbarBase):
+    def __init__(self, *args, **kwargs):
+        super(ModeSelector, self).__init__(*args, **kwargs)
+        self.modegroup = QActionGroup(self)
+        self.rawaction = self.mkAction('icons/raw.png', 'Raw', checkable=True, group=self.modegroup, checked=True)
+        self.addAction(self.rawaction)
+        self.cakeaction = self.mkAction('icons/cake.png', 'Cake (q/chi plot)', checkable=True, group=self.modegroup)
+        self.addAction(self.cakeaction)
+        self.remeshaction = self.mkAction('icons/remesh.png', 'Wrap Ewald Sphere', checkable=True, group=self.modegroup)
+        self.addAction(self.remeshaction)
+        self.addSeparator()
+
+
+class MultiPlot(SAXSToolbarBase):
+    def __init__(self, *args, **kwargs):
+        super(MultiPlot, self).__init__(*args, **kwargs)
+        self.multiplot = QAction(self)
+        self.multiplot.setIcon(QIcon(str(path('icons/multiplot.png'))))
+        self.multiplot.setText('Plot Series')
+        self.multiplot.setCheckable(True)
+        self.multiplot.triggered.connect(self.sigDoWorkflow)
+        self.addAction(self.multiplot)
+
+
+class SAXSToolbarRaw(FieldSelector):
+    pass
+
+
+class SAXSToolbarMask(FieldSelector):
+    pass
+
+
+class SAXSToolbarReduce(MultiPlot, ModeSelector, FieldSelector):
+    def __init__(self, *args, **kwargs):
+        super(SAXSToolbarReduce, self).__init__(*args, **kwargs)
 
 
 class CheckableWorkflowOutputModel(QAbstractItemModel):
