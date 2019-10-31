@@ -5,8 +5,16 @@ Usage: pip install -e .
        python setup.py sdist bdist_egg
        twine upload dist/*
 """
+from os import path
+from setuptools import find_namespace_packages, setup
 
-from setuptools import setup
+
+here = path.abspath(path.dirname(__file__))
+# get the dependencies and installs
+with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
+    all_reqs = f.read().split('\n')
+
+install_requires = [x.strip() for x in all_reqs]# if 'git+' not in x]
 
 setup(
     name='xicam.SAXS',
@@ -55,9 +63,7 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=['xicam.SAXS', 'xicam.SAXS.calibration', 'xicam.SAXS.masking',
-              'xicam.SAXS.processing', 'xicam.SAXS.widgets', 'xicam.SAXS.patches', 'xicam.SAXS.models',
-              'xicam.SAXS.formats'],
+    packages=find_namespace_packages(exclude=['docs', 'tests*']),
 
     package_dir={},
 
@@ -69,7 +75,7 @@ setup(
     # your project is installed. For an analysis of "install_requires" vs pip's
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
-    install_requires=['numpy', 'qtpy', 'pyFAI', 'scipy', 'dill'],  # 'astroscrappy' removed pending windows issue
+    install_requires=install_requires,  # 'astroscrappy' removed pending windows issue
 
     setup_requires=[],
 
@@ -97,7 +103,7 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    entry_points={},
+    entry_points={'xicam.plugins.GUIPlugin': ['xpcs_gui_plugin = xicam.XPCS:XPCS']},
 
     ext_modules=[],
     include_package_data=True
