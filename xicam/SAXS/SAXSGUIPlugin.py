@@ -3,6 +3,8 @@ from qtpy.QtCore import *
 from qtpy.QtGui import *
 from qtpy.QtWidgets import *
 
+import cloudpickle as pickle
+
 from databroker.core import BlueskyRun
 from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree.parameterTypes import ListParameter
@@ -137,8 +139,8 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.SAXSSpectra import SAXSSpectra
 
-        # XPCS data model
-        self.resultsModel = QStandardItemModel()
+        self.derivedDataModel = QStandardItemModel()
+        self.catalogModel = QStandardItemModel()
 
         # Data model
         self.headermodel = QStandardItemModel()
@@ -567,3 +569,4 @@ class SAXSPlugin(GUIPlugin):
             item.setData(hint)
             item.setCheckable(True)
             parentItem.appendRow(item)
+        self.derivedDataModel.appendRow(parentItem)
