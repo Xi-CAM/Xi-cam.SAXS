@@ -1,9 +1,11 @@
+from collections import OrderedDict
+
 import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
-from qtpy.QtCore import QItemSelection, QPersistentModelIndex, Qt
+from qtpy.QtCore import QItemSelection, QPersistentModelIndex, Qt, QPoint
 from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import QAbstractItemView, QGridLayout, QLayout, QLineEdit, QListView, QSplitter, QToolBar, QTreeView, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QAbstractItemView, QGridLayout, QLayout, QLineEdit, QListView, QSplitter, QTabBar, QToolBar, QTreeView, QVBoxLayout, QWidget
 
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
 from xicam.gui.widgets.plotwidgetmixins import CurveLabels
@@ -352,44 +354,144 @@ class CheckableStandardItemModel(QStandardItemModel):
 
 class HintTabView(QAbstractItemView):
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super(HintTabView, self).__init__(parent)
 
-        self._tabWidget = QTabWidget(self)
+        self._tabWidget = QTabBar(self)
+        self._indexToTabMap = OrderedDict()
 
     # def dataChanged(self, QModelIndex, QModelIndex_1, roles, p_int=None, *args, **kwargs):
     #     pass
 
+    def _addTab(self, modelIndex: QModelIndex):
+        # Always append to the index map
+        tabIndex = self._tabWidget.addTab(modelIndex.data(Qt.DisplayRole))
+        self._indexToTabMap[QPersistentModelIndex(modelIndex)] = tabIndex
+
+    def _removeTab(self, modelIndex: QModelIndex):
+        removeTabIndex = self._indexToTabMap[modelIndex]
+        self._tabWidget.removeTab(removeTabIndex)
+        for modelIndex, tabIndex in self._indexToTabMap.items():
+            if tabIndex > removeTabIndex:
+                self._indexToTabMap[QPersistentModelIndex(modelIndex)] = tabIndex - 1
+
     def dataChanged(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles):
-        if not Qt.DisplayRole in roles:
-            return
+        if self.model():
+            if Qt.CheckStateRole in roles:
+                if topLeft.data(Qt.CheckStateRole) == Qt.Checked:
+                    self._addTab(topLeft)
+                else:
+                    self._removeTab(topLeft)
 
-        # item = topLeft.
-
-    def rowsInserted(self, QModelIndex, p_int, p_int_1):
+    def horizontalOffset(self):
         pass
 
-    def rowsAboutToBeRemoved(self, QModelIndex, p_int, p_int_1):
+    def indexAt(self, point: QPoint):
+        return self._tabWidget.tabAt(point)
+
+    # def model(self):
+    #     return self._model
+
+    def moveCursor(self, QAbstractItemView_CursorAction, Union, Qt_KeyboardModifiers=None, Qt_KeyboardModifier=None):
+        pass
+
+    def rowsInserted(self, index: QModelIndex, start, end):
+        pass
+        # if self.model():
+        #     self._tabWidget.addTab(index.data(role=Qt.DisplayRole))
+        #     self._indexMap[QPersistentModelIndex(index)] = self._tabWidget.currentIndex()
+        #     super(HintTabView, self).rowsInserted(index, start, end)
+
+    def rowsAboutToBeRemoved(self, index: QModelIndex, start, end):
+        pass
+        # if self.model():
+        #     removeIndex = self._indexMap[index]
+        #     self._tabWidget.removeTab(removeIndex)
+        #     super(HintTabView, self).rowsAboutToBeRemoved(index, start, end)
+
+    # def selectionModel(self):
+    #     return self._selectionModel
+    #
+    # def setModel(self, model):
+    #     self._model = model
+
+    # def setSelectionModel(self, selectionModel):
+    #     self._selectionModel = selectionModel
+
+    def scrollTo(self, QModelIndex, hint=None):
+        pass
+
+    def verticalOffset(self):
         pass
 
     def visualRect(self, QModelIndex):
         pass
 
-    def scrollTo(self, QModelIndex, hint=None):
-        pass
 
+class DerivedDataModelView(QTreeView):
 
+    def __init__(self, parent=None):
+        super(DerivedDataModelView, self).__init__(parent)
+
+        self.setHeaderHidden(True)
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.MultiSelection)
+
+    def selectionChanged(self, selected: QItemSelection, deselected: QItemSelection):
+        if self.model():
+            for index in selected.indexes():
+                item = self.model().itemFromIndex(index)
+                if item.isCheckable():
+                    item.setCheckState(Qt.Checked)
+            for index in deselected.indexes():
+                item = self.model().itemFromIndex(index)
+                if item.isCheckable():
+                    item.setCheckState(Qt.Unchecked)
+            super(DerivedDataModelView, self).selectionChanged(selected, deselected)
 
 
 if __name__ == "__main__":
-    from qtpy.QtWidgets import QApplication, QMainWindow
+    from qtpy.QtWidgets import QApplication, QMainWindow, QAction
     app = QApplication([])
 
     window = QMainWindow()
-    collapseWidget = CollapsibleWidget(QListView(), "name")
-    canvas = OneTimeCanvas(QStandardItemModel())
-    widget = DerivedDataWidget(collapseWidget, canvas)
-    canvas.plot(x=[1,2,3], y=[2,4,6])
+    # collapseWidget = CollapsibleWidget(QListView(), "name")
+    # canvas = OneTimeCanvas(QStandardItemModel())
+    # widget = DerivedDataWidget(collapseWidget, canvas)
+    # canvas.plot(x=[1,2,3], y=[2,4,6])
+
+    layout = QVBoxLayout()
+
+    model = QStandardItemModel()
+
+    parentItem = QStandardItem("blah")
+    parentItem.setCheckable(True)
+    item = QStandardItem("child")
+    item.setCheckable(True)
+    parentItem.appendRow(item)
+    model.appendRow(parentItem)
+
+    lview = DerivedDataModelView()
+    lview.setModel(model)
+    rview = HintTabView()
+    rview.setModel(model)
+
+    layout.addWidget(lview)
+    layout.addWidget(rview)
+    widget = QWidget()
+    widget.setLayout(layout)
+
+    # view = HintTabView()
+    # view.setModel(model)
+    #
+    # for i in range(3):
+    #     item = QStandardItem(1)
+    #     item.setData("text" + str(i), role=Qt.DisplayRole)
+    #     model.appendRow(item)
+
+    # widget = QTabBar()
+    # widget.addTab("text")
+    # widget.addTab("text 2")
     window.setCentralWidget(widget)
     window.show()
 
