@@ -566,7 +566,7 @@ class SAXSPlugin(GUIPlugin):
         parentItem = BlueskyItem(workflow.name)
         for hint in workflow.hints:
             item = BlueskyItem(hint.name)
-            item.setData(hint)
+            item.setData(hint, Qt.UserRole)
             item.setCheckable(True)
             parentItem.appendRow(item)
         self.derivedDataModel.appendRow(parentItem)
