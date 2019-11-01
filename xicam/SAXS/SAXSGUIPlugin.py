@@ -231,15 +231,17 @@ class SAXSPlugin(GUIPlugin):
                                 top=self.reducetoolbar),
             'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar, bottom=self.reduceplot,
                                  right=self.reduceeditor),
-            '2-Time Correlation': GUILayout(self.twoTimeView,
-                                            top=self.twoTimeToolBar,
-                                            right=self.twoTimeFileSelection,
-                                            rightbottom=self.twoTimeProcessor, ),
-                                            # bottom=self.placeholder),
-            '1-Time Correlation': GUILayout(self.oneTimeView,
-                                            top=self.oneTimeToolBar,
-                                            right=self.oneTimeFileSelection,
-                                            rightbottom=self.oneTimeProcessor, )
+            'Correlate': {
+                '2-Time Correlation': GUILayout(self.twoTimeView,
+                                                top=self.twoTimeToolBar,
+                                                right=self.twoTimeFileSelection,
+                                                rightbottom=self.twoTimeProcessor, ),
+                # bottom=self.placeholder),
+                '1-Time Correlation': GUILayout(self.oneTimeView,
+                                                top=self.oneTimeToolBar,
+                                                right=self.oneTimeFileSelection,
+                                                rightbottom=self.oneTimeProcessor, )
+            }
             # bottom=self.placeholder)
         }
         # TODO -- improve result caching
@@ -380,8 +382,10 @@ class SAXSPlugin(GUIPlugin):
             if not workflow: workflow = self.maskingworkflow
             workflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
 
+    # disabled
     @threads.method()
     def doDisplayWorkflow(self):
+        return
         if not self.reducetabview.currentWidget(): return
         currentwidget = self.reducetabview.currentWidget()
         data = currentwidget.header.meta_array()[currentwidget.timeIndex(currentwidget.timeLine)[0]]
