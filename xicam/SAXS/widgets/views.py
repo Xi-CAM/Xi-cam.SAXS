@@ -4,7 +4,7 @@ import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
 from qtpy.QtCore import QItemSelection, QPersistentModelIndex, Qt, QPoint, QSortFilterProxyModel, QItemSelectionRange
-from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel
+from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent
 from qtpy.QtWidgets import QAbstractItemView, QGridLayout, QLayout, QLineEdit, QListView, QSplitter, QTabBar, QToolBar, QTreeView, QVBoxLayout, QWidget
 
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
@@ -357,8 +357,13 @@ class HintTabView(QAbstractItemView):
     def __init__(self, parent=None):
         super(HintTabView, self).__init__(parent)
 
-        self._tabWidget = QTabWidget(self)
+        self._tabWidget = QTabWidget()
+        self._tabWidget.setParent(self)
         self._indexToTabMap = OrderedDict()
+
+        self.setLayout(QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().addWidget(self._tabWidget)
 
     # def dataChanged(self, QModelIndex, QModelIndex_1, roles, p_int=None, *args, **kwargs):
     #     pass
@@ -377,16 +382,13 @@ class HintTabView(QAbstractItemView):
                 if hint:
                     if topLeft.data(Qt.CheckStateRole) == Qt.Checked:
                         if hint.name not in [self._tabWidget.tabText(index) for index in range(self._tabWidget.count())]:
-                            canvas = hint.canvas_cls()
+                            canvas = hint.init_canvas()
                             self._tabWidget.addTab(canvas, hint.name)
                         else:
                             canvas = self._findTab(hint.name)
                         hint.visualize(canvas)
                     else:
-                        try:
-                            hint.remove()
-                        except:
-                            ...
+                        hint.remove()
 
     def horizontalOffset(self):
         pass
@@ -441,80 +443,83 @@ class DerivedDataModelView(QTreeView):
 
         self.setHeaderHidden(True)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.setSelectionMode(QAbstractItemView.NoSelection)
+        self.setExpandsOnDoubleClick(False)
 
-    def dataChanged(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles):
-        ...
-        print("DDMV dataChanged")
-        # if self.model():
-        #     if Qt.CheckStateRole in roles:
-        #         item = self.model().itemFromIndex(topLeft)
-        #         if item.data(Qt.CheckStateRole) == Qt.Checked:
-        #             self.selectionChanged(QItemSelection(topLeft, bottomRight), QItemSelection())
-        #         else:
-        #             self.selectionChanged(QItemSelection(), QItemSelection(topLeft, bottomRight))
-        #     super(DerivedDataModelView, self).dataChanged(topLeft, bottomRight, roles)
+        self.clicked.connect(self.resolveChecks)
+
+    def keyPressEvent(self, event: QKeyEvent):
+        event.accept()
+
+    # def dataChanged(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles):
+    #     ...
+    #     print("DDMV dataChanged")
+    #     if Qt.CheckStateRole in roles:
+    #         self.update(topLeft)
+    #         ...
+    #     # if self.model():
+    #     #     if Qt.CheckStateRole in roles:
+    #     #         item = self.model().itemFromIndex(topLeft)
+    #     #         if item.data(Qt.CheckStateRole) == Qt.Checked:
+    #     #             self.selectionChanged(QItemSelection(topLeft, bottomRight), QItemSelection())
+    #     #         else:
+    #     #             self.selectionChanged(QItemSelection(), QItemSelection(topLeft, bottomRight))
+    #     #     super(DerivedDataModelView, self).dataChanged(topLeft, bottomRight, roles)
+
+    def resolveChecks(self, index: QModelIndex):
+        print("resolve")
+        print(self.model().itemFromIndex(index).data(Qt.CheckStateRole))
+        if not self.model():
+            return
+
+        item = self.model().itemFromIndex(index)
+        # The item has just been checked, need to see if there are children to check
+        if item.data(Qt.CheckStateRole) == Qt.Unchecked:
+            # TODO: Potential duplicate signal emissions (dataChanged on setCheckState())
+            if item.isCheckable():
+                item.setCheckState(Qt.Checked)
+            if self.model().hasChildren(index):
+                numChildren = self.model().rowCount(index)
+                childrenIndexes = [self.model().index(row, 0, index) for row in range(numChildren)]
+                for childIndex in childrenIndexes:
+                    childItem = self.model().itemFromIndex(childIndex)
+                    if childItem.isCheckable():
+                        childItem.setCheckState(Qt.Checked)
+
+            else: # index is a child
+                parentIndex = index.parent()
+                numChildren = self.model().rowCount(parentIndex)
+                childrenIndexes = [self.model().index(row, 0, parentIndex) for row in range(numChildren)]
+                if all([self.model().itemFromIndex(index).checkState() == Qt.Checked for index in childrenIndexes]):
+                    self.model().itemFromIndex(parentIndex).setCheckState(Qt.Checked)
+                else:
+                    self.model().itemFromIndex(parentIndex).setCheckState(Qt.PartiallyChecked)
+
+        else:
+            if item.isCheckable():
+                item.setCheckState(Qt.Unchecked)
+            if self.model().hasChildren(index):
+                if self.model().itemFromIndex(index).checkState() == Qt.PartiallyChecked:
+                    print("NOT IMPLEMENTED")
+                numChildren = self.model().rowCount(index)
+                childrenIndexes = [self.model().index(row, 0, index) for row in range(numChildren)]
+                for childIndex in childrenIndexes:
+                    childItem = self.model().itemFromIndex(childIndex)
+                    if childItem.isCheckable():
+                        childItem.setCheckState(Qt.Unchecked)
+            else:  # index is a child
+                parentIndex = index.parent()
+                numChildren = self.model().rowCount(parentIndex)
+                childrenIndexes = [self.model().index(row, 0, parentIndex) for row in range(numChildren)]
+                if any([self.model().itemFromIndex(index).checkState() == Qt.Checked for index in
+                        childrenIndexes]):
+                    self.model().itemFromIndex(parentIndex).setCheckState(Qt.PartiallyChecked)
+                else:
+                    self.model().itemFromIndex(parentIndex).setCheckState(Qt.Unchecked)
 
 
-    def selectionChanged(self, selected: QItemSelection, deselected: QItemSelection):
-        print("selectionChanged")
-        if self.model():
-            for index in selected.indexes():
-                if self.model().hasChildren(index):
-                    numChildren = self.model().rowCount(index)
-                    childrenIndexes = [self.model().index(row, 0, index) for row in range(numChildren)]
-                    for childIndex in childrenIndexes:
-                        item = self.model().itemFromIndex(childIndex)
-                        if item.isCheckable():
-                            selected.append(QItemSelectionRange(index))
-                            item.setCheckState(Qt.Checked)
 
-                else: # index is a child
-                    parentIndex = index.parent()
-                    numChildren = self.model().rowCount(parentIndex)
-                    childrenIndexes = [self.model().index(row, 0, parentIndex) for row in range(numChildren)]
-                    if all([self.model().itemFromIndex(index).checkState == Qt.Checked for index in childrenIndexes]):
-                        selected.append(QItemSelectionRange(parentIndex))
-                        self.model().itemFromIndex(parentIndex).setCheckState(Qt.Checked)
-                    else:
-                        selected.append(QItemSelectionRange(parentIndex))
-                        self.model().itemFromIndex(parentIndex).setCheckState(Qt.PartiallyChecked)
-
-                # TODO: Potential duplicate signal emissions (dataChanged on setCheckState())
-                item = self.model().itemFromIndex(index)
-                if item.isCheckable():
-                    selected.append(QItemSelectionRange(index))
-                    item.setCheckState(Qt.Checked)
-
-            for index in deselected.indexes():
-                if self.model().hasChildren(index):
-                    if self.model().itemFromIndex(index).checkState() == Qt.PartiallyChecked:
-                        print("NOT IMPLEMENTED")
-                    numChildren = self.model().rowCount(index)
-                    childrenIndexes = [self.model().index(row, 0, index) for row in range(numChildren)]
-                    for childIndex in childrenIndexes:
-                        item = self.model().itemFromIndex(childIndex)
-                        if item.isCheckable():
-                            deselected.append(QItemSelectionRange(index))
-                            item.setCheckState(Qt.Unchecked)
-                else:  # index is a child
-                    parentIndex = index.parent()
-                    numChildren = self.model().rowCount(parentIndex)
-                    childrenIndexes = [self.model().index(row, 0, parentIndex) for row in range(numChildren)]
-                    if all([self.model().itemFromIndex(index).checkState == Qt.Unchecked for index in
-                            childrenIndexes]):
-                        deselected.append(QItemSelectionRange(parentIndex))
-                        self.model().itemFromIndex(parentIndex).setCheckState(Qt.Unchecked)
-                    else:
-                        deselected.append(QItemSelectionRange(parentIndex))
-                        self.model().itemFromIndex(parentIndex).setCheckState(Qt.PartiallyChecked)
-
-                    item = self.model().itemFromIndex(index)
-                    if item.isCheckable():
-                        deselected.append(QItemSelectionRange(index))
-                        item.setCheckState(Qt.Unchecked)
-
-            super(DerivedDataModelView, self).selectionChanged(selected, deselected)
+        # self.model().dataChanged.emit(index, index, [Qt.CheckStateRole])
 
 
 # class MySortFilterProxyModel(QSortFilterProxyModel):
@@ -539,6 +544,20 @@ class DerivedDataModelView(QTreeView):
 #     def filterAcceptsColumn(self, sourceRow: int, sourceParent: QModelIndex):
 #         pass
 
+class MyModel(QStandardItemModel):
+    def __init__(self):
+        super(MyModel, self).__init__()
+
+    def flags(self, index: QModelIndex):
+        if not index.isValid():
+            return None
+
+        if index.column() == 0:
+            flags = Qt.ItemIsEnabled
+        else:
+            flags = super(MyModel, self).flags(index)
+        return flags
+
 
 if __name__ == "__main__":
     from qtpy.QtWidgets import QApplication, QMainWindow, QAction
@@ -552,13 +571,22 @@ if __name__ == "__main__":
 
     layout = QVBoxLayout()
 
-    model = QStandardItemModel()
+    model = MyModel()
 
-    from xicam.plugins.hints import PlotHint
+
+
+    from xicam.plugins.hints import PlotHint, ImageHint
 
     parentItem = QStandardItem("blah")
     parentItem.setCheckable(True)
-    hint = PlotHint([], [], name="1-Time")
+    import numpy as np
+    for i in range(3):
+        hint = PlotHint(np.arange(10), np.random.random((10,)), name="1-Time")
+        item = QStandardItem(hint.name)
+        item.setData(hint, Qt.UserRole)
+        item.setCheckable(True)
+        parentItem.appendRow(item)
+    hint = ImageHint(np.random.random((100,100)), xlabel="x", ylabel="y", name="2-Time")
     item = QStandardItem(hint.name)
     item.setData(hint, Qt.UserRole)
     item.setCheckable(True)
