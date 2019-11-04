@@ -1,15 +1,12 @@
 from collections import OrderedDict
 
-import numpy as np
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
-from qtpy.QtCore import QModelIndex, QPoint, Qt
+from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt
 from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent
-from qtpy.QtWidgets import QAbstractItemView, QGridLayout, QLineEdit, QListView, QSplitter, QTabWidget, \
-    QToolBar, QTreeView, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QWidget
 
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
-from xicam.gui.widgets.plotwidgetmixins import CurveLabels
 
 
 # For some reason, LegendItem.removeItem(ref) wasn't working, so this class stores the data name
@@ -141,25 +138,7 @@ class OneTimeWidget(CorrelationWidget):
 
 class TwoTimeWidget(CorrelationWidget):
     def __init__(self):
-        self.model = QStandardItemModel()
-        super(TwoTimeWidget, self).__init__(self.model)
-        plotItem = self._plot.getPlotItem()
-        plotItem.setLabel('left', 't<sub>2</sub>', 's')
-        plotItem.setLabel('bottom', 't<sub>1</sub>', 's')
-        self.image = LogScaleIntensity()
-        self.image.view = plotItem
-
-
-        # # TODO -- remove this temp code for time time
-        # if type(view) is TwoTimeWidget:
-        #     import pyqtgraph as pg
-        #     from xicam.gui.widgets.imageviewmixins import LogScaleIntensity
-        #     # why multiple results?
-        #     g2 = self._results[0]['g2'].value.squeeze()
-        #     img = LogScaleIntensity()
-        #     img.setImage(g2)
-        #     img.show()
-        #     ###
+        ...
 
 
 class FileSelectionView(QWidget):
@@ -208,8 +187,24 @@ class FileSelectionView(QWidget):
 
 
 class DerivedDataWidget(QWidget):
+    """
+    Widget for viewing derived data. This widget contains two widgets: a collapsible one and a non-collapsible one.
+    The collapsible widget can be collapsed/uncollapsed by clicking a tool button. The non-collapsible widget always
+    remains visible in the widget.
+    """
 
     def __init__(self, collapseView, staticView, parent=None):
+        """
+
+        Parameters
+        ----------
+        collapseView
+            View/widget that becomes collapsible
+        staticView
+            View/widget that does not collapse
+        parent
+            Parent Qt widget
+        """
         super(DerivedDataWidget, self).__init__(parent)
 
         self.collapseWidget = CollapsibleWidget(collapseView, "Results")
@@ -220,6 +215,9 @@ class DerivedDataWidget(QWidget):
 
 
 class HintTabView(QAbstractItemView):
+    """
+    View that is responsible for displaying Hints in a tab-based manner.
+    """
 
     def __init__(self, parent=None):
         super(HintTabView, self).__init__(parent)
@@ -233,12 +231,42 @@ class HintTabView(QAbstractItemView):
         self.layout().addWidget(self._tabWidget)
 
     def _findTab(self, tabName):
+        """
+        Convenience function to find a tab by name (instead of by index as provide by Qt's API).
+
+        Parameters
+        ----------
+        tabName
+            Name of the tab to attempt to find.
+
+        Returns
+        -------
+        QWidget
+            If found, returns the found widget with name ``tabName``. Raises an IndexError if not found.
+
+        """
         for i in range(self._tabWidget.count()):
             if self._tabWidget.tabText(i) == tabName:
                 return self._tabWidget.widget(i)
         raise IndexError
 
-    def dataChanged(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles, p_int=None, *args, **kwargs):
+    def dataChanged(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles):
+        """
+        Re-implements the QAbstractItemView.dataChanged() slot.
+
+        When the data attached to the Qt.CheckStateRole has been changed, this will either render a Hint or remove the
+        Hint visualization.
+
+        Parameters
+        ----------
+        topLeft
+            For now, the only index we are concerned with, which corresponds to the item's check state changing.
+        bottomRight
+            (Unused right now)
+        roles
+            List of roles attached to the data state change.
+
+        """
         if self.model():
             if Qt.CheckStateRole in roles:
                 hint = topLeft.data(Qt.UserRole)
@@ -279,6 +307,14 @@ class HintTabView(QAbstractItemView):
 
 
 class DerivedDataModelView(QTreeView):
+    # TODO -- this could probably be moved into a more generic class, e.g. CheckableTreeView
+    """
+    Tree view responsible for selecting which derived data to visualize.
+
+    This view implements a checkable tree view, whereby the top-level nodes (ignoring the implicit root node) can be
+    checked or unchecked to toggle the check state of all of their children nodes. Additionally, if only some of the
+    children nodes are checked, the parent node will be partially checked.
+    """
 
     def __init__(self, parent=None):
         super(DerivedDataModelView, self).__init__(parent)
@@ -288,21 +324,40 @@ class DerivedDataModelView(QTreeView):
         self.setSelectionMode(QAbstractItemView.NoSelection)
         self.setExpandsOnDoubleClick(False)
 
+        # This was difficult to accomplish with a selection model (i.e. selectionChanged), as it created circular
+        # signal emissions with dataChanged. So, we use the clicked signal to toggle checkState.
         self.clicked.connect(self.resolveChecks)
 
     def keyPressEvent(self, event: QKeyEvent):
+        # We want to ignore any key press events for now
         event.accept()
 
     def resolveChecks(self, index: QModelIndex):
+        """
+        Logic that controls how a clicked item and children items are checked and unchecked.
+
+        When the clicked item is checked or unchecked (and when any children need to be checked or unchecked), this
+        implicitly emits the itemChanged() signal (since the Qt.CheckStatRole data is changed). This is captured by
+        the HintTabView to visualize and remove Hints as appropriate.
+
+        Parameters
+        ----------
+        index
+            The index of the item that was clicked.
+        """
+
         if not self.model():
             return
 
         item = self.model().itemFromIndex(index)
-        # The item has just been checked, need to see if there are children to check
+        # The item has been clicked and its previous state is unchecked (going to be checking items)
         if item.data(Qt.CheckStateRole) == Qt.Unchecked:
             # TODO: Potential duplicate signal emissions (dataChanged on setCheckState())
             if item.isCheckable():
+                # First, check the clicked item
                 item.setCheckState(Qt.Checked)
+
+            # All children should be checked if the clicked item is a parent item
             if self.model().hasChildren(index):
                 numChildren = self.model().rowCount(index)
                 childrenIndexes = [self.model().index(row, 0, index) for row in range(numChildren)]
@@ -310,19 +365,22 @@ class DerivedDataModelView(QTreeView):
                     childItem = self.model().itemFromIndex(childIndex)
                     if childItem.isCheckable():
                         childItem.setCheckState(Qt.Checked)
-
-            else: # index is a child
+            else: # Item is a child item
                 parentIndex = index.parent()
                 numChildren = self.model().rowCount(parentIndex)
                 childrenIndexes = [self.model().index(row, 0, parentIndex) for row in range(numChildren)]
+                # When all other siblings are already checked, update parent item to be checked as well
                 if all([self.model().itemFromIndex(index).checkState() == Qt.Checked for index in childrenIndexes]):
                     self.model().itemFromIndex(parentIndex).setCheckState(Qt.Checked)
-                else:
+                else: # Not all siblings are checked, indicate with parent item being partially checked
                     self.model().itemFromIndex(parentIndex).setCheckState(Qt.PartiallyChecked)
 
-        else:
+        else: # The item has been clicked and its previous state is checked (going to be unchecking items)
             if item.isCheckable():
+                # First, uncheck the clicked item
                 item.setCheckState(Qt.Unchecked)
+
+            # All children should be unchecked if the clicked item is a parent item
             if self.model().hasChildren(index):
                 if self.model().itemFromIndex(index).checkState() == Qt.PartiallyChecked:
                     raise NotImplementedError
@@ -332,29 +390,34 @@ class DerivedDataModelView(QTreeView):
                     childItem = self.model().itemFromIndex(childIndex)
                     if childItem.isCheckable():
                         childItem.setCheckState(Qt.Unchecked)
-            else:  # index is a child
+            else:  # The clicked item is a child item
                 parentIndex = index.parent()
                 numChildren = self.model().rowCount(parentIndex)
                 childrenIndexes = [self.model().index(row, 0, parentIndex) for row in range(numChildren)]
-                if any([self.model().itemFromIndex(index).checkState() == Qt.Checked for index in
-                        childrenIndexes]):
+                # If any other sibling is unchecked, partially check the parent item
+                if any([self.model().itemFromIndex(index).checkState() == Qt.Checked for index in childrenIndexes]):
                     self.model().itemFromIndex(parentIndex).setCheckState(Qt.PartiallyChecked)
-                else:
+                else: # No other siblings are checked, so uncheck the parent item
                     self.model().itemFromIndex(parentIndex).setCheckState(Qt.Unchecked)
 
 
-class MyModel(QStandardItemModel):
+class DerivedDataModel(QStandardItemModel):
+    """
+    Derived data model that disables user interaction with the items.
+
+    This is done so the DerivedDataView can listen for clicked signals and then control the checking logic.
+    Using the Qt.ItemIsEnabled flag prevents the user from direcly checking / unchecking the item.
+    """
     def __init__(self):
-        super(MyModel, self).__init__()
+        super(DerivedDataModel, self).__init__()
 
     def flags(self, index: QModelIndex):
         if not index.isValid():
             return None
-
         if index.column() == 0:
             flags = Qt.ItemIsEnabled
         else:
-            flags = super(MyModel, self).flags(index)
+            flags = super(DerivedDataModel, self).flags(index)
         return flags
 
 
@@ -363,19 +426,10 @@ if __name__ == "__main__":
     app = QApplication([])
 
     window = QMainWindow()
-    # collapseWidget = CollapsibleWidget(QListView(), "name")
-    # canvas = OneTimeCanvas(QStandardItemModel())
-    # widget = DerivedDataWidget(collapseWidget, canvas)
-    # canvas.plot(x=[1,2,3], y=[2,4,6])
-
     layout = QVBoxLayout()
-
-    model = MyModel()
-
-
+    model = DerivedDataModel()
 
     from xicam.plugins.hints import PlotHint, ImageHint
-
     parentItem = QStandardItem("blah")
     parentItem.setCheckable(True)
     import numpy as np
@@ -392,29 +446,13 @@ if __name__ == "__main__":
     parentItem.appendRow(item)
     model.appendRow(parentItem)
 
-    # proxyModel = MySortFilterProxyModel()
-    # proxyModel.setSourceModel(model)
-
     lview = DerivedDataModelView()
     lview.setModel(model)
-    # rview = QListView()
     rview = HintTabView()
     rview.setModel(model)
-    # rview.setModel(proxyModel)
 
     widget = DerivedDataWidget(lview, rview)
 
-    # view = HintTabView()
-    # view.setModel(model)
-    #
-    # for i in range(3):
-    #     item = QStandardItem(1)
-    #     item.setData("text" + str(i), role=Qt.DisplayRole)
-    #     model.appendRow(item)
-
-    # widget = QTabBar()
-    # widget.addTab("text")
-    # widget.addTab("text 2")
     window.setCentralWidget(widget)
     window.show()
 
