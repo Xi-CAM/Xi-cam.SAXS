@@ -1,12 +1,12 @@
-import numpy as np
+from collections import OrderedDict
+
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
-from qtpy.QtCore import QItemSelection, QPersistentModelIndex, Qt
-from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel
-from qtpy.QtWidgets import QAbstractItemView, QGridLayout, QLayout, QLineEdit, QListView, QSplitter, QToolBar, QTreeView, QVBoxLayout, QWidget
+from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt
+from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent
+from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QWidget
 
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
-from xicam.gui.widgets.plotwidgetmixins import CurveLabels
 
 
 # For some reason, LegendItem.removeItem(ref) wasn't working, so this class stores the data name
@@ -138,37 +138,7 @@ class OneTimeWidget(CorrelationWidget):
 
 class TwoTimeWidget(CorrelationWidget):
     def __init__(self):
-        self.model = QStandardItemModel()
-        super(TwoTimeWidget, self).__init__(self.model)
-        plotItem = self._plot.getPlotItem()
-        plotItem.setLabel('left', 't<sub>2</sub>', 's')
-        plotItem.setLabel('bottom', 't<sub>1</sub>', 's')
-        self.image = LogScaleIntensity()
-        self.image.view = plotItem
-
-
-        # # TODO -- remove this temp code for time time
-        # if type(view) is TwoTimeWidget:
-        #     import pyqtgraph as pg
-        #     from xicam.gui.widgets.imageviewmixins import LogScaleIntensity
-        #     # why multiple results?
-        #     g2 = self._results[0]['g2'].value.squeeze()
-        #     img = LogScaleIntensity()
-        #     img.setImage(g2)
-        #     img.show()
-        #     ###
-
-
-from xicam.gui.widgets.imageviewmixins import LogScaleIntensity
-class TwoTimeImage(LogScaleIntensity):
-    def __init__(self, *args, **kwargs):
-        super(TwoTimeImage, self).__init__(self, *args, **kwargs)
-
-    def setImage(self, img, autoRange=True, autoLevels=True, levels=None, axes=None, xvals=None, pos=None, scale=None, transform=None, autoHistogramRange=True):
-        axes = {}
-        super(TwoTimeImage, self).setImage(img)
-
-
+        ...
 
 
 class FileSelectionView(QWidget):
@@ -216,180 +186,288 @@ class FileSelectionView(QWidget):
         )
 
 
-
-
 class DerivedDataWidget(QWidget):
-
-    def __init__(self, collapseView, canvas, parent=None):
+    
+    def __init__(self, model, parent=None):
         super(DerivedDataWidget, self).__init__(parent)
-
-        self.collapseView = collapseView
-        self.canvas = canvas
-
-        # self.collapseView.selectionChanged.connect(self.collapseView.)
-
-        toolBar = QToolBar()
-        action = toolBar.addAction(self.collapseView.name, self.collapseView.toggle)
-        action.setIconText("&" + action.text())
-        self.collapseView.toggled.connect(self.toggle)
-        self.collapseButton = toolBar.widgetForAction(action)
-        self.collapseButton.setCheckable(True)
-        self.collapseButton.setChecked(not self.collapseView.collapsed)
-
-        self.splitter = QSplitter(Qt.Horizontal)
-        self.splitter.addWidget(self.collapseView)
-        self.splitter.addWidget(self.canvas)
-        self.splitter.setCollapsible(0, self.collapseView.collapsed)
-        self.splitter.setCollapsible(1, False)
-
-        layout = QGridLayout()
-        layout.addWidget(self.splitter, 0, 0)
-        layout.addWidget(toolBar, 1, 0)
-
-        self.setLayout(layout)
-
-    def toggle(self, collapsed):
-        self.collapseButton.setChecked(not collapsed)
-        self.splitter.setCollapsible(0, collapsed)
-        try:
-            if collapsed:
-                # print(self.splitter.sizes())
-                # print(self.splitter.widget(0).minimumSizeHint())
-                sizes = []
-                for i in range(self.splitter.count()):
-                    sizes.append(self.splitter.widget(i).minimumSizeHint().width())
-                sizes[0] = 0
-                self.splitter.setSizes(sizes)
-            else:
-                sizes = []
-                for i in range(self.splitter.count()):
-                    sizes.append(self.splitter.sizes()[i])
-                sizes[0] = self.splitter.widget(i).minimumSizeHint().width()
-                self.splitter.setSizes(sizes)
-        except Exception as e:
-            import traceback
-            traceback.print_exc()
+        
+        self._model = model
+        self._derivedDataView = DerivedDataTreeView()
+        self._derivedDataView.setModel(self._model)
+        self._hintView = HintTabView()
+        self._hintView.setModel(self._model)
+        self._derivedDataWidget = CollapsibleWidget(self._derivedDataView, "Results")
+        self._derivedDataWidget.addWidget(self._hintView)
+        self.setLayout(self._derivedDataWidget.layout())
 
 
-class DerivedDataCanvas(QWidget):
+class DerivedDataWidgetTestClass(QWidget):
+    """
+    Widget for viewing derived data. This widget contains two widgets: a collapsible one and a non-collapsible one.
+    The collapsible widget can be collapsed/uncollapsed by clicking a tool button. The non-collapsible widget always
+    remains visible in the widget.
+    """
 
-    def __init__(self, model):
-        super(DerivedDataCanvas, self).__init__()
-        self.model = model
+    def __init__(self, collapseView, staticView, parent=None):
+        """
 
-    def clear(self):
-        raise NotImplementedError
+        Parameters
+        ----------
+        collapseView
+            View/widget that becomes collapsible
+        staticView
+            View/widget that does not collapse
+        parent
+            Parent Qt widget
+        """
+        super(DerivedDataWidgetTestClass, self).__init__(parent)
 
-    def legend(self):
-        raise NotImplementedError
+        self.collapseWidget = CollapsibleWidget(collapseView, "Results")
+        self.staticView = staticView
 
-    def plot(self, x, y, **kwargs):
-        raise NotImplementedError
-
-    def setImage(self, value, **kwargs):
-        raise NotImplementedError
-
-
-class OneTimeCanvas(DerivedDataCanvas):
-
-    def __init__(self, model):
-        super(OneTimeCanvas, self).__init__(model)
-        self.plotWidget = CurveLabels()
-        plotItem = self.plotWidget.getPlotItem()
-        plotItem.setLabel('left', 'g<sub>2</sub>(&tau;)', 's')
-        plotItem.setLabel('bottom', '&tau;', 's')
-        layout = QGridLayout()
-        layout.addWidget(self.plotWidget)
-        self.setLayout(layout)
-
-    # The DerivedDataWidget should connect its selection changed to workflow.visualize
-
-    def clear(self):
-        self.plotWidget.clear()
-
-    def plot(self, x, y, **kwargs):
-        self.clear()
-
-        # selectedIndexes = []
-        # for item in
-        #     selectedIndexes.append(index)
-
-        self.plotWidget.plot(x, y, **kwargs)
-
-
-class TwoTimeCanvas(DerivedDataCanvas):
-
-    def __init__(self, model):
-        super(TwoTimeImage, self).__init__(DerivedDataCanvas)
-
-    def clear(self):
-        ...
-
-    def setImage(self, value, **kwargs):
-        ...
-
-
-from qtpy.QtWidgets import QTabWidget
-from qtpy.QtCore import QModelIndex, QPersistentModelIndex
-
-
-class CheckableStandardItemModel(QStandardItemModel):
-
-    def __init__(self, parent=None):
-        super(CheckableStandardItemModel, self).__init__(parent)
-
-        self._checkItems = set()
-
-    def flags(self, index: QModelIndex):
-        defaultFlags = self.flags(index)
-        if index.isValid():
-            return defaultFlags | Qt.ItemIsUserCheckable
-        return defaultFlags
-
-    def setData(self, index: QModelIndex, value, role=None):
-        pass
+        self.collapseWidget.addWidget(staticView)
+        self.setLayout(self.collapseWidget.layout())
 
 
 class HintTabView(QAbstractItemView):
+    """
+    View that is responsible for displaying Hints in a tab-based manner.
+    """
 
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super(HintTabView, self).__init__(parent)
 
-        self._tabWidget = QTabWidget(self)
+        self._tabWidget = QTabWidget()
+        self._tabWidget.setParent(self)
+        self._indexToTabMap = OrderedDict()
 
-    # def dataChanged(self, QModelIndex, QModelIndex_1, roles, p_int=None, *args, **kwargs):
-    #     pass
+        self.setLayout(QVBoxLayout())
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().addWidget(self._tabWidget)
+
+    def _findTab(self, tabName):
+        """
+        Convenience function to find a tab by name (instead of by index as provide by Qt's API).
+
+        Parameters
+        ----------
+        tabName
+            Name of the tab to attempt to find.
+
+        Returns
+        -------
+        QWidget
+            If found, returns the found widget with name ``tabName``. Raises an IndexError if not found.
+
+        """
+        for i in range(self._tabWidget.count()):
+            if self._tabWidget.tabText(i) == tabName:
+                return self._tabWidget.widget(i)
+        raise IndexError
 
     def dataChanged(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles):
-        if not Qt.DisplayRole in roles:
-            return
+        """
+        Re-implements the QAbstractItemView.dataChanged() slot.
 
-        # item = topLeft.
+        When the data attached to the Qt.CheckStateRole has been changed, this will either render a Hint or remove the
+        Hint visualization.
 
-    def rowsInserted(self, QModelIndex, p_int, p_int_1):
+        Parameters
+        ----------
+        topLeft
+            For now, the only index we are concerned with, which corresponds to the item's check state changing.
+        bottomRight
+            (Unused right now)
+        roles
+            List of roles attached to the data state change.
+
+        """
+        if self.model():
+            if Qt.CheckStateRole in roles:
+                hint = topLeft.data(Qt.UserRole)
+                if hint:
+                    if topLeft.data(Qt.CheckStateRole) == Qt.Checked:
+                        if hint.name not in [self._tabWidget.tabText(index) for index in range(self._tabWidget.count())]:
+                            canvas = hint.init_canvas()
+                            self._tabWidget.addTab(canvas, hint.name)
+                        else:
+                            canvas = self._findTab(hint.name)
+                        hint.visualize(canvas)
+                    else:
+                        hint.remove()
+
+    def horizontalOffset(self):
         pass
 
-    def rowsAboutToBeRemoved(self, QModelIndex, p_int, p_int_1):
+    def indexAt(self, point: QPoint):
         pass
 
-    def visualRect(self, QModelIndex):
+    def moveCursor(self, QAbstractItemView_CursorAction, Union, Qt_KeyboardModifiers=None, Qt_KeyboardModifier=None):
+        return QModelIndex()
+
+    def rowsInserted(self, index: QModelIndex, start, end):
+        pass
+
+    def rowsAboutToBeRemoved(self, index: QModelIndex, start, end):
         pass
 
     def scrollTo(self, QModelIndex, hint=None):
         pass
 
+    def verticalOffset(self):
+        pass
 
+    def visualRect(self, QModelIndex):
+        pass
+
+
+class DerivedDataTreeView(QTreeView):
+    # TODO -- this could probably be moved into a more generic class, e.g. CheckableTreeView
+    """
+    Tree view responsible for selecting which derived data to visualize.
+
+    This view implements a checkable tree view, whereby the top-level nodes (ignoring the implicit root node) can be
+    checked or unchecked to toggle the check state of all of their children nodes. Additionally, if only some of the
+    children nodes are checked, the parent node will be partially checked.
+    """
+
+    def __init__(self, parent=None):
+        super(DerivedDataTreeView, self).__init__(parent)
+
+        self.setHeaderHidden(True)
+        self.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.setSelectionMode(QAbstractItemView.NoSelection)
+        self.setExpandsOnDoubleClick(False)
+
+        # This was difficult to accomplish with a selection model (i.e. selectionChanged), as it created circular
+        # signal emissions with dataChanged. So, we use the clicked signal to toggle checkState.
+        self.clicked.connect(self.resolveChecks)
+
+    def keyPressEvent(self, event: QKeyEvent):
+        # We want to ignore any key press events for now
+        event.accept()
+
+    def resolveChecks(self, index: QModelIndex):
+        """
+        Logic that controls how a clicked item and children items are checked and unchecked.
+
+        When the clicked item is checked or unchecked (and when any children need to be checked or unchecked), this
+        implicitly emits the itemChanged() signal (since the Qt.CheckStatRole data is changed). This is captured by
+        the HintTabView to visualize and remove Hints as appropriate.
+
+        Parameters
+        ----------
+        index
+            The index of the item that was clicked.
+        """
+
+        if not self.model():
+            return
+
+        item = self.model().itemFromIndex(index)
+        # The item has been clicked and its previous state is unchecked (going to be checking items)
+        if item.data(Qt.CheckStateRole) == Qt.Unchecked:
+            # TODO: Potential duplicate signal emissions (dataChanged on setCheckState())
+            if item.isCheckable():
+                # First, check the clicked item
+                item.setCheckState(Qt.Checked)
+
+            # All children should be checked if the clicked item is a parent item
+            if self.model().hasChildren(index):
+                numChildren = self.model().rowCount(index)
+                childrenIndexes = [self.model().index(row, 0, index) for row in range(numChildren)]
+                for childIndex in childrenIndexes:
+                    childItem = self.model().itemFromIndex(childIndex)
+                    if childItem.isCheckable():
+                        childItem.setCheckState(Qt.Checked)
+            else: # Item is a child item
+                parentIndex = index.parent()
+                numChildren = self.model().rowCount(parentIndex)
+                childrenIndexes = [self.model().index(row, 0, parentIndex) for row in range(numChildren)]
+                # When all other siblings are already checked, update parent item to be checked as well
+                if all([self.model().itemFromIndex(index).checkState() == Qt.Checked for index in childrenIndexes]):
+                    self.model().itemFromIndex(parentIndex).setCheckState(Qt.Checked)
+                else: # Not all siblings are checked, indicate with parent item being partially checked
+                    self.model().itemFromIndex(parentIndex).setCheckState(Qt.PartiallyChecked)
+
+        else: # The item has been clicked and its previous state is checked (going to be unchecking items)
+            if item.isCheckable():
+                # First, uncheck the clicked item
+                item.setCheckState(Qt.Unchecked)
+
+            # All children should be unchecked if the clicked item is a parent item
+            if self.model().hasChildren(index):
+                if self.model().itemFromIndex(index).checkState() == Qt.PartiallyChecked:
+                    raise NotImplementedError
+                numChildren = self.model().rowCount(index)
+                childrenIndexes = [self.model().index(row, 0, index) for row in range(numChildren)]
+                for childIndex in childrenIndexes:
+                    childItem = self.model().itemFromIndex(childIndex)
+                    if childItem.isCheckable():
+                        childItem.setCheckState(Qt.Unchecked)
+            else:  # The clicked item is a child item
+                parentIndex = index.parent()
+                numChildren = self.model().rowCount(parentIndex)
+                childrenIndexes = [self.model().index(row, 0, parentIndex) for row in range(numChildren)]
+                # If any other sibling is unchecked, partially check the parent item
+                if any([self.model().itemFromIndex(index).checkState() == Qt.Checked for index in childrenIndexes]):
+                    self.model().itemFromIndex(parentIndex).setCheckState(Qt.PartiallyChecked)
+                else: # No other siblings are checked, so uncheck the parent item
+                    self.model().itemFromIndex(parentIndex).setCheckState(Qt.Unchecked)
+
+
+class DerivedDataModel(QStandardItemModel):
+    """
+    Derived data model that disables user interaction with the items.
+
+    This is done so the DerivedDataView can listen for clicked signals and then control the checking logic.
+    Using the Qt.ItemIsEnabled flag prevents the user from direcly checking / unchecking the item.
+    """
+    def __init__(self):
+        super(DerivedDataModel, self).__init__()
+
+    def flags(self, index: QModelIndex):
+        if not index.isValid():
+            return None
+        if index.column() == 0:
+            flags = Qt.ItemIsEnabled
+        else:
+            flags = super(DerivedDataModel, self).flags(index)
+        return flags
 
 
 if __name__ == "__main__":
-    from qtpy.QtWidgets import QApplication, QMainWindow
+    from qtpy.QtWidgets import QApplication, QMainWindow, QAction
     app = QApplication([])
 
     window = QMainWindow()
-    collapseWidget = CollapsibleWidget(QListView(), "name")
-    canvas = OneTimeCanvas(QStandardItemModel())
-    widget = DerivedDataWidget(collapseWidget, canvas)
-    canvas.plot(x=[1,2,3], y=[2,4,6])
+    layout = QVBoxLayout()
+    model = DerivedDataModel()
+
+    from xicam.plugins.hints import PlotHint, ImageHint
+    parentItem = QStandardItem("blah")
+    parentItem.setCheckable(True)
+    import numpy as np
+    for i in range(3):
+        hint = PlotHint(np.arange(10), np.random.random((10,)), name="1-Time")
+        item = QStandardItem(hint.name)
+        item.setData(hint, Qt.UserRole)
+        item.setCheckable(True)
+        parentItem.appendRow(item)
+    hint = ImageHint(np.random.random((100,100)), xlabel="x", ylabel="y", name="2-Time")
+    item = QStandardItem(hint.name)
+    item.setData(hint, Qt.UserRole)
+    item.setCheckable(True)
+    parentItem.appendRow(item)
+    model.appendRow(parentItem)
+
+    lview = DerivedDataTreeView()
+    lview.setModel(model)
+    rview = HintTabView()
+    rview.setModel(model)
+
+    widget = DerivedDataWidgetTestClass(lview, rview)
+
     window.setCentralWidget(widget)
     window.show()
 

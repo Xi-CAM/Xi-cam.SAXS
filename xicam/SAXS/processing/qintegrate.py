@@ -37,7 +37,7 @@ class QIntegratePlugin(ProcessingPlugin):
     Iq = Output(description='Binned/pixel-split integrated intensity',
                 type=np.array)
 
-    hints = [PlotHint(q, Iq)]
+    # hints = [PlotHint(q, Iq)]
 
     def evaluate(self):
         self.q.value, self.Iq.value = self.ai.value.integrate1d(data=self.data.value,
@@ -52,4 +52,4 @@ class QIntegratePlugin(ProcessingPlugin):
                                                                 unit=self.unit.value,
                                                                 normalization_factor=self.normalization_factor.value)
 
-
+        self.hints = [PlotHint(self.q.value, self.Iq.value, name="Q Integrate")]
