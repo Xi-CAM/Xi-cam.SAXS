@@ -12,7 +12,7 @@ from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree.parameterTypes import ListParameter
 
 from xicam.core import msg, threads
-from xicam.core.data import load_header, NonDBHeader
+from xicam.core.data import load_header, NonDBHeader, MetaXArray
 from xicam.core.execution.workflow import Workflow
 
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
@@ -178,7 +178,7 @@ class SAXSPlugin(GUIPlugin):
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
-        self.comparemultiview = SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
+        self.comparemultiview = QLabel("COMING SOON!") #SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
 
         # Setup correlation views
         self.twoTimeView = TwoTimeWidget()
@@ -379,10 +379,12 @@ class SAXSPlugin(GUIPlugin):
         currentItem = self.catalogModel.itemFromIndex(self.selectionmodel.currentIndex())
         # FIXME -- hardcoded stream
         stream = "primary"
-        data = getattr(currentItem.data(Qt.UserRole), stream)[self.reducetoolbar.detectorcombobox.currentText()].to_dask()
+        field = self.reducetoolbar.detectorcombobox.currentText()
+        if not field: return
+        data = MetaXArray(getattr(currentItem.data(Qt.UserRole), stream).to_dask()[self.reducetoolbar.detectorcombobox.currentText()])
         if not multimode:
             currentwidget = self.reducetabview.currentWidget()
-            data = [data[currentwidget.timeIndex(currentwidget.timeLine)[0]].compute()]
+            data = [data[currentwidget.timeIndex(currentwidget.timeLine)[0]]]
         device = self.reducetoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
         if not ai: return
@@ -394,7 +396,7 @@ class SAXSPlugin(GUIPlugin):
             # self.reduceplot.plot_mode(results)
             item = BlueskyItem("test")
             childItem = BlueskyItem("child")
-            childItem.setData(Qt.UserRole, np.random.random((10,)))
+            childItem.setData(np.random.random((10,)), Qt.UserRole)
             item.appendRow(childItem)
             self.derivedDataModel.appendRow(item)
 
