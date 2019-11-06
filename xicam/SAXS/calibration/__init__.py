@@ -1,5 +1,5 @@
 from qtpy.QtGui import *
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Qt
 from qtpy.QtWidgets import *
 from xicam.gui.static import path
 from pyFAI import detectors
@@ -176,10 +176,15 @@ class DeviceProfiles(ParameterSettingsPlugin):
 
 
     def dataChanged(self, start, end):
-        devices = self.headermodel.item(self.selectionmodel.currentIndex().row()).header.devices()
-        for device in devices:
-            if device not in self.AIs:
-                self.addDevice(device)
+        currentIndex = self.selectionmodel.currentIndex()
+        if currentIndex.isValid():
+            # TODO-- remove hard-coding of stream
+            stream = "primary"
+            item = self.headermodel.item(self.selectionmodel.currentIndex().row())
+            fields = getattr(item.data(Qt.UserRole), stream).to_dask().keys()
+            for field in fields:
+                if field not in self.AIs:
+                    self.addDevice(field)
 
     def wavelengthChanged(self):
         self.param('Energy').setValue(1.239842e-6 / self.param('Wavelength').value(), blockSignal=self.EnergyChanged)

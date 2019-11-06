@@ -22,7 +22,7 @@ class XIntegratePlugin(ProcessingPlugin):
     Ix = Output(description='Binned/pixel-split integrated intensity',
                 type=np.array)
 
-    hints = [PlotHint(qx, Ix)]
+    # hints = [PlotHint(qx, Ix)]
 
     def evaluate(self):
         if self.dark.value is None: self.dark.value = np.zeros_like(self.data.value)
@@ -35,3 +35,5 @@ class XIntegratePlugin(ProcessingPlugin):
         self.qx.value = self.ai.value.qFunction(np.array([centerz] * self.data.value.shape[1]),
                                                 np.arange(0, self.data.value.shape[1])) / 10.
         self.qx.value[np.arange(0, self.data.value.shape[1]) < centerx] *= -1.
+
+        self.hints = [PlotHint(self.qx.value, self.Ix.value, name="X Integrate")]

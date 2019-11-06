@@ -187,6 +187,21 @@ class FileSelectionView(QWidget):
 
 
 class DerivedDataWidget(QWidget):
+    
+    def __init__(self, model, parent=None):
+        super(DerivedDataWidget, self).__init__(parent)
+        
+        self._model = model
+        self._derivedDataView = DerivedDataTreeView()
+        self._derivedDataView.setModel(self._model)
+        self._hintView = HintTabView()
+        self._hintView.setModel(self._model)
+        self._derivedDataWidget = CollapsibleWidget(self._derivedDataView, "Results")
+        self._derivedDataWidget.addWidget(self._hintView)
+        self.setLayout(self._derivedDataWidget.layout())
+
+
+class DerivedDataWidgetTestClass(QWidget):
     """
     Widget for viewing derived data. This widget contains two widgets: a collapsible one and a non-collapsible one.
     The collapsible widget can be collapsed/uncollapsed by clicking a tool button. The non-collapsible widget always
@@ -205,7 +220,7 @@ class DerivedDataWidget(QWidget):
         parent
             Parent Qt widget
         """
-        super(DerivedDataWidget, self).__init__(parent)
+        super(DerivedDataWidgetTestClass, self).__init__(parent)
 
         self.collapseWidget = CollapsibleWidget(collapseView, "Results")
         self.staticView = staticView
@@ -306,7 +321,7 @@ class HintTabView(QAbstractItemView):
         pass
 
 
-class DerivedDataModelView(QTreeView):
+class DerivedDataTreeView(QTreeView):
     # TODO -- this could probably be moved into a more generic class, e.g. CheckableTreeView
     """
     Tree view responsible for selecting which derived data to visualize.
@@ -317,7 +332,7 @@ class DerivedDataModelView(QTreeView):
     """
 
     def __init__(self, parent=None):
-        super(DerivedDataModelView, self).__init__(parent)
+        super(DerivedDataTreeView, self).__init__(parent)
 
         self.setHeaderHidden(True)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -446,12 +461,12 @@ if __name__ == "__main__":
     parentItem.appendRow(item)
     model.appendRow(parentItem)
 
-    lview = DerivedDataModelView()
+    lview = DerivedDataTreeView()
     lview.setModel(model)
     rview = HintTabView()
     rview.setModel(model)
 
-    widget = DerivedDataWidget(lview, rview)
+    widget = DerivedDataWidgetTestClass(lview, rview)
 
     window.setCentralWidget(widget)
     window.show()

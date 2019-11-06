@@ -46,9 +46,12 @@ class FieldSelector(SAXSToolbarBase):
 
     def updatedetectorcombobox(self, start, end):
         if self.headermodel.rowCount():
-            devices = self.headermodel.item(self.selectionmodel.currentIndex().row()).header.devices()
+            # TODO-- remove hard-coding of stream
+            stream = "primary"
+            item = self.headermodel.item(self.selectionmodel.currentIndex().row())
+            fields = getattr(item.data(Qt.UserRole), stream).to_dask().keys()
             self.detectorcombobox.clear()
-            self.detectorcombobox.addItems(devices)
+            self.detectorcombobox.addItems(fields)
 
 
 class ModeSelector(SAXSToolbarBase):

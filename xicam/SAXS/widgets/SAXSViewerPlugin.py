@@ -9,15 +9,15 @@ from xicam.core import msg
 from xicam.plugins import manager as pluginmanager
 from xicam.gui.widgets.dynimageview import DynImageView
 from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons, EwaldCorrected, \
-    LogScaleIntensity, DisplayMode
+    LogScaleIntensity, DisplayMode, CatalogView, XArrayView
 import pyqtgraph as pg
 
 
-class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView):
+class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView, XArrayView, CatalogView):
 
-    def __init__(self, header: NonDBHeader = None, field: str = None, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
 
-        super(SAXSViewerPluginBase, self).__init__(**kwargs)
+        super(SAXSViewerPluginBase, self).__init__(*args, **kwargs)
         self.axesItem.invertY(False)
 
         # Setup coordinates label
@@ -25,42 +25,21 @@ class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Cross
         # self.ui.gridLayout.addWidget(self.coordinatesLbl, 3, 0, 1, 1, alignment=Qt.AlignHCenter)
 
         # Setup mask layer
+        # TODO -- put in mixin
         self.maskimage = pg.ImageItem(opacity=.25, axisOrder='row-major')
         self.view.addItem(self.maskimage)
 
         # Setup calibration layer
+        # TODO -- put in mixin
         self.calibrantimage = pg.ImageItem(opacity=.25)
         self.view.addItem(self.calibrantimage)
 
         # Empty ROI for later use
+        # TODO -- refactor poly masking
         self.maskROI = pg.PolyLineROI([], closed=True, movable=False, pen=pg.mkPen(color='r', width=2))
         self.maskROI.handlePen = pg.mkPen(color='r', width=2)
         self.maskROI.handleSize = 10
         self.view.addItem(self.maskROI)
-
-        # Setup results cache
-        self.results = []
-
-        # Set header
-        if header: self.setHeader(header, field)
-
-    def setHeader(self, header: NonDBHeader, field: str, *args, **kwargs):
-        self.header = header
-        self.field = field
-        # make lazy array from document
-        data = None
-        try:
-            data = header.meta_array(field)
-        except IndexError:
-            msg.logMessage(f'Header object contained no frames with field "{field}".', msg.ERROR)
-
-        if data:
-            # kwargs['transform'] = QTransform(1, 0, 0, -1, 0, data.shape[-2])
-            self.setImage(img=data, *args, **kwargs)
-
-        # TODO: Remove hack default field after transition to RunCatalog
-        self.setGeometry(pluginmanager.getPluginByName('xicam.SAXS.calibration', 'SettingsPlugin').plugin_object.AI(
-            field or 'pilatus2M'))
 
     def setMaskImage(self, mask):
         if mask is not None:
@@ -98,17 +77,17 @@ class SAXSMaskingViewer(SAXSViewerPluginBase):
 
 
 class SAXSReductionViewer(EwaldCorrected, SAXSViewerPluginBase):
-    def __init__(self, header: NonDBHeader = None, field: str = None, toolbar: QToolBar = None, **kwargs):
+    def __init__(self, *args, toolbar: QToolBar = None, **kwargs):
+        super(SAXSReductionViewer, self).__init__(*args, **kwargs)
+
         # Connect toolbar handlers
         self.toolbar = toolbar
         if self.toolbar:
             self.toolbar.modegroup.triggered.connect(self.setDisplayMode)
-            self.toolbar.sigDeviceChanged.connect(self.deviceChanged)
+            # TODO -- re-connect the sigDeviceChanged outside of here
+            # self.toolbar.sigDeviceChanged.connect(self.deviceChanged)
+            # self.toolbar.sigDeviceChanged.connect(self.fieldChanged)
 
-        super(SAXSReductionViewer, self).__init__(header=header, field=field, **kwargs)
-
-    def deviceChanged(self, device_name):
-        self.setHeader(header=self.header, field=device_name)
 
     def setDisplayMode(self, mode):
         if mode.text() == 'Wrap Ewald Sphere':

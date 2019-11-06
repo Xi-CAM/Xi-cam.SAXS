@@ -1,3 +1,5 @@
+from warnings import warn
+
 import numpy as np
 from qtpy.QtCore import *
 from qtpy.QtGui import *
@@ -28,14 +30,17 @@ from functools import partial
 
 from xicam.gui.widgets.tabview import TabView, TabViewSynchronizer
 
-from xicam.SAXS.widgets.views import CorrelationWidget, FileSelectionView, OneTimeWidget, TwoTimeWidget
+from xicam.SAXS.widgets.views import CorrelationWidget, FileSelectionView, OneTimeWidget, TwoTimeWidget, DerivedDataWidget, \
+    DerivedDataModel
 from xicam.SAXS.workflows.xpcs import FourierAutocorrelator, OneTime, TwoTime
 
 
 class BlueskyItem(QStandardItem):
 
-    def __init__(self):
-        super(QStandardItem, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(QStandardItem, self).__init__(*args, **kwargs)
+
+        self.setCheckable(True)
 
 
 class XPCSViewerPlugin(PolygonROI, SAXSViewerPluginBase):
@@ -126,7 +131,6 @@ class OneTimeAlgorithms(ProcessingAlgorithms):
         return OneTime.name
 
 
-
 class SAXSPlugin(GUIPlugin):
     name = 'SAXS'
 
@@ -139,12 +143,12 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.SAXSSpectra import SAXSSpectra
 
-        self.derivedDataModel = QStandardItemModel()
+        self.derivedDataModel = DerivedDataModel()
         self.catalogModel = QStandardItemModel()
 
         # Data model
-        self.headermodel = QStandardItemModel()
-        self.selectionmodel = QItemSelectionModel(self.headermodel)
+        self.catalogModel = QStandardItemModel()
+        self.selectionmodel = QItemSelectionModel(self.catalogModel)
 
         # Initialize workflows
         self.maskingworkflow = MaskingWorkflow()
@@ -157,31 +161,35 @@ class SAXSPlugin(GUIPlugin):
                                                                  'SettingsPlugin').plugin_object
 
         # Setup TabViews
-        self.calibrationtabview = TabView(self.headermodel, widgetcls=SAXSCalibrationViewer,
+        # FIXME -- hardcoded stream and field passed into tab views (grab from toolbars)
+        self.calibrationtabview = TabView(self.catalogModel, widgetcls=SAXSCalibrationViewer,
+                                          stream='primary', field='pilatus2M',
                                           selectionmodel=self.selectionmodel,
                                           bindings=[(self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                           geometry=self.getAI)
-        self.masktabview = TabView(self.headermodel, widgetcls=SAXSMaskingViewer, selectionmodel=self.selectionmodel,
+        self.masktabview = TabView(self.catalogModel, widgetcls=SAXSMaskingViewer, selectionmodel=self.selectionmodel,
+                                   stream='primary', field='pilatus2M',
                                    bindings=[('sigTimeChangeFinished', self.indexChanged),
                                              (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                    geometry=self.getAI)
-        self.reducetabview = TabView(self.headermodel, widgetcls=SAXSReductionViewer,
+        self.reducetabview = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
                                      selectionmodel=self.selectionmodel,
+                                     stream='primary', field='pilatus2M',
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
-        self.comparemultiview = SAXSMultiViewerPlugin(self.headermodel, self.selectionmodel)
+        self.comparemultiview = SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
 
         # Setup correlation views
         self.twoTimeView = TwoTimeWidget()
-        self.twoTimeFileSelection = FileSelectionView(self.headermodel, self.selectionmodel)
+        self.twoTimeFileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
         self.twoTimeProcessor = TwoTimeProcessor()
         self.twoTimeToolBar = QToolBar()
         self.twoTimeToolBar.addAction(QIcon(static.path('icons/run.png')), 'Process', self.processTwoTime)
         self.twoTimeToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         self.oneTimeView = OneTimeWidget()
-        self.oneTimeFileSelection = FileSelectionView(self.headermodel, self.selectionmodel)
+        self.oneTimeFileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
         self.oneTimeProcessor = OneTimeProcessor()
         self.oneTimeToolBar = QToolBar()
         self.oneTimeToolBar.addAction(QIcon(static.path('icons/run.png')), 'Process', self.processOneTime)
@@ -191,15 +199,15 @@ class SAXSPlugin(GUIPlugin):
         #     [self.calibrationtabview, self.masktabview, self.reducetabview, self.comparemultiview.leftTabView])
 
         # Setup toolbars
-        self.rawtoolbar = SAXSToolbarRaw(self.headermodel, self.selectionmodel)
-        self.masktoolbar = SAXSToolbarMask(self.headermodel, self.selectionmodel)
-        self.reducetoolbar = SAXSToolbarReduce(self.headermodel, self.selectionmodel)
+        self.rawtoolbar = SAXSToolbarRaw(self.catalogModel, self.selectionmodel)
+        self.masktoolbar = SAXSToolbarMask(self.catalogModel, self.selectionmodel)
+        self.reducetoolbar = SAXSToolbarReduce(self.catalogModel, self.selectionmodel)
         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
         self.reducetoolbar.sigDeviceChanged.connect(self.deviceChanged)
 
         # Setup calibration widgets
-        self.calibrationsettings.setModels(self.headermodel, self.calibrationtabview.selectionmodel)
-        self.calibrationpanel = CalibrationPanel(self.headermodel, self.calibrationtabview.selectionmodel)
+        self.calibrationsettings.setModels(self.catalogModel, self.calibrationtabview.selectionmodel)
+        self.calibrationpanel = CalibrationPanel(self.catalogModel, self.calibrationtabview.selectionmodel)
         self.calibrationpanel.sigDoCalibrateWorkflow.connect(self.doCalibrateWorkflow)
         self.calibrationsettings.sigGeometryChanged.connect(self.doSimulateWorkflow)
 
@@ -210,12 +218,11 @@ class SAXSPlugin(GUIPlugin):
         # Setup reduction widgets
         self.displayeditor = WorkflowEditor(self.displayworkflow)
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
-        self.reduceplot = SAXSSpectra(self.reduceworkflow, self.reducetoolbar)
+        self.reduceplot = DerivedDataWidget(self.derivedDataModel)
         self.reducetoolbar.sigDoWorkflow.connect(partial(self.doReduceWorkflow))
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
-        self.reducetabview.currentChanged.connect(self.headerChanged)
-        self.reducetabview.currentChanged.connect(self.headerChanged)
+        self.reducetabview.currentChanged.connect(self.catalogChanged)
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
@@ -264,10 +271,10 @@ class SAXSPlugin(GUIPlugin):
 
     def indexChanged(self):
         if not self.reduceplot.toolbar.multiplot.isChecked():
-            self.doReduceWorkflow(self.reduceworkflow)
+            self.doReduceWorkflow()
 
-    def headerChanged(self):
-        # TODO: both headerchanged and devicechanged will fire, redundantly, when the first image is opened
+    def catalogChanged(self):
+        # TODO: both catalogChanged and deviceChanged will fire, redundantly, when the first image is opened
         self.doReduceWorkflow()
         self.doDisplayWorkflow()
 
@@ -275,15 +282,8 @@ class SAXSPlugin(GUIPlugin):
         self.doReduceWorkflow()
         self.doDisplayWorkflow()
 
-    def currentheader(self):
-        return self.headerModel.itemFromIndex(self.selectionModel.currentIndex()).header
-
-    def currentheaders(self):
-        selected_indices = self.selectionModel.selectedIndexes()
-        headers = []
-        for model_index in selected_indices:
-            headers.append(self.headerModel.itemFromIndex(model_index).header)
-        return headers
+    def currentCatalog(self):
+        return self.catalogModel.itemFromIndex(self.selectionmodel.currentIndex()).data(Qt.UserRole)
 
     def appendCatalog(self, catalog: BlueskyRun, **kwargs):
         displayName = ""
@@ -299,38 +299,9 @@ class SAXSPlugin(GUIPlugin):
         self.catalogModel.appendRow(item)
         self.catalogModel.dataChanged.emit(item.index(), item.index())
 
-    def appendHeader(self, header: NonDBHeader, **kwargs):
-        item = QStandardItem(header.startdoc.get('sample_name', '????'))
-        item.header = header
-        self.headermodel.appendRow(item)
-        index = self.headermodel.index(self.headermodel.rowCount() - 1, 0)
-        self.selectionmodel.setCurrentIndex(index,
-                                            QItemSelectionModel.Rows)
-        self.headermodel.dataChanged.emit(index, index)
-        # self.doSimulateWorkflow()
-
-        # Load any reduced (processed) data
-        reduced = False
-        for descriptor in header.descriptordocs:
-            if descriptor['name'] == '1-Time':
-                reduced = True
-                break
-        paths = header.startdoc.get('paths')
-        for path in paths:
-            if reduced:
-                startItem = QStandardItem(header.startdoc.get('sample_name', '??'))
-                eventlist = header.eventdocs
-                for event in eventlist:
-                    eventItem = QStandardItem(repr(event['data']['dqlist']))
-                    eventItem.setData(event, Qt.UserRole)
-                    eventItem.setCheckable(True)
-                    startItem.appendRow(eventItem)
-                # TODO -- properly add to view (one-time or 2-time, etc.)
-                self.oneTimeView.model.invisibleRootItem().appendRow(startItem)
-
     @threads.method()
     def doCalibrateWorkflow(self, workflow: Workflow):
-        data = self.calibrationtabview.currentWidget().header.meta_array()[0]
+        data = self.calibrationtabview.currentWidget().image
         device = self.rawtoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
         # ai.detector = detectors.Pilatus2M()
@@ -349,7 +320,7 @@ class SAXSPlugin(GUIPlugin):
             self.reducetabview.currentWidget().setTransform()
 
         if not self.calibrationtabview.currentWidget(): return
-        data = self.calibrationtabview.currentWidget().header.meta_array()[0]
+        data = self.calibrationtabview.currentWidget().image
         device = self.rawtoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
         if not ai: return
@@ -366,7 +337,7 @@ class SAXSPlugin(GUIPlugin):
     def doMaskingWorkflow(self, workflow=None):
         if not self.masktabview.currentWidget(): return
         if not self.checkPolygonsSet(self.maskingworkflow):
-            data = self.masktabview.currentWidget().header.meta_array()[0]
+            data = self.masktabview.currentWidget().image
             device = self.masktoolbar.detectorcombobox.currentText()
             ai = self.calibrationsettings.AI(device)
             outputwidget = self.masktabview.currentWidget()
@@ -388,7 +359,8 @@ class SAXSPlugin(GUIPlugin):
         return
         if not self.reducetabview.currentWidget(): return
         currentwidget = self.reducetabview.currentWidget()
-        data = currentwidget.header.meta_array()[currentwidget.timeIndex(currentwidget.timeLine)[0]]
+        data = currentwidget.image
+        data = [data[currentwidget.timeIndex(currentwidget.timeline)[0]]]
         device = self.reducetoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
         if not ai: return
@@ -403,24 +375,29 @@ class SAXSPlugin(GUIPlugin):
     @threads.method()
     def doReduceWorkflow(self):
         if not self.reducetabview.currentWidget(): return
-        multimode = self.reduceplot.toolbar.multiplot.isChecked()
-        currentwidget = self.reducetabview.currentWidget()
-        data = currentwidget.header.meta_array()
+        multimode = self.reducetoolbar.multiplot.isChecked()
+        currentItem = self.catalogModel.itemFromIndex(self.selectionmodel.currentIndex())
+        # FIXME -- hardcoded stream
+        stream = "primary"
+        data = getattr(currentItem.data(Qt.UserRole), stream)[self.reducetoolbar.detectorcombobox.currentText()].to_dask()
         if not multimode:
-            data = [data[currentwidget.timeIndex(currentwidget.timeLine)[0]]]
+            currentwidget = self.reducetabview.currentWidget()
+            data = [data[currentwidget.timeIndex(currentwidget.timeLine)[0]].compute()]
         device = self.reducetoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
         if not ai: return
         ai = [ai] * len(data)
         mask = [self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None] * len(
             data)
-        outputwidget = self.reduceplot
-
-        # outputwidget.clear_all()
 
         def showReduce(*results):
-            self.reduceplot.plot_mode(results)
-            pass
+            # self.reduceplot.plot_mode(results)
+            item = BlueskyItem("test")
+            childItem = BlueskyItem("child")
+            childItem.setData(Qt.UserRole, np.random.random((10,)))
+            item.appendRow(childItem)
+            self.derivedDataModel.appendRow(item)
+
 
         self.reduceworkflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
 
@@ -514,63 +491,63 @@ class SAXSPlugin(GUIPlugin):
                                            canvas=canvas,
                                            canvases=canvases))
 
-    def process(self, processor: XPCSProcessor, **kwargs):
-        if processor:
-            workflow = processor.workflow
-
-            data = [header.meta_array() for header in self.currentheaders()]
-            currentWidget = self.rawTabView.currentWidget()
-            rois = [item for item in currentWidget.view.items if isinstance(item, BetterROI)]
-            labels = [currentWidget.poly_mask()] * len(data)  # TODO: update for multiple ROIs
-            numLevels = [1] * len(data)
-
-            numBufs = []
-            for i, _ in enumerate(data):
-                shape = data[i].shape[0]
-                # multi_tau_corr requires num_bufs to be even
-                if shape % 2:
-                    shape += 1
-                numBufs.append(shape)
-
-            if kwargs.get('callback_slot'):
-                callbackSlot = kwargs['callback_slot']
-            else:
-                callbackSlot = self.saveResult
-            if kwargs.get('finished_slot'):
-                finishedSlot = kwargs['finished_slot']
-            else:
-                finishedSlot = self.updateDerivedDataModel
-
-            workflowPickle = pickle.dumps(workflow)
-            workflow.execute_all(None,
-                                 data=data,
-                                 labels=labels,
-                                 num_levels=numLevels,
-                                 num_bufs=numBufs,
-                                 callback_slot=callbackSlot,
-                                 finished_slot=partial(finishedSlot,
-                                                       header=self.currentheader(),
-                                                       roi=rois[0],  # todo -- handle multiple rois
-                                                       workflow=workflow,
-                                                       workflow_pickle=workflowPickle))
-
-    def saveResult(self, result, fileSelectionView=None):
-        if fileSelectionView:
-            analyzed_results = dict()
-
-            if not fileSelectionView.correlationName.displayText():
-                analyzed_results['result_name'] = fileSelectionView.correlationName.placeholderText()
-            else:
-                analyzed_results['result_name'] = fileSelectionView.correlationName.displayText()
-            analyzed_results = {**analyzed_results, **result}
-
-            self._results.append(analyzed_results)
-
-    def updateDerivedDataModel(self, view: CorrelationWidget, canvas, canvases, header, roi, workflow, workflow_pickle):
-        parentItem = BlueskyItem(workflow.name)
-        for hint in workflow.hints:
-            item = BlueskyItem(hint.name)
-            item.setData(hint, Qt.UserRole)
-            item.setCheckable(True)
-            parentItem.appendRow(item)
-        self.derivedDataModel.appendRow(parentItem)
+    # def process(self, processor: XPCSProcessor, **kwargs):
+    #     if processor:
+    #         workflow = processor.workflow
+    #
+    #         data = [header.meta_array() for header in self.currentheaders()]
+    #         currentWidget = self.rawTabView.currentWidget()
+    #         rois = [item for item in currentWidget.view.items if isinstance(item, BetterROI)]
+    #         labels = [currentWidget.poly_mask()] * len(data)  # TODO: update for multiple ROIs
+    #         numLevels = [1] * len(data)
+    #
+    #         numBufs = []
+    #         for i, _ in enumerate(data):
+    #             shape = data[i].shape[0]
+    #             # multi_tau_corr requires num_bufs to be even
+    #             if shape % 2:
+    #                 shape += 1
+    #             numBufs.append(shape)
+    #
+    #         if kwargs.get('callback_slot'):
+    #             callbackSlot = kwargs['callback_slot']
+    #         else:
+    #             callbackSlot = self.saveResult
+    #         if kwargs.get('finished_slot'):
+    #             finishedSlot = kwargs['finished_slot']
+    #         else:
+    #             finishedSlot = self.updateDerivedDataModel
+    #
+    #         workflowPickle = pickle.dumps(workflow)
+    #         workflow.execute_all(None,
+    #                              data=data,
+    #                              labels=labels,
+    #                              num_levels=numLevels,
+    #                              num_bufs=numBufs,
+    #                              callback_slot=callbackSlot,
+    #                              finished_slot=partial(finishedSlot,
+    #                                                    header=self.currentheader(),
+    #                                                    roi=rois[0],  # todo -- handle multiple rois
+    #                                                    workflow=workflow,
+    #                                                    workflow_pickle=workflowPickle))
+    #
+    # def saveResult(self, result, fileSelectionView=None):
+    #     if fileSelectionView:
+    #         analyzed_results = dict()
+    #
+    #         if not fileSelectionView.correlationName.displayText():
+    #             analyzed_results['result_name'] = fileSelectionView.correlationName.placeholderText()
+    #         else:
+    #             analyzed_results['result_name'] = fileSelectionView.correlationName.displayText()
+    #         analyzed_results = {**analyzed_results, **result}
+    #
+    #         self._results.append(analyzed_results)
+    #
+    # def updateDerivedDataModel(self, view: CorrelationWidget, canvas, canvases, header, roi, workflow, workflow_pickle):
+    #     parentItem = BlueskyItem(workflow.name)
+    #     for hint in workflow.hints:
+    #         item = BlueskyItem(hint.name)
+    #         item.setData(hint, Qt.UserRole)
+    #         item.setCheckable(True)
+    #         parentItem.appendRow(item)
+    #     self.derivedDataModel.appendRow(parentItem)
