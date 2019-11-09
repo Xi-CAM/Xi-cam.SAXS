@@ -12,6 +12,7 @@ from .CalibrationPanel import CalibrationPanel
 
 from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree.parameterTypes import GroupParameter, ListParameter, SimpleParameter
+from xicam.SAXS.detectors import FastCCD
 
 
 # https://stackoverflow.com/questions/20866996/how-to-compress-slot-calls-when-using-queued-connection-in-qt
@@ -26,7 +27,7 @@ class DeviceParameter(GroupParameter):
                          detectors.ALL_DETECTORS.values()}
         geometrystyle = ListParameter(name='Geometry Style', type='list',
                                       values=['Fit2D', 'pyFAI', 'wxDiff'], value='Fit2D')
-        detector = ListParameter(name='Detector', type='list', values=ALL_DETECTORS, value=ALL_DETECTORS['Pilatus 2M'])
+        detector = ListParameter(name='Detector', type='list', values=ALL_DETECTORS, value=ALL_DETECTORS['Fast CCD'])
         pixelx = SimpleParameter(name='Pixel Size X', type='float', value=172.e-6, siPrefix=True, suffix='m')
         pixely = SimpleParameter(name='Pixel Size Y', type='float', value=172.e-6, siPrefix=True, suffix='m')
         binning = SimpleParameter(name='Binning', type='int', value=1, suffix='x', limits=(1, 100))
@@ -163,7 +164,7 @@ class DeviceProfiles(ParameterSettingsPlugin):
                 devicechild = DeviceParameter(device)
                 self.addChild(devicechild)
                 ai = AzimuthalIntegrator(wavelength=self['Wavelength'])
-                ai.detector = detectors.Pilatus2M()
+                ai.detector = FastCCD()
                 self.AIs[device] = ai
                 self.multiAI.ais = list(self.AIs.values())
             finally:
@@ -181,7 +182,10 @@ class DeviceProfiles(ParameterSettingsPlugin):
             # TODO-- remove hard-coding of stream
             stream = "primary"
             item = self.headermodel.item(self.selectionmodel.currentIndex().row())
-            fields = getattr(item.data(Qt.UserRole), stream).to_dask().keys()
+            catalog = item.data(Qt.UserRole)  # type: Catalog
+            fields = [technique["data_mapping"]["data_image"][1] for technique in catalog.metadata["techniques"] if
+                      technique["technique"] == "scattering"]
+
             for field in fields:
                 if field not in self.AIs:
                     self.addDevice(field)

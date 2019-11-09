@@ -103,9 +103,13 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
+<<<<<<< Updated upstream
     entry_points={'databroker.ingestors': [
                       'application/edf= xicam.SAXS.formats.ingestors:edf_ingestor',
                   ]},
+=======
+    entry_points={},
+>>>>>>> Stashed changes
 
     ext_modules=[],
     include_package_data=True

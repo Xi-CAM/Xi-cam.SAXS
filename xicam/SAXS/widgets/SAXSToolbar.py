@@ -49,10 +49,11 @@ class FieldSelector(SAXSToolbarBase):
             # TODO-- remove hard-coding of stream
             stream = "primary"
             item = self.headermodel.item(self.selectionmodel.currentIndex().row())
-            fields = getattr(item.data(Qt.UserRole), stream).to_dask().keys()
+            # fields = getattr(item.data(Qt.UserRole), stream).to_dask().keys()
+            catalog = item.data(Qt.UserRole)  # type: Catalog
+            fields = [ technique["data_mapping"]["data_image"][1] for technique in catalog.metadata["techniques"] if technique["technique"] == "scattering" ]
             self.detectorcombobox.clear()
             self.detectorcombobox.addItems(fields)
-
 
 class ModeSelector(SAXSToolbarBase):
     def __init__(self, *args, **kwargs):

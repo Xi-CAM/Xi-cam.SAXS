@@ -285,6 +285,31 @@ class SAXSPlugin(GUIPlugin):
     def currentCatalog(self):
         return self.catalogModel.itemFromIndex(self.selectionmodel.currentIndex()).data(Qt.UserRole)
 
+    def schema(self):
+        saxs_schema = {
+            "techniques": [
+                {
+                    "technique": "scattering",
+                    "configuration": {
+                        "geometry": "transmission",
+                        "detector_model": "fastccd",
+                    },
+                    "data_mapping": {
+                        # "incoming_energy": [
+                        #    "baseline",
+                        #    "E"
+                        # ]
+                        "data_image": [
+                            "primary",
+                            "fccd_image"
+                        ]
+                    },
+                    "version": 0
+                },
+            ]}
+
+        return saxs_schema
+
     def appendCatalog(self, catalog: BlueskyRun, **kwargs):
         displayName = ""
         if 'sample_name' in catalog.metadata['start']:
@@ -293,6 +318,9 @@ class SAXSPlugin(GUIPlugin):
             displayName = catalog.metadata['start']['scan_id']
         else:
             displayName = catalog.metadata['start']['uid']
+
+        schema = self.schema()
+        catalog.metadata.update(self.schema())
 
         item = BlueskyItem(displayName)
         item.setData(catalog, Qt.UserRole)
@@ -381,7 +409,7 @@ class SAXSPlugin(GUIPlugin):
         stream = "primary"
         field = self.reducetoolbar.detectorcombobox.currentText()
         if not field: return
-        data = MetaXArray(getattr(currentItem.data(Qt.UserRole), stream).to_dask()[self.reducetoolbar.detectorcombobox.currentText()])
+        data = MetaXArray(getattr(currentItem.data(Qt.UserRole), stream).to_dask()[self.reducetoolbar.detectorcombobox.currentText()][0, :, :, :])
         if not multimode:
             currentwidget = self.reducetabview.currentWidget()
             data = [data[currentwidget.timeIndex(currentwidget.timeLine)[0]]]

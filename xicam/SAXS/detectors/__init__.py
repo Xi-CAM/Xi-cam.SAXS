@@ -14,7 +14,7 @@ class FastCCD(detectors.Detector):
 
         mask = np.zeros((1000, 960))
         # mask middle 19 rows
-        mask[500 - 19 / 2:500 + 19 / 2, :] = 1
+        mask[500 - 9: 500 + 9, :] = 1
         # TODO: check that this mask is correct
 
         return mask
