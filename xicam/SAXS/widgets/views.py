@@ -79,8 +79,10 @@ class CorrelationWidget(QWidget):
 
 
 class OneTimeWidget(CorrelationWidget):
-    def __init__(self):
-        self.model = QStandardItemModel()
+    def __init__(self, model):
+        self.model = model
+        if not model:
+            self.model = QStandardItemModel()
         super(OneTimeWidget, self).__init__(self.model)
         plotItem = self._plot.getPlotItem()
         plotItem.setLabel('left', 'g<sub>2</sub>(&tau;)', 's')
@@ -137,8 +139,7 @@ class OneTimeWidget(CorrelationWidget):
 
 
 class TwoTimeWidget(CorrelationWidget):
-    def __init__(self):
-        ...
+    ...
 
 
 class FileSelectionView(QWidget):
