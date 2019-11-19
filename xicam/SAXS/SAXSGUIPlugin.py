@@ -161,34 +161,36 @@ class SAXSPlugin(GUIPlugin):
                                                                  'SettingsPlugin').plugin_object
 
         # Setup TabViews
-        # FIXME -- hardcoded stream and field passed into tab views (grab from toolbars)
+        # FIXME -- rework how fields propagate to displays (i.e. each image has its own detector, switching
+        # between tabs updates the detector combobbox correctly)
+        field = "fccd_image"
         self.calibrationtabview = TabView(self.catalogModel, widgetcls=SAXSCalibrationViewer,
-                                          stream='primary', field='pilatus2M',
+                                          stream='primary', field=field,
                                           selectionmodel=self.selectionmodel,
                                           bindings=[(self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                           geometry=self.getAI)
         self.masktabview = TabView(self.catalogModel, widgetcls=SAXSMaskingViewer, selectionmodel=self.selectionmodel,
-                                   stream='primary', field='pilatus2M',
+                                   stream='primary', field=field,
                                    bindings=[('sigTimeChangeFinished', self.indexChanged),
                                              (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                    geometry=self.getAI)
         self.reducetabview = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
                                      selectionmodel=self.selectionmodel,
-                                     stream='primary', field='pilatus2M',
+                                     stream='primary', field=field,
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
         self.comparemultiview = QLabel("COMING SOON!") #SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
 
         # Setup correlation views
-        self.twoTimeView = TwoTimeWidget()
+        self.twoTimeView = TwoTimeWidget(self.catalogModel)
         self.twoTimeFileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
         self.twoTimeProcessor = TwoTimeProcessor()
         self.twoTimeToolBar = QToolBar()
         self.twoTimeToolBar.addAction(QIcon(static.path('icons/run.png')), 'Process', self.processTwoTime)
         self.twoTimeToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
-        self.oneTimeView = OneTimeWidget()
+        self.oneTimeView = OneTimeWidget(self.catalogModel)
         self.oneTimeFileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
         self.oneTimeProcessor = OneTimeProcessor()
         self.oneTimeToolBar = QToolBar()
@@ -219,7 +221,7 @@ class SAXSPlugin(GUIPlugin):
         self.displayeditor = WorkflowEditor(self.displayworkflow)
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
         self.reduceplot = DerivedDataWidget(self.derivedDataModel)
-        self.reducetoolbar.sigDoWorkflow.connect(partial(self.doReduceWorkflow))
+        self.reducetoolbar.sigDoWorkflow.connect(self.doReduceWorkflow)
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(self.catalogChanged)
@@ -327,9 +329,20 @@ class SAXSPlugin(GUIPlugin):
         self.catalogModel.appendRow(item)
         self.catalogModel.dataChanged.emit(item.index(), item.index())
 
+    def checkDataShape(self, data):
+        """Checks the shape of the data and gets the first frame if able to."""
+        if data.shape[0] > 1:
+            msg.notifyMessage("Looks like you did not open a single data frame. "
+                              "Automated calibration only works with single frame data.")
+            return None
+        else:
+            return data[0]
+
     @threads.method()
     def doCalibrateWorkflow(self, workflow: Workflow):
         data = self.calibrationtabview.currentWidget().image
+        data = self.checkDataShape(data)
+        if data is None: return
         device = self.rawtoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
         # ai.detector = detectors.Pilatus2M()
@@ -349,6 +362,8 @@ class SAXSPlugin(GUIPlugin):
 
         if not self.calibrationtabview.currentWidget(): return
         data = self.calibrationtabview.currentWidget().image
+        data = self.checkDataShape(data)
+        if data is None: return
         device = self.rawtoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
         if not ai: return
@@ -407,9 +422,13 @@ class SAXSPlugin(GUIPlugin):
         currentItem = self.catalogModel.itemFromIndex(self.selectionmodel.currentIndex())
         # FIXME -- hardcoded stream
         stream = "primary"
+        data = currentItem.data(Qt.UserRole)
         field = self.reducetoolbar.detectorcombobox.currentText()
         if not field: return
-        data = MetaXArray(getattr(currentItem.data(Qt.UserRole), stream).to_dask()[self.reducetoolbar.detectorcombobox.currentText()][0, :, :, :])
+        eventStream = getattr(currentItem.data(Qt.UserRole), stream).to_dask()[self.reducetoolbar.detectorcombobox.currentText()]
+        if eventStream.ndim > 3:
+            eventStream = eventStream[0]
+        data = MetaXArray(eventStream)
         if not multimode:
             currentwidget = self.reducetabview.currentWidget()
             data = [data[currentwidget.timeIndex(currentwidget.timeLine)[0]]]
@@ -421,12 +440,24 @@ class SAXSPlugin(GUIPlugin):
             data)
 
         def showReduce(*results):
-            # self.reduceplot.plot_mode(results)
-            item = BlueskyItem("test")
-            childItem = BlueskyItem("child")
-            childItem.setData(np.random.random((10,)), Qt.UserRole)
-            item.appendRow(childItem)
-            self.derivedDataModel.appendRow(item)
+            # FIXME -- Better way to get the hints from the results
+            parentItem = BlueskyItem("result")
+            for result in results:
+                hints = next(iter(result.items()))[-1].parent.hints
+                for hint in hints:
+                    item = BlueskyItem(hint.name)
+                    item.setData(hint, Qt.UserRole)
+                    parentItem.appendRow(item)
+            self.derivedDataModel.appendRow(parentItem)
+
+            # # self.reduceplot.plot_mode(results)
+            # item = BlueskyItem("test")
+            # childItem = BlueskyItem("child")
+            # from xicam.plugins.hints import PlotHint
+            # testHint = PlotHint(x=np.asarray(range(10)), y=np.random.random((10,)), name=childItem.text())
+            # childItem.setData(testHint, Qt.UserRole)
+            # item.appendRow(childItem)
+            # self.derivedDataModel.appendRow(item)
 
 
         self.reduceworkflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
