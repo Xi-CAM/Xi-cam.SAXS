@@ -9,11 +9,11 @@ from xicam.core import msg
 from xicam.plugins import manager as pluginmanager
 from xicam.gui.widgets.dynimageview import DynImageView
 from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMarker, BetterButtons, EwaldCorrected, \
-    LogScaleIntensity, DisplayMode, CatalogView, XArrayView
+    LogScaleIntensity, DisplayMode, CatalogView, XArrayView, ImageViewHistogramOverflowFix
 import pyqtgraph as pg
 
 
-class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView, XArrayView, CatalogView):
+class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView, XArrayView, CatalogView, ImageViewHistogramOverflowFix):
 
     def __init__(self, *args, **kwargs):
 
