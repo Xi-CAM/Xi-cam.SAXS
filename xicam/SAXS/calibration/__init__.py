@@ -203,8 +203,9 @@ class DeviceProfiles(ParameterSettingsPlugin):
             for child in self.children()[2:]:
                 child.remove()
             for name, ai in self.AIs.items():
-                self.addDevice(name)
-                self.setAI(ai, name)
+                if name in state[0]['children']:
+                    self.addDevice(name)
+                    self.setAI(ai, name)
 
             self.restoreState(state[0], addChildren=False, removeChildren=False)
         except Exception as ex:
