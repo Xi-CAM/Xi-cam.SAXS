@@ -24,7 +24,6 @@ from xicam.SAXS.processing.workflows import ReduceWorkflow, DisplayWorkflow
 from xicam.SAXS.calibration.workflows import SimulateWorkflow
 from xicam.SAXS.masking.workflows import MaskingWorkflow
 from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from pyFAI import AzimuthalIntegrator, detectors, calibrant
 import pyqtgraph as pg
 from functools import partial
 

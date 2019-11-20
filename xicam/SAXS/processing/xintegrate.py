@@ -1,6 +1,6 @@
 from xicam.plugins import ProcessingPlugin, Input, Output, PlotHint
 import numpy as np
-from pyFAI import AzimuthalIntegrator, units
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
 class XIntegratePlugin(ProcessingPlugin):

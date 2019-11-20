@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import signal
 from xicam.plugins import ProcessingPlugin, Input, Output, InOut
-from pyFAI import AzimuthalIntegrator
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 class fourierAutocorrelation(ProcessingPlugin):
     name = 'Fourier Autocorrelation'

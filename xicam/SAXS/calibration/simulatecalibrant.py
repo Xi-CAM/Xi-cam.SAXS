@@ -1,6 +1,7 @@
 import numpy as np
 from xicam.plugins import ProcessingPlugin, Input, Output, InOut
-from pyFAI import AzimuthalIntegrator, calibrant
+from pyFAI import calibrant
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
 class SimulateCalibrant(ProcessingPlugin):

@@ -1,6 +1,6 @@
 from xicam.plugins import ProcessingPlugin, Input, Output
 import numpy as np
-from pyFAI import AzimuthalIntegrator
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
 class QconversionSAXS(ProcessingPlugin):
