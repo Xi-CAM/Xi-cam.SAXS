@@ -6,8 +6,10 @@ from xicam.gui.static import path
 from xicam.core.execution.workflow import Workflow
 from xicam.plugins import ProcessingPlugin, Output
 from xicam.gui.widgets.menuview import MenuView
+from xicam.gui.widgets.ROI import ArcROI
 from xicam.plugins import Hint
 from functools import partial
+import pyqtgraph as pg
 
 
 class SAXSToolbarBase(QToolBar):
@@ -16,7 +18,7 @@ class SAXSToolbarBase(QToolBar):
     sigDoWorkflow = Signal()
     sigDeviceChanged = Signal(str)
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         super(SAXSToolbarBase, self).__init__()
 
     def mkAction(self, iconpath: str = None, text=None, receiver=None, group=None, checkable=False, checked=False):
@@ -77,6 +79,41 @@ class MultiPlot(SAXSToolbarBase):
         self.multiplot.setCheckable(True)
         self.multiplot.triggered.connect(self.sigDoWorkflow)
         self.addAction(self.multiplot)
+        self.addSeparator()
+
+
+class ROIs(SAXSToolbarBase):
+    def __init__(self, *args, view: pg.ImageView = None, workflow=None, **kwargs):
+        super(ROIs, self).__init__(*args, **kwargs)
+        self.workflow = workflow
+        self.view = view
+
+        self.arc_roi = self.mkAction('icons/roi_arc.png', 'Arc ROI')
+        self.addAction(self.arc_roi)
+        self.polygon_roi = self.mkAction('icons/roi_polygon.png', 'Polygon ROI')
+        self.addAction(self.polygon_roi)
+        self.horizontal_roi = self.mkAction('icons/roi_horizontal.png', 'Horizontal ROI')
+        self.addAction(self.horizontal_roi)
+        self.vertical_roi = self.mkAction('icons/roi_vertical.png', 'Vertical ROI')
+        self.addAction(self.vertical_roi)
+        self.line_roi = self.mkAction('icons/roi_line.png', 'Line ROI')
+        self.addAction(self.line_roi)
+
+        self.addSeparator()
+
+        self.arc_roi.triggered.connect(self.add_arc)
+
+    def add_arc(self):
+        self.add_roi(ArcROI(center=(0, 0), radius=.25))
+
+    def add_roi(self, roi):
+        view = self.view
+        if callable(view):
+            view = view()
+
+        view.getView().addItem(roi)
+        self.workflow.addProcess(roi.process)
+
 
 
 class SAXSToolbarRaw(FieldSelector):
@@ -87,7 +124,7 @@ class SAXSToolbarMask(FieldSelector):
     pass
 
 
-class SAXSToolbarReduce(MultiPlot, ModeSelector, FieldSelector):
+class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector, FieldSelector):
     def __init__(self, *args, **kwargs):
         super(SAXSToolbarReduce, self).__init__(*args, **kwargs)
 
