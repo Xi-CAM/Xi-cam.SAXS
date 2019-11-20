@@ -23,6 +23,7 @@ class DeviceParameter(GroupParameter):
         opts['type'] = 'bool'
         opts['value'] = True
         opts['name'] = device
+        opts['removable'] = True
         ALL_DETECTORS = {(getattr(detector, 'aliases', ) or [detector.__name__])[0]: detector for detector in
                          detectors.ALL_DETECTORS.values()}
         geometrystyle = ListParameter(name='Geometry Style', type='list',
@@ -41,12 +42,6 @@ class DeviceParameter(GroupParameter):
         self.children = [geometrystyle, detector, pixelx, pixely, binning, centerx, centery, sdd, tilt, rotation]
         opts['children'] = self.children
         super(DeviceParameter, self).__init__(**opts)
-        #     wavelengthparam = self.param('Wavelength')
-        #     energyparam = self.param('Energy')
-        #     wavelengthparam.sigValueChanged.connect(self.wavelengthChanged)
-        #     energyparam.sigValueChanged.connect(self.energyChanged)
-        #
-        #
 
 
 class DeviceProfiles(ParameterSettingsPlugin):
