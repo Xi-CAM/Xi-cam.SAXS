@@ -202,7 +202,8 @@ class SAXSPlugin(GUIPlugin):
         # Setup toolbars
         self.rawtoolbar = SAXSToolbarRaw(self.catalogModel, self.selectionmodel)
         self.masktoolbar = SAXSToolbarMask(self.catalogModel, self.selectionmodel)
-        self.reducetoolbar = SAXSToolbarReduce(self.catalogModel, self.selectionmodel)
+        self.reducetoolbar = SAXSToolbarReduce(self.catalogModel, self.selectionmodel,
+                                               view=self.reducetabview.currentWidget, workflow=self.reduceworkflow)
         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
         self.reducetoolbar.sigDeviceChanged.connect(self.deviceChanged)
 
@@ -354,7 +355,7 @@ class SAXSPlugin(GUIPlugin):
         workflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=setAI, threadkey='calibrate')
 
     @threads.method()
-    def doSimulateWorkflow(self):
+    def doSimulateWorkflow(self, *_):
         # TEMPORARY HACK for demonstration
         if self.reducetabview.currentWidget():
             self.reducetabview.currentWidget().setTransform()
