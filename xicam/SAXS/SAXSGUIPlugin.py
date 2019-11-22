@@ -357,8 +357,8 @@ class SAXSPlugin(GUIPlugin):
     @threads.method()
     def doSimulateWorkflow(self, *_):
         # TEMPORARY HACK for demonstration
-        if self.reducetabview.currentWidget():
-            self.reducetabview.currentWidget().setTransform()
+        # if self.reducetabview.currentWidget():
+        #     threads.invoke_in_main_thread(self.reducetabview.currentWidget().setTransform)
 
         if not self.calibrationtabview.currentWidget(): return
         data = self.calibrationtabview.currentWidget().image
