@@ -6,7 +6,7 @@ from xicam.gui.static import path
 from xicam.core.execution.workflow import Workflow
 from xicam.plugins import ProcessingPlugin, Output
 from xicam.gui.widgets.menuview import MenuView
-from xicam.gui.widgets.ROI import ArcROI
+from xicam.gui.widgets.ROI import ArcROI, RectROI, SegmentedRectROI
 from xicam.plugins import Hint
 from functools import partial
 import pyqtgraph as pg
@@ -88,7 +88,7 @@ class ROIs(SAXSToolbarBase):
         self.workflow = workflow
         self.view = view
 
-        self.arc_roi = self.mkAction('icons/roi_arc.png', 'Arc ROI')
+        self.arc_roi = self.mkAction('icons/roi_arc.png', 'Arc ROI', self.add_arc)
         self.addAction(self.arc_roi)
         self.polygon_roi = self.mkAction('icons/roi_polygon.png', 'Polygon ROI')
         self.addAction(self.polygon_roi)
@@ -98,13 +98,24 @@ class ROIs(SAXSToolbarBase):
         self.addAction(self.vertical_roi)
         self.line_roi = self.mkAction('icons/roi_line.png', 'Line ROI')
         self.addAction(self.line_roi)
+        self.rect_roi = self.mkAction('icons/roi_rect.png', 'Rectangular ROI', self.add_rect)
+        self.addAction(self.rect_roi)
+        self.rect_segmented_roi = self.mkAction('icons/roi_rect_segmented.png', 'Segmented Rectangular ROI',
+                                                self.add_rect_segmented)
+        self.addAction(self.rect_roi)
 
         self.addSeparator()
 
-        self.arc_roi.triggered.connect(self.add_arc)
+    # TODO: scale roi's by inspecting self.view
 
     def add_arc(self):
         self.add_roi(ArcROI(center=(0, 0), radius=.25))
+
+    def add_rect(self):
+        self.add_roi(RectROI(center=(0, 0), size=(100, 100)))
+
+    def add_rect_segmented(self):
+        self.add_roi(SegmentedRectROI(center=(0, 0), size=(100, 100)))
 
     def add_roi(self, roi):
         view = self.view
