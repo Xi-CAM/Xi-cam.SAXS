@@ -19,7 +19,7 @@ class SAXSToolbarBase(QToolBar):
     sigDeviceChanged = Signal(str)
 
     def __init__(self, *args, **kwargs):
-        super(SAXSToolbarBase, self).__init__()
+        super(SAXSToolbarBase, self).__init__(*args)
 
     def mkAction(self, iconpath: str = None, text=None, receiver=None, group=None, checkable=False, checked=False):
         actn = QAction(self)
@@ -83,28 +83,24 @@ class MultiPlot(SAXSToolbarBase):
 
 
 class ROIs(SAXSToolbarBase):
-    def __init__(self, *args, view: pg.ImageView = None, workflow=None, **kwargs):
+    def __init__(self, *args, view: pg.ImageView = None, workflow=None, index=-1, **kwargs):
         super(ROIs, self).__init__(*args, **kwargs)
         self.workflow = workflow
         self.view = view
+        self.index = index  # Where to insert the ROIs process into the workflow (default append)
 
-        self.arc_roi = self.mkAction('icons/roi_arc.png', 'Arc ROI')
+        self.arc_roi = self.mkAction('icons/roi_arc.png', 'Arc ROI', self.add_arc)
         self.addAction(self.arc_roi)
-        self.polygon_roi = self.mkAction('icons/roi_polygon.png', 'Polygon ROI')
+        self.polygon_roi = self.mkAction('icons/roi_polygon.png', 'Polygon ROI', self.add_polygon)
         self.addAction(self.polygon_roi)
-        self.horizontal_roi = self.mkAction('icons/roi_horizontal.png', 'Horizontal ROI')
+        self.horizontal_roi = self.mkAction('icons/roi_horizontal.png', 'Horizontal ROI', self.add_horizontal)
         self.addAction(self.horizontal_roi)
-        self.vertical_roi = self.mkAction('icons/roi_vertical.png', 'Vertical ROI')
+        self.vertical_roi = self.mkAction('icons/roi_vertical.png', 'Vertical ROI', self.add_vertical)
         self.addAction(self.vertical_roi)
-        self.line_roi = self.mkAction('icons/roi_line.png', 'Line ROI')
+        self.line_roi = self.mkAction('icons/roi_line.png', 'Line ROI', self.add_line)
         self.addAction(self.line_roi)
 
         self.addSeparator()
-
-        self.arc_roi.triggered.connect(self.add_arc)
-
-    def add_arc(self):
-        self.add_roi(ArcROI(center=(0, 0), radius=.25))
 
     def add_roi(self, roi):
         view = self.view
@@ -112,8 +108,22 @@ class ROIs(SAXSToolbarBase):
             view = view()
 
         view.getView().addItem(roi)
-        self.workflow.addProcess(roi.process)
+        self.workflow.insertProcess(self.index, roi.process, autoconnectall=True)
 
+    def add_arc(self):
+        self.add_roi(ArcROI(center=(0, 0), radius=.25))
+
+    def add_polygon(self):
+        ...
+
+    def add_horizontal(self):
+        ...
+
+    def add_vertical(self):
+        ...
+
+    def add_line(self):
+        ...
 
 
 class SAXSToolbarRaw(FieldSelector):
