@@ -14,6 +14,10 @@ class OneTimeCorrelation(ProcessingPlugin):
         4. Background is labeled as 0''',
                    type=np.ndarray,
                    visible=False)
+    num_bufs = Input(description='must be even maximum lag step to compute in each generation of downsampling',
+                     type=int,
+                     default=1000,
+                     name='number of buffers')
     # Set to num_levels to 1 if multi-tau correlation isn't desired,
     # then set num_bufs to number of images you wish to correlate
     num_levels = Input(description='''How many generations of downsampling to perform, i.e., the depth of
@@ -21,11 +25,6 @@ class OneTimeCorrelation(ProcessingPlugin):
                        type=int,
                        default=1,
                        name='number of levels')
-    num_bufs = Input(description='must be even maximum lag step to compute in each generation of downsampling',
-                     type=int,
-                     default=1000,
-                     name='number of buffers')
-
     g2 = Output(name='norm-0-g2',
                 description='the normalized correlation shape is (len(lag_steps), num_rois)',
                 type=np.ndarray)
@@ -38,4 +37,4 @@ class OneTimeCorrelation(ProcessingPlugin):
                                                                        self.labels.value.astype(np.int),
                                                                        np.asarray(self.data.value))
         self.g2.value = self.g2.value.squeeze()
-        self.hints = [PlotHint(self.lag_steps, self.g2, name="1-Time")]
+        # NOTE: hints are moved to fitting.py as CoPlotHints
