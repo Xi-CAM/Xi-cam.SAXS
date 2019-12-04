@@ -46,7 +46,7 @@ class CorrelationWidget(QWidget):
 
         self.checkedItemIndexes = []
         self._curveItems = []
-        self.model.itemChanged.connect(self.updatePlot)
+        # self.model.itemChanged.connect(self.updatePlot)
 
     def clear(self):
         raise NotImplementedError
