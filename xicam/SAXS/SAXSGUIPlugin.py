@@ -189,22 +189,19 @@ class SAXSPlugin(GUIPlugin):
         self.comparemultiview = QLabel("COMING SOON!") #SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
 
         # Setup correlation views
-        self.twoTimeView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
-                                   selectionmodel=self.selectionmodel,
-                                   stream='primary', field=field)
+        self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
+                                       selectionmodel=self.selectionmodel,
+                                       stream='primary', field=field)
         self.twoTimeFileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
         self.twoTimeProcessor = TwoTimeProcessor()
-        self.twoTimeToolBar = XPCSToolBar(view=self.twoTimeView.currentWidget,
+        self.twoTimeToolBar = XPCSToolBar(view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0,
                                           button_receiver=self.processTwoTime)
 
-        self.oneTimeView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
-                                   selectionmodel=self.selectionmodel,
-                                   stream='primary', field=field)
         self.oneTimeFileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
         self.oneTimeProcessor = OneTimeProcessor()
-        self.oneTimeToolBar = XPCSToolBar(view=self.oneTimeView.currentWidget,
+        self.oneTimeToolBar = XPCSToolBar(view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0,
                                           button_receiver=self.processOneTime)
@@ -258,13 +255,13 @@ class SAXSPlugin(GUIPlugin):
             'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar, bottom=self.reduceplot,
                                  right=self.reduceeditor),
             'Correlate': {
-                '2-Time Correlation': GUILayout(self.twoTimeView,
+                '2-Time Correlation': GUILayout(self.correlationView,
                                                 top=self.twoTimeToolBar,
                                                 right=self.twoTimeFileSelection,
                                                 rightbottom=self.twoTimeProcessor,
                                                 bottom=self.correlationResults),
                 # bottom=self.placeholder),
-                '1-Time Correlation': GUILayout(self.oneTimeView,
+                '1-Time Correlation': GUILayout(self.correlationView,
                                                 top=self.oneTimeToolBar,
                                                 right=self.oneTimeFileSelection,
                                                 rightbottom=self.oneTimeProcessor,
@@ -544,12 +541,12 @@ class SAXSPlugin(GUIPlugin):
 
 
     def processOneTime(self):
-        self.process(self.oneTimeProcessor, self.oneTimeView.currentWidget(),
+        self.process(self.oneTimeProcessor, self.correlationView.currentWidget(),
                      callback_slot=partial(self.saveResult, fileSelectionView=self.oneTimeFileSelection),
                      finished_slot=self.updateDerivedDataModel)
 
     def processTwoTime(self):
-        self.process(self.twoTimeProcessor, self.twoTimeView.currentWidget(),
+        self.process(self.twoTimeProcessor, self.correlationView.currentWidget(),
                      callback_slot=partial(self.saveResult, fileSelectionView=self.twoTimeFileSelection),
                      finished_slot=self.updateDerivedDataModel)
 
