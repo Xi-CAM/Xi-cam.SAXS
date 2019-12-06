@@ -192,14 +192,11 @@ class SAXSPlugin(GUIPlugin):
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
                                        selectionmodel=self.selectionmodel,
                                        stream='primary', field=field)
-        self.twoTimeFileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
         self.twoTimeProcessor = TwoTimeProcessor()
         self.twoTimeToolBar = XPCSToolBar(view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0,
                                           button_receiver=self.processTwoTime)
-
-        self.oneTimeFileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
         self.oneTimeProcessor = OneTimeProcessor()
         self.oneTimeToolBar = XPCSToolBar(view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
@@ -239,6 +236,9 @@ class SAXSPlugin(GUIPlugin):
 
         # Setup correlation widgets
         self.correlationResults = DerivedDataWidget(self.derivedDataModel)
+        self.correlationTab = QTabWidget()
+        self.fileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
+        self.correlationTab.addTab(self.fileSelection, "Catalogs")
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
@@ -257,13 +257,11 @@ class SAXSPlugin(GUIPlugin):
             'Correlate': {
                 '2-Time Correlation': GUILayout(self.correlationView,
                                                 top=self.twoTimeToolBar,
-                                                right=self.twoTimeFileSelection,
                                                 rightbottom=self.twoTimeProcessor,
                                                 bottom=self.correlationResults),
                 # bottom=self.placeholder),
                 '1-Time Correlation': GUILayout(self.correlationView,
                                                 top=self.oneTimeToolBar,
-                                                right=self.oneTimeFileSelection,
                                                 rightbottom=self.oneTimeProcessor,
                                                 bottom=self.correlationResults)
             }
@@ -542,17 +540,18 @@ class SAXSPlugin(GUIPlugin):
 
     def processOneTime(self):
         self.process(self.oneTimeProcessor, self.correlationView.currentWidget(),
-                     callback_slot=partial(self.saveResult, fileSelectionView=self.oneTimeFileSelection),
+                     # callback_slot=partial(self.saveResult, fileSelectionView=self.fileSelection),
                      finished_slot=self.updateDerivedDataModel)
 
     def processTwoTime(self):
         self.process(self.twoTimeProcessor, self.correlationView.currentWidget(),
-                     callback_slot=partial(self.saveResult, fileSelectionView=self.twoTimeFileSelection),
+                     # callback_slot=partial(self.saveResult, fileSelectionView=self.fileSelection),
                      finished_slot=self.updateDerivedDataModel)
 
     def process(self, processor: XPCSProcessor, widget, **kwargs):
         if processor:
-            roiFuture = self.roiworkflow.execute(data=self.reducetabview.currentWidget().image[0]) # Pass in single frame for data shape
+            roiFuture = self.roiworkflow.execute(data=self.reducetabview.currentWidget().image[0],
+                                                 image=self.reducetabview.currentWidget().imageItem) # Pass in single frame for data shape
             roiResult = roiFuture.result()
             label = roiResult[-1]["roi"].value
             if label is None:
@@ -594,17 +593,17 @@ class SAXSPlugin(GUIPlugin):
                                                        workflow=workflow))
                                                        # workflow_pickle=workflowPickle))
 
-    def saveResult(self, result, fileSelectionView=None):
-        if fileSelectionView:
-            analyzed_results = dict()
-
-            if not fileSelectionView.correlationName.displayText():
-                analyzed_results['result_name'] = fileSelectionView.correlationName.placeholderText()
-            else:
-                analyzed_results['result_name'] = fileSelectionView.correlationName.displayText()
-            analyzed_results = {**analyzed_results, **result}
-
-            self._results.append(analyzed_results)
+    # def saveResult(self, result, fileSelectionView=None):
+    #     if fileSelectionView:
+    #         analyzed_results = dict()
+    #
+    #         if not fileSelectionView.correlationName.displayText():
+    #             analyzed_results['result_name'] = fileSelectionView.correlationName.placeholderText()
+    #         else:
+    #             analyzed_results['result_name'] = fileSelectionView.correlationName.displayText()
+    #         analyzed_results = {**analyzed_results, **result}
+    #
+    #         self._results.append(analyzed_results)
 
     def updateDerivedDataModel(self, workflow, **kwargs):
         parentItem = BlueskyItem(workflow.name)
