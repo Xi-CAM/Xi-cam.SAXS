@@ -577,8 +577,8 @@ class SAXSPlugin(GUIPlugin):
 
             if kwargs.get('callback_slot'):
                 callbackSlot = kwargs['callback_slot']
-            else:
-                callbackSlot = self.saveResult
+            # else:
+            #     callbackSlot = self.saveResult
             if kwargs.get('finished_slot'):
                 finishedSlot = kwargs['finished_slot']
             else:
@@ -588,7 +588,7 @@ class SAXSPlugin(GUIPlugin):
             workflow.execute_all(None,
                                  data=data,
                                  labels=labels,
-                                 callback_slot=callbackSlot,
+                                 # callback_slot=callbackSlot,
                                  finished_slot=partial(finishedSlot,
                                                        workflow=workflow))
                                                        # workflow_pickle=workflowPickle))
