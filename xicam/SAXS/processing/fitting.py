@@ -64,6 +64,8 @@ class FitScatteringFactor(ProcessingPlugin):
         self.relaxation_rate.value = fit.relaxation_rate.value
         self.fit_curve.value = fit(self.lag_steps.value)
 
-        one_time_hint = PlotHint(self.lag_steps.value, self.g2.value, name="1-Time")
-        fit_hint = PlotHint(self.lag_steps.value, self.fit_curve.value, name="1-Time Fit")
+        labels = {'left': ['g<sub>2</sub>(&tau;)', 's'],
+                  'bottom': ['&tau;', 's']}
+        one_time_hint = PlotHint(self.lag_steps.value, self.g2.value, name="1-Time", labels=labels, xLog=True)
+        fit_hint = PlotHint(self.lag_steps.value, self.fit_curve.value, name="1-Time Fit", labels=labels, xLog=True)
         self.hints = [CoPlotHint(one_time_hint, fit_hint, name="1-Time")]
