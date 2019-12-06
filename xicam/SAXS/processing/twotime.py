@@ -39,4 +39,7 @@ class TwoTimeCorrelation(ProcessingPlugin):
         self.g2.value = corr.g2
         self.lag_steps.value = corr.lag_steps
 
-        self.hints = [ImageHint(self.g2.value, xlabel="t1", ylabel="t2", name="2-Time")]
+        self.hints = [ImageHint(self.g2.value,
+                                xlabel="&tau;<sub>1</sub>",
+                                ylabel="&tau;<sub>2</sub>",
+                                name="2-Time")]
