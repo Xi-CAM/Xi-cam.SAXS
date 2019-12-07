@@ -130,11 +130,12 @@ class ROIs(SAXSToolbarBase):
         if callable(view):
             view = view()
 
-        view.getView().addItem(roi)
-        self.workflow.insertProcess(self.index, roi.process, autoconnectall=True)
-        # Remove the roi process from the workflow when the roi is removed
-        # TODO -- should this be in BetterROI?
-        roi.sigRemoveRequested.connect(lambda roi: self.workflow.removeProcess(roi.process))
+        if view:
+            view.getView().addItem(roi)
+            self.workflow.insertProcess(self.index, roi.process, autoconnectall=True)
+            # Remove the roi process from the workflow when the roi is removed
+            # TODO -- should this be in BetterROI?
+            roi.sigRemoveRequested.connect(lambda roi: self.workflow.removeProcess(roi.process))
 
     def add_arc(self):
         self.add_roi(ArcROI(center=(0, 0), radius=.25))
