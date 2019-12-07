@@ -457,7 +457,7 @@ class SAXSPlugin(GUIPlugin):
 
         def showReduce(*results):
             # FIXME -- Better way to get the hints from the results
-            parentItem = BlueskyItem("result")
+            parentItem = BlueskyItem("Scattering Reduction")
             for result in results:
                 hints = next(iter(result.items()))[-1].parent.hints
                 for hint in hints:
