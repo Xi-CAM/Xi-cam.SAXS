@@ -1,6 +1,7 @@
 from xicam.plugins import ProcessingPlugin, Input, Output, PlotHint
 import numpy as np
-from pyFAI import AzimuthalIntegrator, units
+from pyFAI import units
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
 class ChiIntegratePlugin(ProcessingPlugin):
@@ -37,7 +38,7 @@ class ChiIntegratePlugin(ProcessingPlugin):
     Ichi = Output(description='Binned/pixel-split integrated intensity',
                   type=np.array)
 
-    hints = [PlotHint(chi, Ichi)]
+    # hints = [PlotHint(chi, Ichi)]
 
     def evaluate(self):
         self.Ichi.value, q, chi = self.ai.value.integrate2d(data=nonesafe_flipud(self.data.value),
@@ -55,6 +56,8 @@ class ChiIntegratePlugin(ProcessingPlugin):
 
         self.Ichi.value = np.sum(self.Ichi.value, axis=1)
         self.chi.value = chi
+
+        self.hints = [PlotHint(self.chi.value, self.Ichi.value, name="Chi Integrate")]
 
 
 def nonesafe_flipud(data: np.ndarray):

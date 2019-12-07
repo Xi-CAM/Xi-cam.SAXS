@@ -1,5 +1,5 @@
 from qtpy.QtGui import *
-from qtpy.QtCore import Signal
+from qtpy.QtCore import Signal, Qt
 from qtpy.QtWidgets import *
 from xicam.gui.static import path
 from pyFAI import detectors
@@ -12,6 +12,7 @@ from .CalibrationPanel import CalibrationPanel
 
 from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree.parameterTypes import GroupParameter, ListParameter, SimpleParameter
+from xicam.SAXS.detectors import FastCCD
 
 
 # https://stackoverflow.com/questions/20866996/how-to-compress-slot-calls-when-using-queued-connection-in-qt
@@ -22,11 +23,12 @@ class DeviceParameter(GroupParameter):
         opts['type'] = 'bool'
         opts['value'] = True
         opts['name'] = device
+        opts['removable'] = True
         ALL_DETECTORS = {(getattr(detector, 'aliases', ) or [detector.__name__])[0]: detector for detector in
                          detectors.ALL_DETECTORS.values()}
         geometrystyle = ListParameter(name='Geometry Style', type='list',
                                       values=['Fit2D', 'pyFAI', 'wxDiff'], value='Fit2D')
-        detector = ListParameter(name='Detector', type='list', values=ALL_DETECTORS, value=ALL_DETECTORS['Pilatus 2M'])
+        detector = ListParameter(name='Detector', type='list', values=ALL_DETECTORS, value=ALL_DETECTORS['Fast CCD'])
         pixelx = SimpleParameter(name='Pixel Size X', type='float', value=172.e-6, siPrefix=True, suffix='m')
         pixely = SimpleParameter(name='Pixel Size Y', type='float', value=172.e-6, siPrefix=True, suffix='m')
         binning = SimpleParameter(name='Binning', type='int', value=1, suffix='x', limits=(1, 100))
@@ -40,12 +42,6 @@ class DeviceParameter(GroupParameter):
         self.children = [geometrystyle, detector, pixelx, pixely, binning, centerx, centery, sdd, tilt, rotation]
         opts['children'] = self.children
         super(DeviceParameter, self).__init__(**opts)
-        #     wavelengthparam = self.param('Wavelength')
-        #     energyparam = self.param('Energy')
-        #     wavelengthparam.sigValueChanged.connect(self.wavelengthChanged)
-        #     energyparam.sigValueChanged.connect(self.energyChanged)
-        #
-        #
 
 
 class DeviceProfiles(ParameterSettingsPlugin):
@@ -163,7 +159,7 @@ class DeviceProfiles(ParameterSettingsPlugin):
                 devicechild = DeviceParameter(device)
                 self.addChild(devicechild)
                 ai = AzimuthalIntegrator(wavelength=self['Wavelength'])
-                ai.detector = detectors.Pilatus2M()
+                ai.detector = FastCCD()
                 self.AIs[device] = ai
                 self.multiAI.ais = list(self.AIs.values())
             finally:
@@ -176,10 +172,18 @@ class DeviceProfiles(ParameterSettingsPlugin):
 
 
     def dataChanged(self, start, end):
-        devices = self.headermodel.item(self.selectionmodel.currentIndex().row()).header.devices()
-        for device in devices:
-            if device not in self.AIs:
-                self.addDevice(device)
+        currentIndex = self.selectionmodel.currentIndex()
+        if currentIndex.isValid():
+            # TODO-- remove hard-coding of stream
+            stream = "primary"
+            item = self.headermodel.item(self.selectionmodel.currentIndex().row())
+            catalog = item.data(Qt.UserRole)  # type: Catalog
+            fields = [technique["data_mapping"]["data_image"][1] for technique in catalog.metadata["techniques"] if
+                      technique["technique"] == "scattering"]
+
+            for field in fields:
+                if field not in self.AIs:
+                    self.addDevice(field)
 
     def wavelengthChanged(self):
         self.param('Energy').setValue(1.239842e-6 / self.param('Wavelength').value(), blockSignal=self.EnergyChanged)
@@ -199,8 +203,9 @@ class DeviceProfiles(ParameterSettingsPlugin):
             for child in self.children()[2:]:
                 child.remove()
             for name, ai in self.AIs.items():
-                self.addDevice(name)
-                self.setAI(ai, name)
+                if name in state[0]['children']:
+                    self.addDevice(name)
+                    self.setAI(ai, name)
 
             self.restoreState(state[0], addChildren=False, removeChildren=False)
         except Exception as ex:

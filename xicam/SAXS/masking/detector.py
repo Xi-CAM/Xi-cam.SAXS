@@ -1,5 +1,5 @@
 from xicam.plugins import ProcessingPlugin, Input, Output, InOut
-from pyFAI import AzimuthalIntegrator
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 import numpy as np
 
 

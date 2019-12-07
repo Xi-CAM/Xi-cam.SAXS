@@ -1,3 +1,4 @@
+from typing import Callable, Union
 from qtpy.QtWidgets import *
 from qtpy.QtCore import *
 from qtpy.QtGui import *
@@ -6,8 +7,10 @@ from xicam.gui.static import path
 from xicam.core.execution.workflow import Workflow
 from xicam.plugins import ProcessingPlugin, Output
 from xicam.gui.widgets.menuview import MenuView
+from xicam.gui.widgets.ROI import ArcROI, LineROI, BetterPolyLineROI, RectROI, SegmentedRectROI
 from xicam.plugins import Hint
 from functools import partial
+import pyqtgraph as pg
 
 
 class SAXSToolbarBase(QToolBar):
@@ -16,8 +19,8 @@ class SAXSToolbarBase(QToolBar):
     sigDoWorkflow = Signal()
     sigDeviceChanged = Signal(str)
 
-    def __init__(self):
-        super(SAXSToolbarBase, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(SAXSToolbarBase, self).__init__(*args)
 
     def mkAction(self, iconpath: str = None, text=None, receiver=None, group=None, checkable=False, checked=False):
         actn = QAction(self)
@@ -46,10 +49,14 @@ class FieldSelector(SAXSToolbarBase):
 
     def updatedetectorcombobox(self, start, end):
         if self.headermodel.rowCount():
-            devices = self.headermodel.item(self.selectionmodel.currentIndex().row()).header.devices()
+            # TODO-- remove hard-coding of stream
+            stream = "primary"
+            item = self.headermodel.item(self.selectionmodel.currentIndex().row())
+            # fields = getattr(item.data(Qt.UserRole), stream).to_dask().keys()
+            catalog = item.data(Qt.UserRole)  # type: Catalog
+            fields = [ technique["data_mapping"]["data_image"][1] for technique in catalog.metadata["techniques"] if technique["technique"] == "scattering" ]
             self.detectorcombobox.clear()
-            self.detectorcombobox.addItems(devices)
-
+            self.detectorcombobox.addItems(fields)
 
 class ModeSelector(SAXSToolbarBase):
     def __init__(self, *args, **kwargs):
@@ -73,6 +80,93 @@ class MultiPlot(SAXSToolbarBase):
         self.multiplot.setCheckable(True)
         self.multiplot.triggered.connect(self.sigDoWorkflow)
         self.addAction(self.multiplot)
+        self.addSeparator()
+
+
+class ROIs(SAXSToolbarBase):
+    def __init__(self, *args, view: Union[Callable, pg.ImageView] = None, workflow=None, index=-1, **kwargs):
+        super(ROIs, self).__init__(*args, **kwargs)
+        self.workflow = workflow
+        self.view = view
+        self.index = index  # Where to insert the ROIs process into the workflow (default append)
+        self._scale_factor = .33
+
+        self.arc_roi = self.mkAction('icons/roi_arc.png', 'Arc ROI', self.add_arc)
+        self.addAction(self.arc_roi)
+        self.horizontal_roi = self.mkAction('icons/roi_horizontal.png', 'Horizontal ROI', self.add_horizontal)
+        self.addAction(self.horizontal_roi)
+        self.line_roi = self.mkAction('icons/roi_line.png', 'Line ROI', self.add_line)
+        self.addAction(self.line_roi)
+        self.polygon_roi = self.mkAction('icons/roi_polygon.png', 'Polygon ROI', self.add_polygon)
+        self.addAction(self.polygon_roi)
+        self.rect_segmented_roi = self.mkAction('icons/roi_rect_segmented.png', 'Segmented Rectangular ROI',
+                                                self.add_rect_segmented)
+        self.addAction(self.rect_segmented_roi)
+        self.rect_roi = self.mkAction('icons/roi_rect.png', 'Rectangular ROI', self.add_rect)
+        self.addAction(self.rect_roi)
+        self.vertical_roi = self.mkAction('icons/roi_vertical.png', 'Vertical ROI', self.add_vertical)
+        self.addAction(self.vertical_roi)
+
+        self.addSeparator()
+
+    # TODO: scale roi's by inspecting self.view
+
+    def _scaled_size(self):
+        image_bound = self.view().imageItem.boundingRect()
+        width = image_bound.width()
+        height = image_bound.height()
+        return width * self._scale_factor, height * self._scale_factor
+
+    def _rect_origin(self):
+        image_bound = self.view().imageItem.boundingRect()
+        width = image_bound.width()
+        height = image_bound.height()
+        origin_x = image_bound.x() + width / 2 - width / 2 * self._scale_factor
+        origin_y = image_bound.y() + height / 2 - height / 2 * self._scale_factor
+        return origin_x, origin_y
+
+    def add_roi(self, roi):
+        view = self.view
+        if callable(view):
+            view = view()
+
+        if view:
+            view.getView().addItem(roi)
+            self.workflow.insertProcess(self.index, roi.process, autoconnectall=True)
+            # Remove the roi process from the workflow when the roi is removed
+            # TODO -- should this be in BetterROI?
+            roi.sigRemoveRequested.connect(lambda roi: self.workflow.removeProcess(roi.process))
+
+    def add_arc(self):
+        self.add_roi(ArcROI(center=(0, 0), radius=.25))
+
+    def add_horizontal(self):
+        ...
+
+    def add_line(self):
+        image_bound = self.view().imageItem.boundingRect()
+        width = image_bound.width()
+        height = image_bound.height()
+        x = image_bound.x() + width / 2 + width / 2 * self._scale_factor
+        y = image_bound.y() + height / 2
+        self.add_roi(LineROI(pos1=(self._rect_origin()[0], y), pos2=(x, y), width=self._scaled_size()[0]))
+
+    def add_polygon(self):
+        rect = QRectF(QPointF(*self._rect_origin()), QSizeF(*self._scaled_size()))
+        points = [(point.x(), point.y()) for point in [rect.bottomLeft(),
+                                                       rect.bottomRight(),
+                                                       rect.topRight(),
+                                                       rect.topLeft()]]
+        self.add_roi(BetterPolyLineROI(points, closed=True))
+
+    def add_rect(self):
+        self.add_roi(RectROI(pos=self._rect_origin(), size=self._scaled_size()))
+
+    def add_rect_segmented(self):
+        self.add_roi(SegmentedRectROI(pos=self._rect_origin(), size=self._scaled_size()))
+
+    def add_vertical(self):
+        ...
 
 
 class SAXSToolbarRaw(FieldSelector):
@@ -83,7 +177,7 @@ class SAXSToolbarMask(FieldSelector):
     pass
 
 
-class SAXSToolbarReduce(MultiPlot, ModeSelector, FieldSelector):
+class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector, FieldSelector):
     def __init__(self, *args, **kwargs):
         super(SAXSToolbarReduce, self).__init__(*args, **kwargs)
 

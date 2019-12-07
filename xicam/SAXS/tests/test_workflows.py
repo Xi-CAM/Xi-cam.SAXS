@@ -1,6 +1,7 @@
 from xicam.SAXS.calibration.workflows import FourierCalibrationWorkflow
 import fabio
-from pyFAI import AzimuthalIntegrator, detectors, calibrant
+from pyFAI import detectors, calibrant
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
 def test_FourierCalibrationWorkflow():

@@ -1,6 +1,6 @@
 from xicam.plugins import ProcessingPlugin, Input, Output, PlotHint
 import numpy as np
-from pyFAI import AzimuthalIntegrator, units
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
 class ZIntegratePlugin(ProcessingPlugin):
@@ -23,7 +23,7 @@ class ZIntegratePlugin(ProcessingPlugin):
     Iz = Output(description='Binned/pixel-split integrated intensity',
                 type=np.array, )  # hints={'plotx': ['qz']})
 
-    hints = [PlotHint(qz, Iz)]
+    # hints = [PlotHint(qz, Iz)]
 
     def evaluate(self):
         if self.dark.value is None: self.dark.value = np.zeros_like(self.data.value)
@@ -36,3 +36,5 @@ class ZIntegratePlugin(ProcessingPlugin):
         self.qz.value = self.ai.value.qFunction(np.arange(0, self.data.value.shape[0]),
                                                 np.array([centerx] * self.data.value.shape[0])) / 10
         self.qz.value[np.arange(0, self.data.value.shape[0]) < centerz] *= -1.
+
+        self.hints = [PlotHint(self.qz.value, self.Iz.value, name="Z Integrate")]

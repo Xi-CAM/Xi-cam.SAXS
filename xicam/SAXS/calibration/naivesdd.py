@@ -1,7 +1,8 @@
 import numpy as np
 from scipy import signal
 from xicam.plugins import ProcessingPlugin, Input, Output, InOut
-from pyFAI import AzimuthalIntegrator, calibrant
+from pyFAI import calibrant
+from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 from scipy import signal
 
 

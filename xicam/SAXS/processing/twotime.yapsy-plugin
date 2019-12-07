@@ -1,0 +1,4 @@
+[Core]
+Name = xicam.XPCS.processing.twotime.TwoTimeCorrelation
+Module = twotime.py
+

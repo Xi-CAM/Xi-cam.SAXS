@@ -1,6 +1,6 @@
 [Core]
-Name = SAXS
-Module = SAXSGUIPlugin.py
+Name = Fourier Correlation
+Module = fourierautocorrelator.py
 
 [Documentation]
 Author = Ronald J. Pandolfi
