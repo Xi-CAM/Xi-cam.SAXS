@@ -2,8 +2,9 @@ import numpy as np
 import skbeam.core.correlation as corr
 from astropy.modeling import Fittable1DModel, Parameter, fitting
 
-from xicam.plugins.hints import PlotHint
+from xicam.plugins.hints import CoPlotHint, PlotHint
 from xicam.plugins.processingplugin import Input, InputOutput, Output, ProcessingPlugin
+
 
 class ScatteringModel(Fittable1DModel):
     inputs = ('lag_steps',)
@@ -63,4 +64,8 @@ class FitScatteringFactor(ProcessingPlugin):
         self.relaxation_rate.value = fit.relaxation_rate.value
         self.fit_curve.value = fit(self.lag_steps.value)
 
-        self.hints = [PlotHint(self.lag_steps, self.fit_curve, name="1-Time Fit")]
+        labels = {'left': ['g<sub>2</sub>(&tau;)', 's'],
+                  'bottom': ['&tau;', 's']}
+        one_time_hint = PlotHint(self.lag_steps.value[1:], self.g2.value[1:], name="1-Time", labels=labels, xLog=True)
+        fit_hint = PlotHint(self.lag_steps.value[1:], self.fit_curve.value[1:], name="1-Time Fit", labels=labels, xLog=True)
+        self.hints = [CoPlotHint(one_time_hint, fit_hint, name="1-Time")]

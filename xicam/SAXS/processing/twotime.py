@@ -29,7 +29,7 @@ class TwoTimeCorrelation(ProcessingPlugin):
     hints = [ImageHint(g2)]
 
     def evaluate(self):
-        # TODO -- if exposing num_frames as an Input, how do we handle a default value?
+        # TODO -- make composite parameter item widget to allow default (all frames) or enter value
         num_frames = len(self.data.value)
         corr = two_time_corr(self.labels.value.astype(np.int),
                              np.asarray(self.data.value),
@@ -39,4 +39,7 @@ class TwoTimeCorrelation(ProcessingPlugin):
         self.g2.value = corr.g2
         self.lag_steps.value = corr.lag_steps
 
-        self.hints = [ImageHint(self.lag_steps, self.g2, name="2-Time")]
+        self.hints = [ImageHint(self.g2.value,
+                                xlabel="&tau;<sub>1</sub>",
+                                ylabel="&tau;<sub>2</sub>",
+                                name="2-Time")]
