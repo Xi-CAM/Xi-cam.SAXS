@@ -91,21 +91,30 @@ class ROIs(SAXSToolbarBase):
         self.index = index  # Where to insert the ROIs process into the workflow (default append)
         self._scale_factor = .33
 
+        self.roi_button = QToolButton()
+        self.roi_button.setText("Create ROI")
+        self.roi_button.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
+        self.roi_button.setPopupMode(QToolButton.InstantPopup)
+        self.roi_menu = QMenu()
+        self.roi_button.setMenu(self.roi_menu)
+
         self.arc_roi = self.mkAction('icons/roi_arc.png', 'Arc ROI', self.add_arc)
-        self.addAction(self.arc_roi)
+        self.roi_menu.addAction(self.arc_roi)
         self.horizontal_roi = self.mkAction('icons/roi_horizontal.png', 'Horizontal ROI', self.add_horizontal)
-        self.addAction(self.horizontal_roi)
+        self.roi_menu.addAction(self.horizontal_roi)
         self.line_roi = self.mkAction('icons/roi_line.png', 'Line ROI', self.add_line)
-        self.addAction(self.line_roi)
+        self.roi_menu.addAction(self.line_roi)
         self.polygon_roi = self.mkAction('icons/roi_polygon.png', 'Polygon ROI', self.add_polygon)
-        self.addAction(self.polygon_roi)
+        self.roi_menu.addAction(self.polygon_roi)
         self.rect_segmented_roi = self.mkAction('icons/roi_rect_segmented.png', 'Segmented Rectangular ROI',
                                                 self.add_rect_segmented)
-        self.addAction(self.rect_segmented_roi)
+        self.roi_menu.addAction(self.rect_segmented_roi)
         self.rect_roi = self.mkAction('icons/roi_rect.png', 'Rectangular ROI', self.add_rect)
-        self.addAction(self.rect_roi)
+        self.roi_menu.addAction(self.rect_roi)
         self.vertical_roi = self.mkAction('icons/roi_vertical.png', 'Vertical ROI', self.add_vertical)
-        self.addAction(self.vertical_roi)
+        self.roi_menu.addAction(self.vertical_roi)
+
+        self.addWidget(self.roi_button)
 
         self.addSeparator()
 
