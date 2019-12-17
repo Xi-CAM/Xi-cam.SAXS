@@ -8,8 +8,8 @@ class Button(SAXSToolbarBase):
         super(Button, self).__init__(*args, **kwargs)
         action = self.mkAction(button_icon_path, button_text, receiver, **kwargs)
         self.addAction(action)
-        # if button_text:
-        #     self.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        if button_text:
+            self.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
 
 class ProcessButton(Button):
