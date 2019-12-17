@@ -1,4 +1,5 @@
 from warnings import warn
+from typing import Callable
 
 import numpy as np
 from qtpy.QtCore import *
@@ -9,7 +10,7 @@ import cloudpickle as pickle
 
 from databroker.core import BlueskyRun
 from pyqtgraph.parametertree import Parameter, ParameterTree
-from pyqtgraph.parametertree.parameterTypes import ListParameter
+from pyqtgraph.parametertree.parameterTypes import ActionParameter, ListParameter
 
 from xarray import DataArray
 
@@ -52,8 +53,8 @@ class XPCSViewerPlugin(PolygonROI, SAXSViewerPluginBase):
 
 
 class XPCSProcessor(ParameterTree):
-    def __init__(self, *args, **kwargs):
-        super(XPCSProcessor, self).__init__()
+    def __init__(self, *args, processor:Callable[[], None] = None, **kwargs):
+        super(XPCSProcessor, self).__init__(*args, **kwargs)
         self._paramName = 'Algorithm'
         self._name = 'XPCS Processor'
         self.workflow = None
@@ -64,11 +65,18 @@ class XPCSProcessor(ParameterTree):
                                            values={'':''},
                                            value='')
 
-        self.param = Parameter(children=[self.listParameter], name=self._name)
+        self.param = Parameter(name=self._name)
+        self.param.addChild(self.listParameter)
         self.setParameters(self.param, showTop=False)
 
+        if processor:
+            # Button added separately since update removes then adds all children in self.param
+            self.processButton = ActionParameter(name="Run")
+            self.processButton.sigActivated.connect(processor)
+            self.addParameters(self.processButton)
+
     def update(self, *_):
-        for child in self.param.childs[1:]:
+        for child in self.param.children():
             child.remove()
 
         self.workflow = self._workflows.get(self.listParameter.value().name, self.listParameter.value()())
@@ -79,7 +87,7 @@ class XPCSProcessor(ParameterTree):
 
 class OneTimeProcessor(XPCSProcessor):
     def __init__(self, *args, **kwargs):
-        super(OneTimeProcessor, self).__init__()
+        super(OneTimeProcessor, self).__init__(*args, **kwargs)
         self._name = '1-Time Processor'
         self.listParameter.setLimits(OneTimeAlgorithms.algorithms())
         self.listParameter.setValue(OneTimeAlgorithms.algorithms()[OneTimeAlgorithms.default()])
@@ -90,7 +98,7 @@ class OneTimeProcessor(XPCSProcessor):
 
 class TwoTimeProcessor(XPCSProcessor):
     def __init__(self, *args, **kwargs):
-        super(TwoTimeProcessor, self).__init__()
+        super(TwoTimeProcessor, self).__init__(*args, **kwargs)
         self._name = '2-Time Processor'
         self.listParameter.setLimits(TwoTimeAlgorithms.algorithms())
         self.listParameter.setValue(TwoTimeAlgorithms.algorithms()[TwoTimeAlgorithms.default()])
@@ -192,16 +200,14 @@ class SAXSPlugin(GUIPlugin):
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
                                        selectionmodel=self.selectionmodel,
                                        stream='primary', field=field)
-        self.twoTimeProcessor = TwoTimeProcessor()
+        self.twoTimeProcessor = TwoTimeProcessor(processor=self.processTwoTime)
         self.twoTimeToolBar = XPCSToolBar(view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
-                                          index=0,
-                                          button_receiver=self.processTwoTime)
-        self.oneTimeProcessor = OneTimeProcessor()
+                                          index=0)
+        self.oneTimeProcessor = OneTimeProcessor(processor=self.processOneTime)
         self.oneTimeToolBar = XPCSToolBar(view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
-                                          index=0,
-                                          button_receiver=self.processOneTime)
+                                          index=0)
         # self.oneTimeToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
         # self.tabviewsynchronizer = TabViewSynchronizer(

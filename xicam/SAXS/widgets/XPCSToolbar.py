@@ -22,5 +22,5 @@ class ProcessButton(Button):
                                             **kwargs)
 
 
-class XPCSToolBar(ROIs, ProcessButton):
+class XPCSToolBar(ROIs):
     pass
