@@ -43,7 +43,9 @@ class FieldSelector(SAXSToolbarBase):
 
         super(FieldSelector, self).__init__()
 
+        self.addWidget(QLabel("Field: "))
         self.detectorcombobox = QComboBox()
+        self.detectorcombobox.setSizeAdjustPolicy(QComboBox.AdjustToContents)
         self.addWidget(self.detectorcombobox)
         self.addSeparator()
         self.detectorcombobox.currentTextChanged.connect(self.sigDeviceChanged)

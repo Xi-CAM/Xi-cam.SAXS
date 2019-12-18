@@ -1,5 +1,5 @@
 from qtpy.QtCore import Qt
-from .SAXSToolbar import SAXSToolbarBase, ROIs
+from .SAXSToolbar import FieldSelector, ROIs, SAXSToolbarBase
 
 
 # TODO -- move these to more reusable area
@@ -22,5 +22,5 @@ class ProcessButton(Button):
                                             **kwargs)
 
 
-class XPCSToolBar(ROIs):
+class XPCSToolBar(ROIs, FieldSelector):
     pass

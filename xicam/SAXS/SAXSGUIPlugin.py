@@ -201,11 +201,15 @@ class SAXSPlugin(GUIPlugin):
                                        selectionmodel=self.selectionmodel,
                                        stream='primary', field=field)
         self.twoTimeProcessor = TwoTimeProcessor(processor=self.processTwoTime)
-        self.twoTimeToolBar = XPCSToolBar(view=self.correlationView.currentWidget,
+        self.twoTimeToolBar = XPCSToolBar(headermodel=self.catalogModel,
+                                          selectionmodel=self.selectionmodel,
+                                          view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0)
         self.oneTimeProcessor = OneTimeProcessor(processor=self.processOneTime)
-        self.oneTimeToolBar = XPCSToolBar(view=self.correlationView.currentWidget,
+        self.oneTimeToolBar = XPCSToolBar(headermodel=self.catalogModel,
+                                          selectionmodel=self.selectionmodel,
+                                          view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0)
         # self.oneTimeToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
