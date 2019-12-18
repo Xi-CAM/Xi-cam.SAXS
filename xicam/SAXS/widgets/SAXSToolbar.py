@@ -102,8 +102,8 @@ class ROIs(SAXSToolbarBase):
 
         self.arc_roi = self.mkAction('icons/roi_arc.png', 'Arc ROI', self.add_arc)
         self.roi_menu.addAction(self.arc_roi)
-        self.horizontal_roi = self.mkAction('icons/roi_horizontal.png', 'Horizontal ROI', self.add_horizontal)
-        self.roi_menu.addAction(self.horizontal_roi)
+        # self.horizontal_roi = self.mkAction('icons/roi_horizontal.png', 'Horizontal ROI', self.add_horizontal)
+        # self.roi_menu.addAction(self.horizontal_roi)
         self.line_roi = self.mkAction('icons/roi_line.png', 'Line ROI', self.add_line)
         self.roi_menu.addAction(self.line_roi)
         self.polygon_roi = self.mkAction('icons/roi_polygon.png', 'Polygon ROI', self.add_polygon)
@@ -113,8 +113,8 @@ class ROIs(SAXSToolbarBase):
         self.roi_menu.addAction(self.rect_segmented_roi)
         self.rect_roi = self.mkAction('icons/roi_rect.png', 'Rectangular ROI', self.add_rect)
         self.roi_menu.addAction(self.rect_roi)
-        self.vertical_roi = self.mkAction('icons/roi_vertical.png', 'Vertical ROI', self.add_vertical)
-        self.roi_menu.addAction(self.vertical_roi)
+        # self.vertical_roi = self.mkAction('icons/roi_vertical.png', 'Vertical ROI', self.add_vertical)
+        # self.roi_menu.addAction(self.vertical_roi)
 
         self.addWidget(self.roi_button)
 
