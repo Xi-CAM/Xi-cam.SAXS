@@ -9,6 +9,7 @@ from xicam.plugins import ProcessingPlugin, Output
 from xicam.gui.widgets.menuview import MenuView
 from xicam.gui.widgets.ROI import ArcROI, LineROI, BetterPolyLineROI, RectROI, SegmentedRectROI
 from xicam.plugins import Hint
+from xicam.core import msg
 from functools import partial
 import pyqtgraph as pg
 
@@ -97,6 +98,7 @@ class ROIs(SAXSToolbarBase):
         self.roi_button.setPopupMode(QToolButton.InstantPopup)
         self.roi_menu = QMenu()
         self.roi_button.setMenu(self.roi_menu)
+        # TODO -- disable button until we have loaded data
 
         self.arc_roi = self.mkAction('icons/roi_arc.png', 'Arc ROI', self.add_arc)
         self.roi_menu.addAction(self.arc_roi)
@@ -120,31 +122,42 @@ class ROIs(SAXSToolbarBase):
 
     # TODO: scale roi's by inspecting self.view
 
-    def _scaled_size(self):
-        image_bound = self.view().imageItem.boundingRect()
-        width = image_bound.width()
-        height = image_bound.height()
-        return width * self._scale_factor, height * self._scale_factor
-
-    def _rect_origin(self):
-        image_bound = self.view().imageItem.boundingRect()
-        width = image_bound.width()
-        height = image_bound.height()
-        origin_x = image_bound.x() + width / 2 - width / 2 * self._scale_factor
-        origin_y = image_bound.y() + height / 2 - height / 2 * self._scale_factor
-        return origin_x, origin_y
-
-    def add_roi(self, roi):
+    def _get_view(self):
         view = self.view
         if callable(view):
             view = view()
+        return view
 
+    def _scaled_size(self):
+        view = self._get_view()
+        if view:
+            image_bound = view.imageItem.boundingRect()
+            width = image_bound.width()
+            height = image_bound.height()
+            return width * self._scale_factor, height * self._scale_factor
+        return -1, -1
+
+    def _rect_origin(self):
+        view = self._get_view()
+        if view:
+            image_bound = view.imageItem.boundingRect()
+            width = image_bound.width()
+            height = image_bound.height()
+            origin_x = image_bound.x() + width / 2 - width / 2 * self._scale_factor
+            origin_y = image_bound.y() + height / 2 - height / 2 * self._scale_factor
+            return origin_x, origin_y
+        return -1, -1
+
+    def add_roi(self, roi):
+        view = self._get_view()
         if view:
             view.getView().addItem(roi)
             self.workflow.insertProcess(self.index, roi.process, autoconnectall=True)
             # Remove the roi process from the workflow when the roi is removed
             # TODO -- should this be in BetterROI?
             roi.sigRemoveRequested.connect(lambda roi: self.workflow.removeProcess(roi.process))
+        else:
+            msg.notifyMessage("Please open an image before creating an ROI.", level=msg.WARNING)
 
     def add_arc(self):
         self.add_roi(ArcROI(center=(0, 0), radius=.25))
