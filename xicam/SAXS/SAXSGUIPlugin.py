@@ -550,8 +550,8 @@ class SAXSPlugin(GUIPlugin):
 
     def process(self, processor: XPCSProcessor, widget, **kwargs):
         if processor:
-            roiFuture = self.roiworkflow.execute(data=self.reducetabview.currentWidget().image[0],
-                                                 image=self.reducetabview.currentWidget().imageItem) # Pass in single frame for data shape
+            roiFuture = self.roiworkflow.execute(data=self.correlationView.currentWidget().image[0],
+                                                 image=self.correlationView.currentWidget().imageItem) # Pass in single frame for data shape
             roiResult = roiFuture.result()
             label = roiResult[-1]["roi"].value
             if label is None:
@@ -562,11 +562,9 @@ class SAXSPlugin(GUIPlugin):
             # FIXME -- hardcoded stream and field
             stream = "primary"
             field = "fccd_image"
-            # TODO: why do we need to invert the y axis of the label array?
-            label_invert_y = label[::-1, ::]
             # TODO: the compute() takes a long time..., do we need to do this here? If so, show a progress bar...
             data = [getattr(self.currentCatalog(), stream).to_dask()[field][0].where(
-                DataArray(label_invert_y, dims=["dim_1", "dim_2"]), drop=True).compute()]
+                DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
             label = label.compress(np.any(label, axis=0), axis=1).compress(np.any(label, axis=1), axis=0)
             labels = [label] * len(data)  # TODO: update for multiple ROIs
             numLevels = [1] * len(data)
