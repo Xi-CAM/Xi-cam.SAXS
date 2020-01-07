@@ -15,11 +15,11 @@ class TwoTimeCorrelation(ProcessingPlugin):
                  visible=False)
     num_bufs = Input(description='maximum lag step to compute in each generation of downsampling (must be even)',
                      type=int,
-                     default=1000)
+                     default=16)
     num_levels = Input(description=('how many generations of downsampling to perform, '
                                     'i.e., the depth of the binomial tree of averaged frames default is one'),
                        type=int,
-                       default=1)
+                       default=8)
 
     g2 = Output(description='the normalized correlation shape is (num_rois, len(lag_steps), len(lag_steps))',
                 type=np.ndarray)

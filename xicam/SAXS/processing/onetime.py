@@ -16,14 +16,14 @@ class OneTimeCorrelation(ProcessingPlugin):
                    visible=False)
     num_bufs = Input(description='must be even maximum lag step to compute in each generation of downsampling',
                      type=int,
-                     default=1000,
+                     default=16,
                      name='number of buffers')
     # Set to num_levels to 1 if multi-tau correlation isn't desired,
     # then set num_bufs to number of images you wish to correlate
     num_levels = Input(description='''How many generations of downsampling to perform, i.e., the depth of
         the binomial tree of averaged frames''',
                        type=int,
-                       default=1,
+                       default=8,
                        name='number of levels')
     g2 = Output(name='norm-0-g2',
                 description='the normalized correlation shape is (len(lag_steps), num_rois)',
