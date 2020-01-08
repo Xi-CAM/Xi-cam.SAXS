@@ -266,7 +266,7 @@ class HintTabView(QAbstractItemView):
                 return self._tabWidget.widget(i)
         raise IndexError
 
-    def dataChanged(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles):
+    def dataChanged(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles=None):
         """
         Re-implements the QAbstractItemView.dataChanged() slot.
 
@@ -283,8 +283,11 @@ class HintTabView(QAbstractItemView):
             List of roles attached to the data state change.
 
         """
+        if roles is None:
+            roles = []
         if self.model():
-            if Qt.CheckStateRole in roles:
+            # empty list indicates ALL roles have changed (see documentation)
+            if Qt.CheckStateRole in roles or len(roles) == 0:
                 hint = topLeft.data(Qt.UserRole)
                 if hint:
                     if topLeft.data(Qt.CheckStateRole) == Qt.Checked:
@@ -296,30 +299,32 @@ class HintTabView(QAbstractItemView):
                         hint.visualize(canvas)
                     else:
                         hint.remove()
+            super(HintTabView, self).dataChanged(topLeft, bottomRight, roles)
 
     def horizontalOffset(self):
-        pass
+        return 0
 
     def indexAt(self, point: QPoint):
-        pass
+        return QModelIndex()
 
     def moveCursor(self, QAbstractItemView_CursorAction, Union, Qt_KeyboardModifiers=None, Qt_KeyboardModifier=None):
         return QModelIndex()
 
     def rowsInserted(self, index: QModelIndex, start, end):
-        pass
+        return
 
     def rowsAboutToBeRemoved(self, index: QModelIndex, start, end):
-        pass
+        return
 
     def scrollTo(self, QModelIndex, hint=None):
-        pass
+        return
 
     def verticalOffset(self):
-        pass
+        return 0
 
     def visualRect(self, QModelIndex):
-        pass
+        from qtpy.QtCore import QRect
+        return QRect()
 
 
 class DerivedDataTreeView(QTreeView):
