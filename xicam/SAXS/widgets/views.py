@@ -292,7 +292,7 @@ class HintTabView(QAbstractItemView):
                 if hint:
                     if topLeft.data(Qt.CheckStateRole) == Qt.Checked:
                         if hint.name not in [self._tabWidget.tabText(index) for index in range(self._tabWidget.count())]:
-                            canvas = hint.init_canvas()
+                            canvas = hint.init_canvas(addLegend=True)
                             self._tabWidget.addTab(canvas, hint.name)
                         else:
                             canvas = self._findTab(hint.name)
@@ -450,12 +450,12 @@ if __name__ == "__main__":
     layout = QVBoxLayout()
     model = DerivedDataModel()
 
-    from xicam.plugins.hints import PlotHint, ImageHint
+    from xicam.plugins.hints import PlotHint, ImageHint, CoPlotHint
     parentItem = QStandardItem("blah")
     parentItem.setCheckable(True)
     import numpy as np
     for i in range(3):
-        hint = PlotHint(np.arange(10), np.random.random((10,)), name="1-Time")
+        hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"1-Time {i}")
         item = QStandardItem(hint.name)
         item.setData(hint, Qt.UserRole)
         item.setCheckable(True)
@@ -466,6 +466,19 @@ if __name__ == "__main__":
     item.setCheckable(True)
     parentItem.appendRow(item)
     model.appendRow(parentItem)
+
+    workflowItem = QStandardItem("A Workflow Result")
+    workflowItem.setCheckable(True)
+    hints = []
+    for i in range(4):
+        hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"plot{i}")
+        hints.append(hint)
+    coplothint = CoPlotHint(*hints, name="COPLOT")
+    coPlotItem = QStandardItem(coplothint.name)
+    coPlotItem.setCheckable(True)
+    coPlotItem.setData(coplothint, Qt.UserRole)
+    workflowItem.appendRow(coPlotItem)
+    model.appendRow(workflowItem)
 
     lview = DerivedDataTreeView()
     lview.setModel(model)
