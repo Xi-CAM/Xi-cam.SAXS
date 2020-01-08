@@ -40,20 +40,10 @@ class CSXCorrectImage(ProcessingPlugin):
 
     def evaluate(self):
         raws = self.raw_images.value.astype(np.uint16)
-        reduced_dark_image = stackmean(raws)
-
+        reduced_dark_image = stackmean(raws)  # Should this averaging be its own plugin / operation?
         self.corrected_images.value = correct_images(images=raws,
                                                      dark=reduced_dark_image.astype(np.float32),
                                                      flat=self.flat_field.value.astype(np.float32))
-
-
-# THis should be its own plugin
-def _reduce_dark_images(dark_images):
-    r = np.array(dark_images[0])
-    for frame in dark_images[1:]:
-        r += frame
-    r /= len(dark_images)
-    return r
 
 
 if __name__ == "__main__":
@@ -67,8 +57,8 @@ if __name__ == "__main__":
     dark_image2 = np.zeros(shape=shape)
     dark_image2[:, 3] = 1
     dark_images = np.array([dark_image1, dark_image2], dtype=dtype)
-    rr = _reduce_dark_images(dark_images)
-    print(type(stackmean(dark_images)))
+    rr = stackmean(dark_images)
+    print(type(rr))
     print(f"low:\n{low}")
     print()
     print(f"high:\n{high}")
