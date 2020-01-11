@@ -1,5 +1,5 @@
 from qtpy.QtCore import Qt
-from .SAXSToolbar import SAXSToolbarBase, ROIs
+from .SAXSToolbar import FieldSelector, ROIs, SAXSToolbarBase
 
 
 # TODO -- move these to more reusable area
@@ -8,8 +8,8 @@ class Button(SAXSToolbarBase):
         super(Button, self).__init__(*args, **kwargs)
         action = self.mkAction(button_icon_path, button_text, receiver, **kwargs)
         self.addAction(action)
-        # if button_text:
-        #     self.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
+        if button_text:
+            self.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
 
 
 class ProcessButton(Button):
@@ -22,5 +22,5 @@ class ProcessButton(Button):
                                             **kwargs)
 
 
-class XPCSToolBar(ROIs, ProcessButton):
+class XPCSToolBar(ROIs, FieldSelector):
     pass

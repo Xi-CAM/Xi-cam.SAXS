@@ -29,21 +29,28 @@ class CSXCorrectImage(ProcessingPlugin):
         Array of corrected images of shape (N, y, x)
 """
     # Images are expected to be of type np.uint16 (csxtools.utils.py:94)
-    raw_images = Input(description="", type=np.ndarray, visible=False)
+    bitmasked_images = Input(description="", type=np.ndarray, visible=False)
     # Darks are expected to be of type np.float32 (csxtools.fastccd.images.py:43)
     dark_images = Input(description="", type=np.ndarray, visible=False)
     # Flats are expected to be of type np.float32 (csxtools.fastccd.images.py:47)
     flat_field = Input(description="", type=np.ndarray, default=None, visible=False)
-    gain = Input(description="", type=tuple, visible=True)
+    gain = Input(description="", type=tuple, visible=False)
 
     corrected_images = Output(description="", type=np.ndarray)
 
     def evaluate(self):
-        raws = self.raw_images.value.astype(np.uint16)
-        reduced_dark_image = stackmean(raws)  # Should this averaging be its own plugin / operation?
-        self.corrected_images.value = correct_images(images=raws,
-                                                     dark=reduced_dark_image.astype(np.float32),
-                                                     flat=self.flat_field.value.astype(np.float32))
+        data = np.asarray(self.bitmasked_images.value.astype(np.uint16))
+        reduced_dark_image = self.dark_images.value
+        darks = None
+        if reduced_dark_image is not None:
+            reduced_dark_image = stackmean(np.asarray(self.dark_images.value, dtype=np.float32))
+            darks = np.array([reduced_dark_image,
+                              np.zeros(shape=reduced_dark_image.shape),
+                              np.zeros(shape=reduced_dark_image.shape)],
+                             dtype=np.float32)
+        self.corrected_images.value = correct_images(data,
+                                                     dark=darks)
+                                                     # flat=self.flat_field.value.astype(np.float32))
 
 
 if __name__ == "__main__":

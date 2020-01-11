@@ -1,6 +1,7 @@
 import numpy as np
 import skbeam.core.correlation as corr
 from astropy.modeling import Fittable1DModel, Parameter, fitting
+from qtpy.QtCore import Qt
 
 from xicam.plugins.hints import CoPlotHint, PlotHint
 from xicam.plugins.processingplugin import Input, InputOutput, Output, ProcessingPlugin
@@ -66,6 +67,6 @@ class FitScatteringFactor(ProcessingPlugin):
 
         labels = {'left': ['g<sub>2</sub>(&tau;)', 's'],
                   'bottom': ['&tau;', 's']}
-        one_time_hint = PlotHint(self.lag_steps.value[1:], self.g2.value[1:], name="1-Time", labels=labels, xLog=True)
-        fit_hint = PlotHint(self.lag_steps.value[1:], self.fit_curve.value[1:], name="1-Time Fit", labels=labels, xLog=True)
+        one_time_hint = PlotHint(self.lag_steps.value[1:], self.g2.value[1:], name="1-Time", labels=labels, xLog=True, style=Qt.SolidLine)
+        fit_hint = PlotHint(self.lag_steps.value[1:], self.fit_curve.value[1:], name="1-Time Fit", labels=labels, xLog=True, style=Qt.DashLine)
         self.hints = [CoPlotHint(one_time_hint, fit_hint, name="1-Time")]
