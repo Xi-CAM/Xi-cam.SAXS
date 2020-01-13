@@ -76,7 +76,8 @@ class XPCSProcessor(ParameterTree):
             self.addParameters(self.processButton)
 
     def update(self, *_):
-        for child in self.param.children():
+        for child in self.param.childs[1:]:
+        # for child in self.param.children():
             child.remove()
 
         self.workflow = self._workflows.get(self.listParameter.value().name, self.listParameter.value()())
@@ -328,6 +329,10 @@ class SAXSPlugin(GUIPlugin):
                         "data_image": [
                             "primary",
                             "fccd_image"
+                        ],
+                        "dark_image": [
+                            "dark",
+                            "fccd_image"
                         ]
                     },
                     "version": 0
@@ -338,7 +343,6 @@ class SAXSPlugin(GUIPlugin):
 
 
     def appendCatalog(self, catalog: BlueskyRun, **kwargs):
-        schema = self.schema()
         catalog.metadata.update(self.schema())
 
         displayName = ""
@@ -569,12 +573,23 @@ class SAXSPlugin(GUIPlugin):
                 return
 
             workflow = processor.workflow
-            # FIXME -- hardcoded stream and field
-            stream = "primary"
-            field = "fccd_image"
+            # FIXME -- don't grab first match
+            technique = [technique for technique in self.schema()['techniques'] if technique['technique'] == 'scattering'][0]
+            stream, field = technique['data_mapping']['data_image']
             # TODO: the compute() takes a long time..., do we need to do this here? If so, show a progress bar...
-            data = [getattr(self.currentCatalog(), stream).to_dask()[field][0].where(
+            # Trim the data frames
+            catalog = self.currentCatalog()
+            data = [getattr(catalog, stream).to_dask()[field][0].where(
                 DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
+            # Trim the dark images
+            darks = [None] * len(data)
+            dark_stream, dark_field = technique['data_mapping']['dark_image']
+            if stream in catalog:
+            # if hasattr(catalog, darkStream):  # causes getattr inf recursion
+                darks = [getattr(catalog, dark_stream).to_dask()[dark_field][0].where(
+                    DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
+            else:
+                msg.notifyMessage(f"No dark stream named \"{dark_stream}\" for current catalog. No dark correction.")
             label = label.compress(np.any(label, axis=0), axis=1).compress(np.any(label, axis=1), axis=0)
             labels = [label] * len(data)  # TODO: update for multiple ROIs
             numLevels = [1] * len(data)
@@ -598,7 +613,8 @@ class SAXSPlugin(GUIPlugin):
 
             # workflowPickle = pickle.dumps(workflow)
             workflow.execute_all(None,
-                                 data=data,
+                                 bitmasked_images=data,
+                                 dark_images=darks,
                                  labels=labels,
                                  # callback_slot=callbackSlot,
                                  finished_slot=partial(finishedSlot,
