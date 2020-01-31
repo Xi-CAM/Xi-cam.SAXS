@@ -564,8 +564,10 @@ class SAXSPlugin(GUIPlugin):
 
     def process(self, processor: XPCSProcessor, widget, **kwargs):
         if processor:
+            print(f"\n\n***1***\n\n")
             roiFuture = self.roiworkflow.execute(data=self.correlationView.currentWidget().image[0],
                                                  image=self.correlationView.currentWidget().imageItem) # Pass in single frame for data shape
+            print(f"\n\n***2***\n\n")
             roiResult = roiFuture.result()
             label = roiResult[-1]["roi"].value
             if label is None:
@@ -582,25 +584,25 @@ class SAXSPlugin(GUIPlugin):
             data = [getattr(catalog, stream).to_dask()[field][0].where(
                 DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
             # Trim the dark images
-            darks = [None] * len(data)
-            dark_stream, dark_field = technique['data_mapping']['dark_image']
-            if stream in catalog:
-            # if hasattr(catalog, darkStream):  # causes getattr inf recursion
-                darks = [getattr(catalog, dark_stream).to_dask()[dark_field][0].where(
-                    DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
-            else:
-                msg.notifyMessage(f"No dark stream named \"{dark_stream}\" for current catalog. No dark correction.")
+            # darks = [None] * len(data)
+            # dark_stream, dark_field = technique['data_mapping']['dark_image']
+            # if stream in catalog:
+            # # if hasattr(catalog, darkStream):  # causes getattr inf recursion
+            #     darks = [getattr(catalog, dark_stream).to_dask()[dark_field][0].where(
+            #         DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
+            # else:
+            #     msg.notifyMessage(f"No dark stream named \"{dark_stream}\" for current catalog. No dark correction.")
             label = label.compress(np.any(label, axis=0), axis=1).compress(np.any(label, axis=1), axis=0)
             labels = [label] * len(data)  # TODO: update for multiple ROIs
-            numLevels = [1] * len(data)
-
-            numBufs = []
-            for i in range(len(data)):
-                shape = data[i].shape[0]
-                # multi_tau_corr requires num_bufs to be even
-                if shape % 2:
-                    shape += 1
-                numBufs.append(shape)
+            # numLevels = [1] * len(data)
+            #
+            # numBufs = []
+            # for i in range(len(data)):
+            #     shape = data[i].shape[0]
+            #     # multi_tau_corr requires num_bufs to be even
+            #     if shape % 2:
+            #         shape += 1
+            #     numBufs.append(shape)
 
             if kwargs.get('callback_slot'):
                 callbackSlot = kwargs['callback_slot']
@@ -613,8 +615,7 @@ class SAXSPlugin(GUIPlugin):
 
             # workflowPickle = pickle.dumps(workflow)
             workflow.execute_all(None,
-                                 bitmasked_images=data,
-                                 dark_images=darks,
+                                 data=data,
                                  labels=labels,
                                  # callback_slot=callbackSlot,
                                  finished_slot=partial(finishedSlot,
