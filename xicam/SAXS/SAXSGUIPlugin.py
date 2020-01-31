@@ -319,7 +319,7 @@ class SAXSPlugin(GUIPlugin):
                     "technique": "scattering",
                     "configuration": {
                         "geometry": "transmission",
-                        "detector_model": "fastccd",
+                        "detector_model": "lambda",
                     },
                     "data_mapping": {
                         # "incoming_energy": [
@@ -328,11 +328,11 @@ class SAXSPlugin(GUIPlugin):
                         # ]
                         "data_image": [
                             "primary",
-                            "fccd_image"
+                            "TODO" # TODO
                         ],
                         "dark_image": [
                             "dark",
-                            "fccd_image"
+                            "TODO" # TODO
                         ]
                     },
                     "version": 0
