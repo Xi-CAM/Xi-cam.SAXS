@@ -33,3 +33,4 @@ class LAMBDA(detectors.Detector):
 
 if __name__ == '__main__':
     assert detectors.ALL_DETECTORS['fastccd']
+    assert detectors.ALL_DETECTORS['lambda']
