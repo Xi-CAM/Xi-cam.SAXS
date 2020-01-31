@@ -564,10 +564,8 @@ class SAXSPlugin(GUIPlugin):
 
     def process(self, processor: XPCSProcessor, widget, **kwargs):
         if processor:
-            print(f"\n\n***1***\n\n")
             roiFuture = self.roiworkflow.execute(data=self.correlationView.currentWidget().image[0],
                                                  image=self.correlationView.currentWidget().imageItem) # Pass in single frame for data shape
-            print(f"\n\n***2***\n\n")
             roiResult = roiFuture.result()
             label = roiResult[-1]["roi"].value
             if label is None:
