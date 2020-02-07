@@ -28,15 +28,36 @@ from .workflows.roi import ROIWorkflow
 from .workflows.xpcs import FourierAutocorrelator, OneTime, TwoTime
 
 
-class XPCSProcessor(ParameterTree):
+class CorrelationParameterTree(ParameterTree):
+    """Parameter tree that captures XPCS correlation adjustable parameters.
+
+    Starting point to attempt to allow selecting an 'algorithm'
+    and then repopulating the parameter tree accordingly.
+    Any visible input parameters in the associated workflow will be adjustable here.
+    The workflow can also be run here.
+    """
     def __init__(self, *args, processor:Callable[[], None] = None, **kwargs):
-        super(XPCSProcessor, self).__init__(*args, **kwargs)
+        """Create the parameter tree, optionally providing a callable processing function.
+
+        Parameters
+        ----------
+        args
+            See pyqtgraph.ParameterTree constructor args.
+        processor
+            If provided, creates a 'Run' button that is connected to the callable passed (default is None).
+        kwargs
+            See pyqtgraph.ParameterTree constructor kwargs.
+        """
+        super(CorrelationParameterTree, self).__init__(*args, **kwargs)
         self._paramName = 'Algorithm'
-        self._name = 'XPCS Processor'
+        self._name = 'Correlation Processor'
         self.workflow = None
         self.param = None
         self._workflows = dict()
 
+        # List of algorithms available
+        # key   -> algorithm name (workflow.name)
+        # value -> algorithm callable (workflow)
         self.listParameter = ListParameter(name=self._paramName,
                                            values={'':''},
                                            value='')
@@ -52,19 +73,22 @@ class XPCSProcessor(ParameterTree):
             self.addParameters(self.processButton)
 
     def update(self, *_):
+        """Update the parameter tree according to which algorithm (workflow) is selected."""
+        # for child in self.param.children():  # this doesn't seem to work...
         for child in self.param.childs[1:]:
-        # for child in self.param.children():
             child.remove()
 
+        # Based on current workflow (listParameter value), re-populate the tree.
         self.workflow = self._workflows.get(self.listParameter.value().name, self.listParameter.value()())
         self._workflows[self.workflow.name] = self.workflow
         for process in self.workflow.processes:
             self.param.addChild(process.parameter)
 
 
-class OneTimeProcessor(XPCSProcessor):
+class OneTimeParameterTree(CorrelationParameterTree):
+    """Defines a parameter tree for 1-time correlation."""
     def __init__(self, *args, **kwargs):
-        super(OneTimeProcessor, self).__init__(*args, **kwargs)
+        super(OneTimeParameterTree, self).__init__(*args, **kwargs)
         self._name = '1-Time Processor'
         self.listParameter.setLimits(OneTimeAlgorithms.algorithms())
         self.listParameter.setValue(OneTimeAlgorithms.algorithms()[OneTimeAlgorithms.default()])
@@ -73,9 +97,10 @@ class OneTimeProcessor(XPCSProcessor):
         self.listParameter.sigValueChanged.connect(self.update)
 
 
-class TwoTimeProcessor(XPCSProcessor):
+class TwoTimeParameterTree(CorrelationParameterTree):
+    """Defines a parameter tree for 2-time correlation."""
     def __init__(self, *args, **kwargs):
-        super(TwoTimeProcessor, self).__init__(*args, **kwargs)
+        super(TwoTimeParameterTree, self).__init__(*args, **kwargs)
         self._name = '2-Time Processor'
         self.listParameter.setLimits(TwoTimeAlgorithms.algorithms())
         self.listParameter.setValue(TwoTimeAlgorithms.algorithms()[TwoTimeAlgorithms.default()])
@@ -85,38 +110,46 @@ class TwoTimeProcessor(XPCSProcessor):
 
 
 class ProcessingAlgorithms:
-    """
-    Convenience class to get the available algorithms that can be used for
-    one-time and two-time correlations.
-    """
+    """Convenience class to get the available algorithms that can be used for 1-time and 2-time correlations."""
     @staticmethod
     def algorithms():
+        """Returns the available 1-time algorithms and 2-time algorithms."""
         return {
             TwoTimeAlgorithms.name: TwoTimeAlgorithms.algorithms(),
             OneTimeAlgorithms.name: OneTimeAlgorithms.algorithms()
         }
 
+    @staticmethod
+    def default():
+        pass
+
 
 class TwoTimeAlgorithms(ProcessingAlgorithms):
     name = '2-Time Algorithms'
+
     @staticmethod
     def algorithms():
+        """Returns a dict where keys are the algorithm (workflow) names, values are the algorithms (workflows)."""
         return {TwoTime.name: TwoTime}
 
     @staticmethod
     def default():
+        """Returns the default algorithm name to use."""
         return TwoTime.name
 
 
 class OneTimeAlgorithms(ProcessingAlgorithms):
     name = '1-Time Algorithms'
+
     @staticmethod
     def algorithms():
+        """Returns a dict where keys are the algorithm (workflow) names, values are the algorithms (workflows)."""
         return {OneTime.name: OneTime,
                 FourierAutocorrelator.name: FourierAutocorrelator}
 
     @staticmethod
     def default():
+        """Returns the default algorithm name to use."""
         return OneTime.name
 
 
@@ -174,13 +207,13 @@ class SAXSPlugin(GUIPlugin):
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
                                        selectionmodel=self.selectionmodel,
                                        stream='primary', field=field)
-        self.twoTimeProcessor = TwoTimeProcessor(processor=self.processTwoTime)
+        self.twoTimeProcessor = TwoTimeParameterTree(processor=self.processTwoTime)
         self.twoTimeToolBar = XPCSToolBar(headermodel=self.catalogModel,
                                           selectionmodel=self.selectionmodel,
                                           view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0)
-        self.oneTimeProcessor = OneTimeProcessor(processor=self.processOneTime)
+        self.oneTimeProcessor = OneTimeParameterTree(processor=self.processOneTime)
         self.oneTimeToolBar = XPCSToolBar(headermodel=self.catalogModel,
                                           selectionmodel=self.selectionmodel,
                                           view=self.correlationView.currentWidget,
@@ -518,7 +551,7 @@ class SAXSPlugin(GUIPlugin):
         self.process(self.twoTimeProcessor, self.correlationView.currentWidget(),
                      finished_slot=self.updateDerivedDataModel)
 
-    def process(self, processor: XPCSProcessor, widget, **kwargs):
+    def process(self, processor: CorrelationParameterTree, widget, **kwargs):
         if processor:
             roiFuture = self.roiworkflow.execute(data=self.correlationView.currentWidget().image[0],
                                                  image=self.correlationView.currentWidget().imageItem) # Pass in single frame for data shape
