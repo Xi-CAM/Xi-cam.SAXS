@@ -1,43 +1,31 @@
-from warnings import warn
+import cloudpickle as pickle
+from functools import partial
 from typing import Callable
 
-import numpy as np
-from qtpy.QtCore import *
-from qtpy.QtGui import *
-from qtpy.QtWidgets import *
-
-import cloudpickle as pickle
-
 from databroker.core import BlueskyRun
+import numpy as np
 from pyqtgraph.parametertree import Parameter, ParameterTree
 from pyqtgraph.parametertree.parameterTypes import ActionParameter, ListParameter
-
+from qtpy.QtCore import QItemSelectionModel, Qt
+from qtpy.QtGui import QStandardItemModel, QStandardItem
+from qtpy.QtWidgets import QDockWidget, QLabel
 from xarray import DataArray
 
 from xicam.core import msg, threads
-from xicam.core.data import load_header, NonDBHeader, MetaXArray
+from xicam.core.data import MetaXArray
 from xicam.core.execution.workflow import Workflow
-
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
-
-from xicam.gui import static
-from xicam.gui.widgets.imageviewmixins import PolygonROI
+from xicam.gui.items import CheckableItem
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
-from xicam.gui.widgets.ROI import BetterROI, LabelArrayProcessingPlugin
-from xicam.SAXS.processing.workflows import ReduceWorkflow, DisplayWorkflow
-from xicam.SAXS.calibration.workflows import SimulateWorkflow
-from xicam.SAXS.masking.workflows import MaskingWorkflow
-from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-import pyqtgraph as pg
-from functools import partial
+from xicam.gui.widgets.tabview import TabView
 
-from xicam.gui.widgets.tabview import TabView, TabViewSynchronizer
-
-from xicam.SAXS.widgets.views import CorrelationWidget, FileSelectionView, OneTimeWidget, TwoTimeWidget, DerivedDataWidget, \
-    DerivedDataModel
-from xicam.SAXS.workflows.xpcs import FourierAutocorrelator, OneTime, TwoTime
-
-from xicam.SAXS.workflows.roi import ROIWorkflow
+from .calibration.workflows import SimulateWorkflow
+from .masking.workflows import MaskingWorkflow
+from .processing.workflows import ReduceWorkflow, DisplayWorkflow
+from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
+from .widgets.views import DerivedDataModel, DerivedDataWidget
+from .workflows.roi import ROIWorkflow
+from .workflows.xpcs import FourierAutocorrelator, OneTime, TwoTime
 
 
 class BlueskyItem(QStandardItem):
@@ -46,10 +34,6 @@ class BlueskyItem(QStandardItem):
         super(QStandardItem, self).__init__(*args, **kwargs)
 
         self.setCheckable(True)
-
-
-class XPCSViewerPlugin(PolygonROI, SAXSViewerPluginBase):
-    pass
 
 
 class XPCSProcessor(ParameterTree):
@@ -247,9 +231,9 @@ class SAXSPlugin(GUIPlugin):
 
         # Setup correlation widgets
         self.correlationResults = DerivedDataWidget(self.derivedDataModel)
-        self.correlationTab = QTabWidget()
-        self.fileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
-        self.correlationTab.addTab(self.fileSelection, "Catalogs")
+        # self.correlationTab = QTabWidget()
+        # self.fileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
+        # self.correlationTab.addTab(self.fileSelection, "Catalogs")
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
