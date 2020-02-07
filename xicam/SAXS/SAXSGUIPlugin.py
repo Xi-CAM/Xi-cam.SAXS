@@ -562,14 +562,14 @@ class SAXSPlugin(GUIPlugin):
             else:
                 finishedSlot = self.updateDerivedDataModel
 
-            workflowPickle = pickle.dumps(workflow)
+            workflow_pickle = pickle.dumps(workflow)
             workflow.execute_all(None,
                                  bitmasked_images=data,
                                  dark_images=darks,
                                  labels=labels,
                                  finished_slot=partial(finishedSlot,
-                                                       workflow=workflow))
-                                                       workflow_pickle=workflowPickle))
+                                                       workflow=workflow,
+                                                       workflow_pickle=workflow_pickle))
 
     def updateDerivedDataModel(self, workflow, **kwargs):
         parentItem = CheckableItem(workflow.name)
