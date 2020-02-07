@@ -512,12 +512,10 @@ class SAXSPlugin(GUIPlugin):
 
     def processOneTime(self):
         self.process(self.oneTimeProcessor, self.correlationView.currentWidget(),
-                     # callback_slot=partial(self.saveResult, fileSelectionView=self.fileSelection),
                      finished_slot=self.updateDerivedDataModel)
 
     def processTwoTime(self):
         self.process(self.twoTimeProcessor, self.correlationView.currentWidget(),
-                     # callback_slot=partial(self.saveResult, fileSelectionView=self.fileSelection),
                      finished_slot=self.updateDerivedDataModel)
 
     def process(self, processor: XPCSProcessor, widget, **kwargs):
@@ -559,24 +557,19 @@ class SAXSPlugin(GUIPlugin):
                     shape += 1
                 numBufs.append(shape)
 
-            if kwargs.get('callback_slot'):
-                callbackSlot = kwargs['callback_slot']
-            # else:
-            #     callbackSlot = self.saveResult
             if kwargs.get('finished_slot'):
                 finishedSlot = kwargs['finished_slot']
             else:
                 finishedSlot = self.updateDerivedDataModel
 
-            # workflowPickle = pickle.dumps(workflow)
+            workflowPickle = pickle.dumps(workflow)
             workflow.execute_all(None,
                                  bitmasked_images=data,
                                  dark_images=darks,
                                  labels=labels,
-                                 # callback_slot=callbackSlot,
                                  finished_slot=partial(finishedSlot,
                                                        workflow=workflow))
-                                                       # workflow_pickle=workflowPickle))
+                                                       workflow_pickle=workflowPickle))
 
     def updateDerivedDataModel(self, workflow, **kwargs):
         parentItem = CheckableItem(workflow.name)
