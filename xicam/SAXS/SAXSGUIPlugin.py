@@ -186,10 +186,6 @@ class SAXSPlugin(GUIPlugin):
                                           view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0)
-        # self.oneTimeToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-
-        # self.tabviewsynchronizer = TabViewSynchronizer(
-        #     [self.calibrationtabview, self.masktabview, self.reducetabview, self.comparemultiview.leftTabView])
 
         # Setup toolbars
         self.rawtoolbar = SAXSToolbarRaw(self.catalogModel, self.selectionmodel)
@@ -220,13 +216,9 @@ class SAXSPlugin(GUIPlugin):
 
         # Setup correlation widgets
         self.correlationResults = DerivedDataWidget(self.derivedDataModel)
-        # self.correlationTab = QTabWidget()
-        # self.fileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
-        # self.correlationTab.addTab(self.fileSelection, "Catalogs")
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
-                                   # pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object()
                                    right=self.calibrationsettings.widget,
                                    rightbottom=self.calibrationpanel,
                                    top=self.rawtoolbar),
@@ -243,25 +235,18 @@ class SAXSPlugin(GUIPlugin):
                                                 top=self.twoTimeToolBar,
                                                 rightbottom=self.twoTimeProcessor,
                                                 bottom=self.correlationResults),
-                # bottom=self.placeholder),
                 '1-Time Correlation': GUILayout(self.correlationView,
                                                 top=self.oneTimeToolBar,
                                                 rightbottom=self.oneTimeProcessor,
                                                 bottom=self.correlationResults)
             }
-            # bottom=self.placeholder)
         }
-        # TODO -- improve result caching
-        self._results = []
 
         super(SAXSPlugin, self).__init__()
 
         # Start visualizations
         self.displayworkflow.visualize(self.reduceplot, imageview=lambda: self.reducetabview.currentWidget(),
                                        toolbar=self.reducetoolbar)
-
-    # def experimentChanged(self):
-    #     self.doReduceWorkflow(self.reduceworkflow)
 
     def getAI(self):
         """ Convenience method to get current field's AI """
@@ -558,7 +543,6 @@ class SAXSPlugin(GUIPlugin):
             darks = [None] * len(data)
             dark_stream, dark_field = technique['data_mapping']['dark_image']
             if stream in catalog:
-            # if hasattr(catalog, darkStream):  # causes getattr inf recursion
                 darks = [getattr(catalog, dark_stream).to_dask()[dark_field][0].where(
                     DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
             else:
@@ -593,18 +577,6 @@ class SAXSPlugin(GUIPlugin):
                                  finished_slot=partial(finishedSlot,
                                                        workflow=workflow))
                                                        # workflow_pickle=workflowPickle))
-
-    # def saveResult(self, result, fileSelectionView=None):
-    #     if fileSelectionView:
-    #         analyzed_results = dict()
-    #
-    #         if not fileSelectionView.correlationName.displayText():
-    #             analyzed_results['result_name'] = fileSelectionView.correlationName.placeholderText()
-    #         else:
-    #             analyzed_results['result_name'] = fileSelectionView.correlationName.displayText()
-    #         analyzed_results = {**analyzed_results, **result}
-    #
-    #         self._results.append(analyzed_results)
 
     def updateDerivedDataModel(self, workflow, **kwargs):
         parentItem = CheckableItem(workflow.name)
