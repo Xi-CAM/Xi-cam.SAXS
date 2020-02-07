@@ -28,14 +28,6 @@ from .workflows.roi import ROIWorkflow
 from .workflows.xpcs import FourierAutocorrelator, OneTime, TwoTime
 
 
-class BlueskyItem(QStandardItem):
-
-    def __init__(self, *args, **kwargs):
-        super(QStandardItem, self).__init__(*args, **kwargs)
-
-        self.setCheckable(True)
-
-
 class XPCSProcessor(ParameterTree):
     def __init__(self, *args, processor:Callable[[], None] = None, **kwargs):
         super(XPCSProcessor, self).__init__(*args, **kwargs)
@@ -337,7 +329,7 @@ class SAXSPlugin(GUIPlugin):
         else:
             displayName = f"UID: {catalog.metadata['start']['uid']}"
 
-        item = BlueskyItem(displayName)
+        item = CheckableItem(displayName)
         item.setData(displayName, Qt.DisplayRole)
         item.setData(catalog, Qt.UserRole)
         self.catalogModel.appendRow(item)
@@ -455,11 +447,11 @@ class SAXSPlugin(GUIPlugin):
 
         def showReduce(*results):
             # FIXME -- Better way to get the hints from the results
-            parentItem = BlueskyItem("Scattering Reduction")
+            parentItem = CheckableItem("Scattering Reduction")
             for result in results:
                 hints = next(iter(result.items()))[-1].parent.hints
                 for hint in hints:
-                    item = BlueskyItem(hint.name)
+                    item = CheckableItem(hint.name)
                     item.setData(hint, Qt.UserRole)
                     parentItem.appendRow(item)
             self.derivedDataModel.appendRow(parentItem)
@@ -618,9 +610,9 @@ class SAXSPlugin(GUIPlugin):
     #         self._results.append(analyzed_results)
 
     def updateDerivedDataModel(self, workflow, **kwargs):
-        parentItem = BlueskyItem(workflow.name)
+        parentItem = CheckableItem(workflow.name)
         for hint in workflow.hints:
-            item = BlueskyItem(hint.name)
+            item = CheckableItem(hint.name)
             item.setData(hint, Qt.UserRole)
             item.setCheckable(True)
             parentItem.appendRow(item)
