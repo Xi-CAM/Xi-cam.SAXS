@@ -126,12 +126,9 @@ class SAXSPlugin(GUIPlugin):
     def __init__(self):
         # Late imports required due to plugin system
         from xicam.SAXS.calibration import CalibrationPanel
-        from xicam.SAXS.widgets.SAXSMultiViewer import SAXSMultiViewerPlugin
-        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPluginBase, SAXSCalibrationViewer, SAXSMaskingViewer, \
-            SAXSReductionViewer
+        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
-        from xicam.SAXS.widgets.SAXSSpectra import SAXSSpectra
 
         self.derivedDataModel = DerivedDataModel()
         self.catalogModel = QStandardItemModel()
