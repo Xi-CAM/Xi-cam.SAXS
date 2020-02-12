@@ -1,147 +1,28 @@
-from warnings import warn
-from typing import Callable
-
-import numpy as np
-from qtpy.QtCore import *
-from qtpy.QtGui import *
-from qtpy.QtWidgets import *
-
 import cloudpickle as pickle
+from functools import partial
 
 from databroker.core import BlueskyRun
-from pyqtgraph.parametertree import Parameter, ParameterTree
-from pyqtgraph.parametertree.parameterTypes import ActionParameter, ListParameter
-
+import numpy as np
+from qtpy.QtCore import QItemSelectionModel, Qt
+from qtpy.QtGui import QStandardItemModel
+from qtpy.QtWidgets import QDockWidget, QLabel
 from xarray import DataArray
 
 from xicam.core import msg, threads
-from xicam.core.data import load_header, NonDBHeader, MetaXArray
+from xicam.core.data import MetaXArray
 from xicam.core.execution.workflow import Workflow
-
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
-
-from xicam.gui import static
-from xicam.gui.widgets.imageviewmixins import PolygonROI
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
-from xicam.gui.widgets.ROI import BetterROI, LabelArrayProcessingPlugin
-from xicam.SAXS.processing.workflows import ReduceWorkflow, DisplayWorkflow
-from xicam.SAXS.calibration.workflows import SimulateWorkflow
-from xicam.SAXS.masking.workflows import MaskingWorkflow
-from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-import pyqtgraph as pg
-from functools import partial
+from xicam.gui.widgets.tabview import TabView
 
-from xicam.gui.widgets.tabview import TabView, TabViewSynchronizer
-
-from xicam.SAXS.widgets.views import CorrelationWidget, FileSelectionView, OneTimeWidget, TwoTimeWidget, DerivedDataWidget, \
-    DerivedDataModel
-from xicam.SAXS.workflows.xpcs import FourierAutocorrelator, OneTime, TwoTime
-
-from xicam.SAXS.workflows.roi import ROIWorkflow
-
-
-class BlueskyItem(QStandardItem):
-
-    def __init__(self, *args, **kwargs):
-        super(QStandardItem, self).__init__(*args, **kwargs)
-
-        self.setCheckable(True)
-
-
-class XPCSViewerPlugin(PolygonROI, SAXSViewerPluginBase):
-    pass
-
-
-class XPCSProcessor(ParameterTree):
-    def __init__(self, *args, processor:Callable[[], None] = None, **kwargs):
-        super(XPCSProcessor, self).__init__(*args, **kwargs)
-        self._paramName = 'Algorithm'
-        self._name = 'XPCS Processor'
-        self.workflow = None
-        self.param = None
-        self._workflows = dict()
-
-        self.listParameter = ListParameter(name=self._paramName,
-                                           values={'':''},
-                                           value='')
-
-        self.param = Parameter(name=self._name)
-        self.param.addChild(self.listParameter)
-        self.setParameters(self.param, showTop=False)
-
-        if processor:
-            # Button added separately since update removes then adds all children in self.param
-            self.processButton = ActionParameter(name="Run")
-            self.processButton.sigActivated.connect(processor)
-            self.addParameters(self.processButton)
-
-    def update(self, *_):
-        for child in self.param.childs[1:]:
-        # for child in self.param.children():
-            child.remove()
-
-        self.workflow = self._workflows.get(self.listParameter.value().name, self.listParameter.value()())
-        self._workflows[self.workflow.name] = self.workflow
-        for process in self.workflow.processes:
-            self.param.addChild(process.parameter)
-
-
-class OneTimeProcessor(XPCSProcessor):
-    def __init__(self, *args, **kwargs):
-        super(OneTimeProcessor, self).__init__(*args, **kwargs)
-        self._name = '1-Time Processor'
-        self.listParameter.setLimits(OneTimeAlgorithms.algorithms())
-        self.listParameter.setValue(OneTimeAlgorithms.algorithms()[OneTimeAlgorithms.default()])
-
-        self.update()
-        self.listParameter.sigValueChanged.connect(self.update)
-
-
-class TwoTimeProcessor(XPCSProcessor):
-    def __init__(self, *args, **kwargs):
-        super(TwoTimeProcessor, self).__init__(*args, **kwargs)
-        self._name = '2-Time Processor'
-        self.listParameter.setLimits(TwoTimeAlgorithms.algorithms())
-        self.listParameter.setValue(TwoTimeAlgorithms.algorithms()[TwoTimeAlgorithms.default()])
-
-        self.update()
-        self.listParameter.sigValueChanged.connect(self.update)
-
-
-class ProcessingAlgorithms:
-    """
-    Convenience class to get the available algorithms that can be used for
-    one-time and two-time correlations.
-    """
-    @staticmethod
-    def algorithms():
-        return {
-            TwoTimeAlgorithms.name: TwoTimeAlgorithms.algorithms(),
-            OneTimeAlgorithms.name: OneTimeAlgorithms.algorithms()
-        }
-
-
-class TwoTimeAlgorithms(ProcessingAlgorithms):
-    name = '2-Time Algorithms'
-    @staticmethod
-    def algorithms():
-        return {TwoTime.name: TwoTime}
-
-    @staticmethod
-    def default():
-        return TwoTime.name
-
-
-class OneTimeAlgorithms(ProcessingAlgorithms):
-    name = '1-Time Algorithms'
-    @staticmethod
-    def algorithms():
-        return {OneTime.name: OneTime,
-                FourierAutocorrelator.name: FourierAutocorrelator}
-
-    @staticmethod
-    def default():
-        return OneTime.name
+from .calibration.workflows import SimulateWorkflow
+from .masking.workflows import MaskingWorkflow
+from .processing.workflows import ReduceWorkflow, DisplayWorkflow
+from .widgets.items import CheckableItem
+from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
+from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
+from .widgets.views import DerivedDataModel, DerivedDataWidget
+from .workflows.roi import ROIWorkflow
 
 
 class SAXSPlugin(GUIPlugin):
@@ -150,12 +31,9 @@ class SAXSPlugin(GUIPlugin):
     def __init__(self):
         # Late imports required due to plugin system
         from xicam.SAXS.calibration import CalibrationPanel
-        from xicam.SAXS.widgets.SAXSMultiViewer import SAXSMultiViewerPlugin
-        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPluginBase, SAXSCalibrationViewer, SAXSMaskingViewer, \
-            SAXSReductionViewer
+        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
-        from xicam.SAXS.widgets.SAXSSpectra import SAXSSpectra
 
         self.derivedDataModel = DerivedDataModel()
         self.catalogModel = QStandardItemModel()
@@ -201,22 +79,18 @@ class SAXSPlugin(GUIPlugin):
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
                                        selectionmodel=self.selectionmodel,
                                        stream='primary', field=field)
-        self.twoTimeProcessor = TwoTimeProcessor(processor=self.processTwoTime)
+        self.twoTimeProcessor = TwoTimeParameterTree(processor=self.processTwoTime)
         self.twoTimeToolBar = XPCSToolBar(headermodel=self.catalogModel,
                                           selectionmodel=self.selectionmodel,
                                           view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0)
-        self.oneTimeProcessor = OneTimeProcessor(processor=self.processOneTime)
+        self.oneTimeProcessor = OneTimeParameterTree(processor=self.processOneTime)
         self.oneTimeToolBar = XPCSToolBar(headermodel=self.catalogModel,
                                           selectionmodel=self.selectionmodel,
                                           view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0)
-        # self.oneTimeToolBar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-
-        # self.tabviewsynchronizer = TabViewSynchronizer(
-        #     [self.calibrationtabview, self.masktabview, self.reducetabview, self.comparemultiview.leftTabView])
 
         # Setup toolbars
         self.rawtoolbar = SAXSToolbarRaw(self.catalogModel, self.selectionmodel)
@@ -247,13 +121,9 @@ class SAXSPlugin(GUIPlugin):
 
         # Setup correlation widgets
         self.correlationResults = DerivedDataWidget(self.derivedDataModel)
-        self.correlationTab = QTabWidget()
-        self.fileSelection = FileSelectionView(self.catalogModel, self.selectionmodel)
-        self.correlationTab.addTab(self.fileSelection, "Catalogs")
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
-                                   # pluginmanager.getPluginByName('SAXSViewerPlugin', 'WidgetPlugin').plugin_object()
                                    right=self.calibrationsettings.widget,
                                    rightbottom=self.calibrationpanel,
                                    top=self.rawtoolbar),
@@ -270,25 +140,18 @@ class SAXSPlugin(GUIPlugin):
                                                 top=self.twoTimeToolBar,
                                                 rightbottom=self.twoTimeProcessor,
                                                 bottom=self.correlationResults),
-                # bottom=self.placeholder),
                 '1-Time Correlation': GUILayout(self.correlationView,
                                                 top=self.oneTimeToolBar,
                                                 rightbottom=self.oneTimeProcessor,
                                                 bottom=self.correlationResults)
             }
-            # bottom=self.placeholder)
         }
-        # TODO -- improve result caching
-        self._results = []
 
         super(SAXSPlugin, self).__init__()
 
         # Start visualizations
         self.displayworkflow.visualize(self.reduceplot, imageview=lambda: self.reducetabview.currentWidget(),
                                        toolbar=self.reducetoolbar)
-
-    # def experimentChanged(self):
-    #     self.doReduceWorkflow(self.reduceworkflow)
 
     def getAI(self):
         """ Convenience method to get current field's AI """
@@ -353,7 +216,7 @@ class SAXSPlugin(GUIPlugin):
         else:
             displayName = f"UID: {catalog.metadata['start']['uid']}"
 
-        item = BlueskyItem(displayName)
+        item = CheckableItem(displayName)
         item.setData(displayName, Qt.DisplayRole)
         item.setData(catalog, Qt.UserRole)
         self.catalogModel.appendRow(item)
@@ -471,11 +334,11 @@ class SAXSPlugin(GUIPlugin):
 
         def showReduce(*results):
             # FIXME -- Better way to get the hints from the results
-            parentItem = BlueskyItem("Scattering Reduction")
+            parentItem = CheckableItem("Scattering Reduction")
             for result in results:
                 hints = next(iter(result.items()))[-1].parent.hints
                 for hint in hints:
-                    item = BlueskyItem(hint.name)
+                    item = CheckableItem(hint.name)
                     item.setData(hint, Qt.UserRole)
                     parentItem.appendRow(item)
             self.derivedDataModel.appendRow(parentItem)
@@ -554,15 +417,13 @@ class SAXSPlugin(GUIPlugin):
 
     def processOneTime(self):
         self.process(self.oneTimeProcessor, self.correlationView.currentWidget(),
-                     # callback_slot=partial(self.saveResult, fileSelectionView=self.fileSelection),
                      finished_slot=self.updateDerivedDataModel)
 
     def processTwoTime(self):
         self.process(self.twoTimeProcessor, self.correlationView.currentWidget(),
-                     # callback_slot=partial(self.saveResult, fileSelectionView=self.fileSelection),
                      finished_slot=self.updateDerivedDataModel)
 
-    def process(self, processor: XPCSProcessor, widget, **kwargs):
+    def process(self, processor: CorrelationParameterTree, widget, **kwargs):
         if processor:
             roiFuture = self.roiworkflow.execute(data=self.correlationView.currentWidget().image[0],
                                                  image=self.correlationView.currentWidget().imageItem) # Pass in single frame for data shape
@@ -585,7 +446,6 @@ class SAXSPlugin(GUIPlugin):
             darks = [None] * len(data)
             dark_stream, dark_field = technique['data_mapping']['dark_image']
             if stream in catalog:
-            # if hasattr(catalog, darkStream):  # causes getattr inf recursion
                 darks = [getattr(catalog, dark_stream).to_dask()[dark_field][0].where(
                     DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
             else:
@@ -602,41 +462,24 @@ class SAXSPlugin(GUIPlugin):
                     shape += 1
                 numBufs.append(shape)
 
-            if kwargs.get('callback_slot'):
-                callbackSlot = kwargs['callback_slot']
-            # else:
-            #     callbackSlot = self.saveResult
             if kwargs.get('finished_slot'):
                 finishedSlot = kwargs['finished_slot']
             else:
                 finishedSlot = self.updateDerivedDataModel
 
-            # workflowPickle = pickle.dumps(workflow)
+            workflow_pickle = pickle.dumps(workflow)
             workflow.execute_all(None,
                                  bitmasked_images=data,
                                  dark_images=darks,
                                  labels=labels,
-                                 # callback_slot=callbackSlot,
                                  finished_slot=partial(finishedSlot,
-                                                       workflow=workflow))
-                                                       # workflow_pickle=workflowPickle))
-
-    # def saveResult(self, result, fileSelectionView=None):
-    #     if fileSelectionView:
-    #         analyzed_results = dict()
-    #
-    #         if not fileSelectionView.correlationName.displayText():
-    #             analyzed_results['result_name'] = fileSelectionView.correlationName.placeholderText()
-    #         else:
-    #             analyzed_results['result_name'] = fileSelectionView.correlationName.displayText()
-    #         analyzed_results = {**analyzed_results, **result}
-    #
-    #         self._results.append(analyzed_results)
+                                                       workflow=workflow,
+                                                       workflow_pickle=workflow_pickle))
 
     def updateDerivedDataModel(self, workflow, **kwargs):
-        parentItem = BlueskyItem(workflow.name)
+        parentItem = CheckableItem(workflow.name)
         for hint in workflow.hints:
-            item = BlueskyItem(hint.name)
+            item = CheckableItem(hint.name)
             item.setData(hint, Qt.UserRole)
             item.setCheckable(True)
             parentItem.appendRow(item)
