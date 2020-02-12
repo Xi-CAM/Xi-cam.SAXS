@@ -1,13 +1,10 @@
 import cloudpickle as pickle
 from functools import partial
-from typing import Callable
 
 from databroker.core import BlueskyRun
 import numpy as np
-from pyqtgraph.parametertree import Parameter, ParameterTree
-from pyqtgraph.parametertree.parameterTypes import ActionParameter, ListParameter
 from qtpy.QtCore import QItemSelectionModel, Qt
-from qtpy.QtGui import QStandardItemModel, QStandardItem
+from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import QDockWidget, QLabel
 from xarray import DataArray
 
@@ -15,142 +12,17 @@ from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
 from xicam.core.execution.workflow import Workflow
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
-from xicam.gui.items import CheckableItem
+from xicam.gui.widgets.items import CheckableItem
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.gui.widgets.tabview import TabView
 
 from .calibration.workflows import SimulateWorkflow
 from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
+from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
 from .widgets.views import DerivedDataModel, DerivedDataWidget
 from .workflows.roi import ROIWorkflow
-from .workflows.xpcs import FourierAutocorrelator, OneTime, TwoTime
-
-
-class CorrelationParameterTree(ParameterTree):
-    """Parameter tree that captures XPCS correlation adjustable parameters.
-
-    Starting point to attempt to allow selecting an 'algorithm'
-    and then repopulating the parameter tree accordingly.
-    Any visible input parameters in the associated workflow will be adjustable here.
-    The workflow can also be run here.
-    """
-    def __init__(self, *args, processor:Callable[[], None] = None, **kwargs):
-        """Create the parameter tree, optionally providing a callable processing function.
-
-        Parameters
-        ----------
-        args
-            See pyqtgraph.ParameterTree constructor args.
-        processor
-            If provided, creates a 'Run' button that is connected to the callable passed (default is None).
-        kwargs
-            See pyqtgraph.ParameterTree constructor kwargs.
-        """
-        super(CorrelationParameterTree, self).__init__(*args, **kwargs)
-        self._paramName = 'Algorithm'
-        self._name = 'Correlation Processor'
-        self.workflow = None
-        self.param = None
-        self._workflows = dict()
-
-        # List of algorithms available
-        # key   -> algorithm name (workflow.name)
-        # value -> algorithm callable (workflow)
-        self.listParameter = ListParameter(name=self._paramName,
-                                           values={'':''},
-                                           value='')
-
-        self.param = Parameter(name=self._name)
-        self.param.addChild(self.listParameter)
-        self.setParameters(self.param, showTop=False)
-
-        if processor:
-            # Button added separately since update removes then adds all children in self.param
-            self.processButton = ActionParameter(name="Run")
-            self.processButton.sigActivated.connect(processor)
-            self.addParameters(self.processButton)
-
-    def update(self, *_):
-        """Update the parameter tree according to which algorithm (workflow) is selected."""
-        # for child in self.param.children():  # this doesn't seem to work...
-        for child in self.param.childs[1:]:
-            child.remove()
-
-        # Based on current workflow (listParameter value), re-populate the tree.
-        self.workflow = self._workflows.get(self.listParameter.value().name, self.listParameter.value()())
-        self._workflows[self.workflow.name] = self.workflow
-        for process in self.workflow.processes:
-            self.param.addChild(process.parameter)
-
-
-class OneTimeParameterTree(CorrelationParameterTree):
-    """Defines a parameter tree for 1-time correlation."""
-    def __init__(self, *args, **kwargs):
-        super(OneTimeParameterTree, self).__init__(*args, **kwargs)
-        self._name = '1-Time Processor'
-        self.listParameter.setLimits(OneTimeAlgorithms.algorithms())
-        self.listParameter.setValue(OneTimeAlgorithms.algorithms()[OneTimeAlgorithms.default()])
-
-        self.update()
-        self.listParameter.sigValueChanged.connect(self.update)
-
-
-class TwoTimeParameterTree(CorrelationParameterTree):
-    """Defines a parameter tree for 2-time correlation."""
-    def __init__(self, *args, **kwargs):
-        super(TwoTimeParameterTree, self).__init__(*args, **kwargs)
-        self._name = '2-Time Processor'
-        self.listParameter.setLimits(TwoTimeAlgorithms.algorithms())
-        self.listParameter.setValue(TwoTimeAlgorithms.algorithms()[TwoTimeAlgorithms.default()])
-
-        self.update()
-        self.listParameter.sigValueChanged.connect(self.update)
-
-
-class ProcessingAlgorithms:
-    """Convenience class to get the available algorithms that can be used for 1-time and 2-time correlations."""
-    @staticmethod
-    def algorithms():
-        """Returns the available 1-time algorithms and 2-time algorithms."""
-        return {
-            TwoTimeAlgorithms.name: TwoTimeAlgorithms.algorithms(),
-            OneTimeAlgorithms.name: OneTimeAlgorithms.algorithms()
-        }
-
-    @staticmethod
-    def default():
-        pass
-
-
-class TwoTimeAlgorithms(ProcessingAlgorithms):
-    name = '2-Time Algorithms'
-
-    @staticmethod
-    def algorithms():
-        """Returns a dict where keys are the algorithm (workflow) names, values are the algorithms (workflows)."""
-        return {TwoTime.name: TwoTime}
-
-    @staticmethod
-    def default():
-        """Returns the default algorithm name to use."""
-        return TwoTime.name
-
-
-class OneTimeAlgorithms(ProcessingAlgorithms):
-    name = '1-Time Algorithms'
-
-    @staticmethod
-    def algorithms():
-        """Returns a dict where keys are the algorithm (workflow) names, values are the algorithms (workflows)."""
-        return {OneTime.name: OneTime,
-                FourierAutocorrelator.name: FourierAutocorrelator}
-
-    @staticmethod
-    def default():
-        """Returns the default algorithm name to use."""
-        return OneTime.name
 
 
 class SAXSPlugin(GUIPlugin):

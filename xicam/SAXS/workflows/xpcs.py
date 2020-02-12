@@ -3,13 +3,56 @@ import time
 import event_model
 
 from xicam.core.execution import Workflow
-from xicam.plugins.processingplugin import Var
 
 from ..processing.fitting import FitScatteringFactor
 from ..processing.fourierautocorrelator import FourierCorrelation
 from ..processing.onetime import OneTimeCorrelation
 from ..processing.twotime import TwoTimeCorrelation
 from ..processing.correction import CSXCorrectImage
+
+
+class ProcessingAlgorithms:
+    """Convenience class to get the available algorithms that can be used for 1-time and 2-time correlations."""
+    @staticmethod
+    def algorithms():
+        """Returns the available 1-time algorithms and 2-time algorithms."""
+        return {
+            TwoTimeAlgorithms.name: TwoTimeAlgorithms.algorithms(),
+            OneTimeAlgorithms.name: OneTimeAlgorithms.algorithms()
+        }
+
+    @staticmethod
+    def default():
+        pass
+
+
+class TwoTimeAlgorithms(ProcessingAlgorithms):
+    name = '2-Time Algorithms'
+
+    @staticmethod
+    def algorithms():
+        """Returns a dict where keys are the algorithm (workflow) names, values are the algorithms (workflows)."""
+        return {TwoTime.name: TwoTime}
+
+    @staticmethod
+    def default():
+        """Returns the default algorithm name to use."""
+        return TwoTime.name
+
+
+class OneTimeAlgorithms(ProcessingAlgorithms):
+    name = '1-Time Algorithms'
+
+    @staticmethod
+    def algorithms():
+        """Returns a dict where keys are the algorithm (workflow) names, values are the algorithms (workflows)."""
+        return {OneTime.name: OneTime,
+                FourierAutocorrelator.name: FourierAutocorrelator}
+
+    @staticmethod
+    def default():
+        """Returns the default algorithm name to use."""
+        return OneTime.name
 
 
 class XPCSWorkflow(Workflow):
