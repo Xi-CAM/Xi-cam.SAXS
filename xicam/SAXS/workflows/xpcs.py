@@ -8,7 +8,7 @@ from ..processing.fitting import FitScatteringFactor
 from ..processing.fourierautocorrelator import FourierCorrelation
 from ..processing.onetime import OneTimeCorrelation
 from ..processing.twotime import TwoTimeCorrelation
-from ..processing.correction import CSXCorrectImage
+# from ..processing.correction import CSXCorrectImage
 
 
 class ProcessingAlgorithms:
@@ -58,8 +58,8 @@ class OneTimeAlgorithms(ProcessingAlgorithms):
 class XPCSWorkflow(Workflow):
     def __init__(self):
         super(XPCSWorkflow, self).__init__()
-        self.csx_correction = CSXCorrectImage()
-        self.addProcess(self.csx_correction)
+        # self.csx_correction = CSXCorrectImage()
+        # self.addProcess(self.csx_correction)
 
 
 class TwoTime(XPCSWorkflow):
@@ -67,9 +67,9 @@ class TwoTime(XPCSWorkflow):
 
     def __init__(self):
         super(TwoTime, self).__init__()
-        twotime = TwoTimeCorrelation()
+        # twotime = TwoTimeCorrelation()
         self.addProcess(TwoTimeCorrelation())
-        self.csx_correction.outputs['corrected_images'].connect(twotime.inputs['data'])
+        # self.csx_correction.outputs['corrected_images'].connect(twotime.inputs['data'])
 
     @staticmethod
     def document(**kwargs):
@@ -142,7 +142,7 @@ class OneTime(XPCSWorkflow):
         fitting = FitScatteringFactor()
         self.addProcess(fitting)
         # Manually set up connections
-        self.csx_correction.outputs['corrected_images'].connect(onetime.inputs['data'])
+        # self.csx_correction.outputs['corrected_images'].connect(onetime.inputs['data'])
         onetime.outputs['g2'].connect(fitting.inputs['g2'])
         onetime.outputs['lag_steps'].connect(fitting.inputs['lag_steps'])
 
