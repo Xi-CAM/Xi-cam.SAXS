@@ -6,7 +6,5 @@ scipy
 dill
 scikit-image
 databroker>=1.0.0b1
-
-# Wait until ronpandolfi's changes (#542) are in release /PyPi ...
-scikit-beam @ git+https://github.com/scikit-beam/scikit-beam
-
+astroscrappy
+scikit-beam
