@@ -444,13 +444,13 @@ class SAXSPlugin(GUIPlugin):
                 DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
             # Trim the dark images
             msg.notifyMessage("Skipping dark correction...")
-            # darks = [None] * len(data)
-            # dark_stream, dark_field = technique['data_mapping']['dark_image']
-            # if stream in catalog:
-            #     darks = [getattr(catalog, dark_stream).to_dask()[dark_field][0].where(
-            #         DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
-            # else:
-            #     msg.notifyMessage(f"No dark stream named \"{dark_stream}\" for current catalog. No dark correction.")
+            darks = [None] * len(data)
+            dark_stream, dark_field = technique['data_mapping']['dark_image']
+            if stream in catalog:
+                darks = [getattr(catalog, dark_stream).to_dask()[dark_field][0].where(
+                    DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
+            else:
+                msg.notifyMessage(f"No dark stream named \"{dark_stream}\" for current catalog. No dark correction.")
             label = label.compress(np.any(label, axis=0), axis=1).compress(np.any(label, axis=1), axis=0)
             labels = [label] * len(data)  # TODO: update for multiple ROIs
             numLevels = [1] * len(data)
@@ -468,13 +468,15 @@ class SAXSPlugin(GUIPlugin):
             else:
                 finishedSlot = self.updateDerivedDataModel
 
-            workflow_pickle = pickle.dumps(workflow)
+            # workflow_pickle = pickle.dumps(workflow)
             workflow.execute_all(None,
-                                 data=data,
+                                 # data=data,
+                                 images=data,
+                                 darks=darks,
                                  labels=labels,
                                  finished_slot=partial(finishedSlot,
-                                                       workflow=workflow,
-                                                       workflow_pickle=workflow_pickle))
+                                                       workflow=workflow))
+                                                       # workflow_pickle=workflow_pickle))
 
     def updateDerivedDataModel(self, workflow, **kwargs):
         parentItem = CheckableItem(workflow.name)
@@ -484,3 +486,5 @@ class SAXSPlugin(GUIPlugin):
             item.setCheckable(True)
             parentItem.appendRow(item)
         self.derivedDataModel.appendRow(parentItem)
+
+
