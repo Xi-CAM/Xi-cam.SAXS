@@ -2,6 +2,7 @@ from functools import partial
 
 import numpy as np
 
+from xicam.core import msg
 from xicam.plugins import ProcessingPlugin, Input, Output
 
 
@@ -53,62 +54,65 @@ class CorrectImage(ProcessingPlugin):
                                               self.gains.value)
 
 
-from csxtools.fastccd import correct_images
-from csxtools.utils import stackmean
-import numpy as np
-from xicam.plugins.processingplugin import Input, Output, ProcessingPlugin
+try:
+    from csxtools.fastccd import correct_images
+    from csxtools.utils import stackmean
+    import numpy as np
+    from xicam.plugins.processingplugin import Input, Output, ProcessingPlugin
 
 
-class CSXCorrectImage(ProcessingPlugin):
-    """Subtract backgrond and gain correct images
-    This routine subtrtacts the backgrond and corrects the images
-    for the multigain FastCCD ADC.
-    Parameters
-    ----------
-    in : array_like
-        Input array of images to correct of shape (N, y, x)  where N is the
-        number of images and x and y are the image size.
-    dark : array_like, optional
-        Input array of dark images. This should be of shape (3, y, x).
-        dark[0] is the gain 8 (most sensitive setting) dark image with
-        dark[2] being the gain 1 (least sensitive) dark image.
-    flat : array_like, optional
-        Input array for the flatfield correction. This should be of shape
-        (y, x)
-    gain : tuple, optional
-        These are the gain multiplication factors for the three different
-        gain settings
-    Returns
-    -------
-    array_like
-        Array of corrected images of shape (N, y, x)
-"""
-    # Images are expected to be of type np.uint16 (csxtools.utils.py:94)
-    bitmasked_images = Input(description="", type=np.ndarray, visible=False)
-    # Darks are expected to be of type np.float32 (csxtools.fastccd.images.py:43)
-    dark_images = Input(description="", type=np.ndarray, visible=False)
-    # Flats are expected to be of type np.float32 (csxtools.fastccd.images.py:47)
-    flat_field = Input(description="", type=np.ndarray, default=None, visible=False)
-    gain = Input(description="", type=tuple, visible=False)
+    class CSXCorrectImage(ProcessingPlugin):
+        """Subtract backgrond and gain correct images
+        This routine subtrtacts the backgrond and corrects the images
+        for the multigain FastCCD ADC.
+        Parameters
+        ----------
+        in : array_like
+            Input array of images to correct of shape (N, y, x)  where N is the
+            number of images and x and y are the image size.
+        dark : array_like, optional
+            Input array of dark images. This should be of shape (3, y, x).
+            dark[0] is the gain 8 (most sensitive setting) dark image with
+            dark[2] being the gain 1 (least sensitive) dark image.
+        flat : array_like, optional
+            Input array for the flatfield correction. This should be of shape
+            (y, x)
+        gain : tuple, optional
+            These are the gain multiplication factors for the three different
+            gain settings
+        Returns
+        -------
+        array_like
+            Array of corrected images of shape (N, y, x)
+        """
+        # Images are expected to be of type np.uint16 (csxtools.utils.py:94)
+        bitmasked_images = Input(description="", type=np.ndarray, visible=False)
+        # Darks are expected to be of type np.float32 (csxtools.fastccd.images.py:43)
+        dark_images = Input(description="", type=np.ndarray, visible=False)
+        # Flats are expected to be of type np.float32 (csxtools.fastccd.images.py:47)
+        flat_field = Input(description="", type=np.ndarray, default=None, visible=False)
+        gain = Input(description="", type=tuple, visible=False)
 
-    corrected_images = Output(description="", type=np.ndarray)
+        corrected_images = Output(description="", type=np.ndarray)
 
-    def evaluate(self):
-        data = np.asarray(self.bitmasked_images.value.astype(np.uint16))
-        kwargs = dict()
-        reduced_dark_image = self.dark_images.value
-        if reduced_dark_image is not None:
-            reduced_dark_image = stackmean(np.asarray(self.dark_images.value, dtype=np.float32))
-            darks = np.array([reduced_dark_image,
-                              np.zeros(shape=reduced_dark_image.shape),
-                              np.zeros(shape=reduced_dark_image.shape)],
-                             dtype=np.float32)
-            kwargs['dark'] = darks
-        if self.flat_field.value is not None:
-            kwargs['flat'] = self.flat_field.value.astype(np.float32)
-        if self.gain.value is not None:
-            kwargs['gain'] = self.gain.value
-        self.corrected_images.value = correct_images(data, **kwargs)
+        def evaluate(self):
+            data = np.asarray(self.bitmasked_images.value.astype(np.uint16))
+            kwargs = dict()
+            reduced_dark_image = self.dark_images.value
+            if reduced_dark_image is not None:
+                reduced_dark_image = stackmean(np.asarray(self.dark_images.value, dtype=np.float32))
+                darks = np.array([reduced_dark_image,
+                                  np.zeros(shape=reduced_dark_image.shape),
+                                  np.zeros(shape=reduced_dark_image.shape)],
+                                 dtype=np.float32)
+                kwargs['dark'] = darks
+            if self.flat_field.value is not None:
+                kwargs['flat'] = self.flat_field.value.astype(np.float32)
+            if self.gain.value is not None:
+                kwargs['gain'] = self.gain.value
+            self.corrected_images.value = correct_images(data, **kwargs)
+except ImportError:
+    msg.logMessage("Cannot import csxtools; will not be tested against.")
 
 
 if __name__ == "__main__":
