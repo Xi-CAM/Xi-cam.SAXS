@@ -22,51 +22,35 @@ class CorrectImage(ProcessingPlugin):
             # gain2: 0b10 (2)
             # gain8: 0b00 (0)
             intensity = np.bitwise_and(0x1FFF, array)
-            # print(f"intensity:\n{intensity}")
             bad_flag = np.bitwise_and(0x1, np.right_shift(array, 13))
-            # print(f"badflag:\n{bad_flag}")
             gain = np.bitwise_and(0x3, np.right_shift(array, 14))
-            # print(f"gain:\n{gain}")
             # map the gain bit values to the gain map indices to get the actual gain values
             # e.g. 3 -> index 2; 2 -> index 1; 1 -> index 0
             gain = np.vectorize(partial(lambda a, b: a[int((b + 1) / 2)], gain_map))(gain)
-            # print(f"mapped gain:\n{gain}")
             arr = flats * gain * intensity
-            # import pdb; pdb.set_trace()
             arr = np.where(arr < bkg, bkg, arr)
             return np.array((1 - bad_flag) * (arr - bkg), dtype=np.uint16)
 
-        # if not isinstance(self.images.value, self.images.type):
-        #     raise TypeError(f"\"images\" expects a type of \"{self.images.type}\".")
         if self.images.value.ndim != 3:
             raise ValueError(f"\"images\" expects a 3-dimensional image array; shape = \"{self.images.value.shape}\"")
 
         flats = self.flats.value
         if flats is None:
             flats = np.ones(self.images.value.shape[1:])
-        # if not isinstance(self.flats.value, self.flats.type):
-        #     raise TypeError()
         if flats.ndim != 2:
             raise ValueError(f"\"flats\" should be 2-dimensional; shape = \"{self.flats.value.shape}\"")
 
         darks = self.darks.value
         if darks is None:
             darks = np.zeros(self.images.value.shape)
-        # if not isinstance(self.darks.value, self.darks.type):
-        #     raise TypeError()
         if darks.ndim != 3:
             raise ValueError(f"\"darks\" should be 3-dimensional; shape = \"{self.darks.value.shape}\"")
 
         darks = np.sum(darks, axis=0) / darks.shape[0]
-        # print(f"flats:\n{self.flats.value}")
-        # print(f"darks:\n{self.darks.value}\n")
         self.corrected_images.value = correct(np.asarray(self.images.value, dtype=np.uint16),
                                               np.asarray(flats, dtype=np.float32),
                                               np.asarray(darks, dtype=np.float32),
                                               self.gains.value)
-        # flats = np.ones(array.shape)
-        # bkg = np.zeros(array.shape6
-        # correct(array, flats, bkg)
 
 
 from csxtools.fastccd import correct_images
