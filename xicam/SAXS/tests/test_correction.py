@@ -14,7 +14,7 @@ from xicam.SAXS.processing.correction import CorrectFastCCDImage
 #         - bad pixels set to 0
 CSX_TOOLS = False
 try:
-    from xicam.SAXS.processing.correction import CSXCorrectImage
+    from . import CSXCorrectImage
     CSX_TOOLS = True
 except ImportError:
     CSXCorrectImage = None
