@@ -20,7 +20,7 @@ except ImportError:
     CSXCorrectImage = None
 
 # Disable testing against csxtools here
-TEST_CSX_TOOLS = True and CSX_TOOLS
+TEST_CSX_TOOLS = CSX_TOOLS and True
 
 
 # TODO: test endianess

@@ -9,6 +9,7 @@ class CorrectFastCCDImage(ProcessingPlugin):
     images = Input(name="image", type=np.ndarray)
     flats = Input(name="flats", type=np.ndarray)
     darks = Input(name="darks", type=np.ndarray)
+    # expect a 3-element tuple, corresponding to gain1, gain2, and gain8
     gains = Input(name="gains", type=tuple, default=(1, 4, 8))
     corrected_images = Output(name="corrected_images", type=np.ndarray)
 
@@ -26,7 +27,9 @@ class CorrectFastCCDImage(ProcessingPlugin):
             gain = np.bitwise_and(0x3, np.right_shift(array, 14))
             # map the gain bit values to the gain map indices to get the actual gain values
             # e.g. 3 -> index 2; 2 -> index 1; 1 -> index 0
-            gain = np.vectorize(partial(lambda a, b: a[int((b + 1) / 2)], gain_map))(gain)
+            gain_map = dict(zip((0, 2, 3), gain_map))
+            gain = np.vectorize(gain_map.get)(gain)
+            # gain = np.vectorize(partial(lambda a, b: a[int((b + 1) / 2)], gain_map))(gain)
             arr = flats * gain * intensity
             arr = np.where(arr < bkg, bkg, arr)
             return np.array((1 - bad_flag) * (arr - bkg), dtype=np.uint16)
