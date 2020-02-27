@@ -6,7 +6,7 @@ from xicam.core import msg
 from xicam.plugins import ProcessingPlugin, Input, Output
 
 
-class CorrectImage(ProcessingPlugin):
+class CorrectFastCCDImage(ProcessingPlugin):
     images = Input(name="image", type=np.ndarray)
     flats = Input(name="flats", type=np.ndarray)
     darks = Input(name="darks", type=np.ndarray)

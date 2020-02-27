@@ -110,11 +110,11 @@ setup(
                       'SAXS = xicam.SAXS.SAXSGUIPlugin:SAXSPlugin'
                   ],
                   'xicam.plugins.ProcessingPlugin': [
-                      'CorrectImage = xicam.SAXS.processing.correction:CorrectImage'
+                      'CorrectFastCCDImage = xicam.SAXS.processing.correction:CorrectFastCCDImage'
                   ],
                   'xicam.plugins.SettingsPlugin': [
                       'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'
-                  ]}
+                  ]},
 
     ext_modules=[],
     include_package_data=True

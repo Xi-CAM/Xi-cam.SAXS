@@ -8,7 +8,7 @@ from ..processing.fitting import FitScatteringFactor
 from ..processing.fourierautocorrelator import FourierCorrelation
 from ..processing.onetime import OneTimeCorrelation
 from ..processing.twotime import TwoTimeCorrelation
-from ..processing.correction import CorrectImage
+from ..processing.correction import CorrectFastCCDImage
 
 
 class ProcessingAlgorithms:
@@ -58,7 +58,7 @@ class OneTimeAlgorithms(ProcessingAlgorithms):
 class XPCSWorkflow(Workflow):
     def __init__(self):
         super(XPCSWorkflow, self).__init__()
-        self.correct_image = CorrectImage()
+        self.correct_image = CorrectFastCCDImage()
         self.addProcess(self.correct_image)
 
 

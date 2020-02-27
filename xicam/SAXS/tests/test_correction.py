@@ -2,7 +2,7 @@ import pytest
 
 import numpy as np
 
-from xicam.SAXS.processing.correction import CorrectImage
+from xicam.SAXS.processing.correction import CorrectFastCCDImage
 
 # Try to compare against the csxtools implementation...
 # Differences:
@@ -28,8 +28,8 @@ TEST_CSX_TOOLS = True and CSX_TOOLS
 
 
 @pytest.fixture
-def op() -> CorrectImage:
-    op = CorrectImage()
+def op() -> CorrectFastCCDImage:
+    op = CorrectFastCCDImage()
     op.images.value = np.arange(24, dtype=np.uint16).reshape((4, 3, 2))
     return op
 
