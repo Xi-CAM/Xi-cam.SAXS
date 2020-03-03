@@ -32,7 +32,7 @@ class AstropyQSpectraFit(ProcessingPlugin):
 
     def __init__(self):
         super(AstropyQSpectraFit, self).__init__()
-        self.model.limits = {plugin.name: plugin.plugin_object for plugin in
+        self.model.limits = {plugin.name: plugin for plugin in
                              pluginmanager.getPluginsOfCategory('Fittable1DModelPlugin')}
         self.model.value = list(self.model.limits.values())[0]
 

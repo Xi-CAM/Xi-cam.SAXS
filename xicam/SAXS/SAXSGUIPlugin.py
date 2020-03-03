@@ -50,8 +50,8 @@ class SAXSPlugin(GUIPlugin):
         self.roiworkflow = ROIWorkflow()
 
         # Grab the calibration plugin
-        self.calibrationsettings = pluginmanager.getPluginByName('xicam.SAXS.calibration',
-                                                                 'SettingsPlugin').plugin_object
+        self.calibrationsettings = pluginmanager.get_plugin_by_name('xicam.SAXS.calibration',
+                                                                    'SettingsPlugin')
 
         # Setup TabViews
         # FIXME -- rework how fields propagate to displays (i.e. each image has its own detector, switching
@@ -73,7 +73,7 @@ class SAXSPlugin(GUIPlugin):
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
-        self.comparemultiview = QLabel("COMING SOON!") #SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
+        self.comparemultiview = QLabel("COMING SOON!")  # SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
 
         # Setup correlation views
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
@@ -204,7 +204,6 @@ class SAXSPlugin(GUIPlugin):
 
         return saxs_schema
 
-
     def appendCatalog(self, catalog: BlueskyRun, **kwargs):
         catalog.metadata.update(self.schema())
 
@@ -318,7 +317,8 @@ class SAXSPlugin(GUIPlugin):
         data = currentItem.data(Qt.UserRole)
         field = self.reducetoolbar.detectorcombobox.currentText()
         if not field: return
-        eventStream = getattr(currentItem.data(Qt.UserRole), stream).to_dask()[self.reducetoolbar.detectorcombobox.currentText()]
+        eventStream = getattr(currentItem.data(Qt.UserRole), stream).to_dask()[
+            self.reducetoolbar.detectorcombobox.currentText()]
         if eventStream.ndim > 3:
             eventStream = eventStream[0]
         data = MetaXArray(eventStream)
@@ -361,7 +361,7 @@ class SAXSPlugin(GUIPlugin):
         """
         pluginmaskclass = pluginmanager.getPluginByName('Polygon Mask', 'ProcessingPlugin')
         for process in workflow.processes:
-            if isinstance(process, pluginmaskclass.plugin_object):
+            if isinstance(process, pluginmaskclass):
                 if process.polygon.value is None:
                     self.startPolygonMasking(process)
                     return True
@@ -414,7 +414,6 @@ class SAXSPlugin(GUIPlugin):
         if len(viewer.maskROI.handles) > 1:
             viewer.maskROI.addSegment(viewer.maskROI.handles[-2]['item'], viewer.maskROI.handles[-1]['item'])
 
-
     def processOneTime(self):
         self.process(self.oneTimeProcessor, self.correlationView.currentWidget(),
                      finished_slot=self.updateDerivedDataModel)
@@ -426,7 +425,7 @@ class SAXSPlugin(GUIPlugin):
     def process(self, processor: CorrelationParameterTree, widget, **kwargs):
         if processor:
             roiFuture = self.roiworkflow.execute(data=self.correlationView.currentWidget().image[0],
-                                                 image=self.correlationView.currentWidget().imageItem) # Pass in single frame for data shape
+                                                 image=self.correlationView.currentWidget().imageItem)  # Pass in single frame for data shape
             roiResult = roiFuture.result()
             label = roiResult[-1]["roi"].value
             if label is None:
@@ -435,7 +434,8 @@ class SAXSPlugin(GUIPlugin):
 
             workflow = processor.workflow
             # FIXME -- don't grab first match
-            technique = [technique for technique in self.schema()['techniques'] if technique['technique'] == 'scattering'][0]
+            technique = \
+                [technique for technique in self.schema()['techniques'] if technique['technique'] == 'scattering'][0]
             stream, field = technique['data_mapping']['data_image']
             # TODO: the compute() takes a long time..., do we need to do this here? If so, show a progress bar...
             # Trim the data frames
