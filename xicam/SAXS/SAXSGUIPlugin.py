@@ -443,6 +443,7 @@ class SAXSPlugin(GUIPlugin):
             data = [getattr(catalog, stream).to_dask()[field][0].where(
                 DataArray(label, dims=["dim_1", "dim_2"]), drop=True).compute()]
             # Trim the dark images
+            msg.notifyMessage("Skipping dark correction...")
             darks = [None] * len(data)
             dark_stream, dark_field = technique['data_mapping']['dark_image']
             if stream in catalog:
@@ -467,14 +468,15 @@ class SAXSPlugin(GUIPlugin):
             else:
                 finishedSlot = self.updateDerivedDataModel
 
-            workflow_pickle = pickle.dumps(workflow)
+            # workflow_pickle = pickle.dumps(workflow)
             workflow.execute_all(None,
-                                 bitmasked_images=data,
-                                 dark_images=darks,
+                                 # data=data,
+                                 images=data,
+                                 darks=darks,
                                  labels=labels,
                                  finished_slot=partial(finishedSlot,
-                                                       workflow=workflow,
-                                                       workflow_pickle=workflow_pickle))
+                                                       workflow=workflow))
+                                                       # workflow_pickle=workflow_pickle))
 
     def updateDerivedDataModel(self, workflow, **kwargs):
         parentItem = CheckableItem(workflow.name)
@@ -484,3 +486,5 @@ class SAXSPlugin(GUIPlugin):
             item.setCheckable(True)
             parentItem.appendRow(item)
         self.derivedDataModel.appendRow(parentItem)
+
+
