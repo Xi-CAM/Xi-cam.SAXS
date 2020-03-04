@@ -359,7 +359,7 @@ class SAXSPlugin(GUIPlugin):
             True if unset polygonmask process is found
 
         """
-        pluginmaskclass = pluginmanager.getPluginByName('Polygon Mask', 'ProcessingPlugin')
+        pluginmaskclass = pluginmanager.get_plugin_by_name('Polygon Mask', 'ProcessingPlugin')
         for process in workflow.processes:
             if isinstance(process, pluginmaskclass):
                 if process.polygon.value is None:
