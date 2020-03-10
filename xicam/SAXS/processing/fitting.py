@@ -27,7 +27,6 @@ class ScatteringModel(Fittable1DModel):
 
 
 class FitScatteringFactor(ProcessingPlugin):
-    name = "Fit Scattering Factor"
 
     g2 = InputOutput(name='norm-0-g2',
                      description="normalized intensity-intensity time autocorrelation",
