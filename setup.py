@@ -8,13 +8,12 @@ Usage: pip install -e .
 from os import path
 from setuptools import find_namespace_packages, setup
 
-
 here = path.abspath(path.dirname(__file__))
 # get the dependencies and installs
 with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     all_reqs = f.read().split('\n')
 
-install_requires = [x.strip() for x in all_reqs]# if 'git+' not in x]
+install_requires = [x.strip() for x in all_reqs]  # if 'git+' not in x]
 
 setup(
     name='xicam.SAXS',
@@ -91,7 +90,7 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    package_data={'xicam.SAXS': ['*.yapsy-plugin', '*.yml']},
+    package_data={'xicam.SAXS': []},
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
@@ -103,18 +102,23 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    entry_points={'databroker.ingestors': [
-                      'application/edf = xicam.SAXS.formats.ingestors:edf_ingestor',
-                  ],
-                  'xicam.plugins.GUIPlugin': [
-                      'SAXS = xicam.SAXS.SAXSGUIPlugin:SAXSPlugin'
-                  ],
-                  'xicam.plugins.ProcessingPlugin': [
-                      'CorrectFastCCDImage = xicam.SAXS.processing.correction:CorrectFastCCDImage'
-                  ],
-                  'xicam.plugins.SettingsPlugin': [
-                      'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'
-                  ]},
+    entry_points={
+        'databroker.ingestors': [
+            'application/edf = xicam.SAXS.ingestors.ingestors:edf_ingestor',
+        ],
+        'xicam.plugins.GUIPlugin': [
+            'SAXS = xicam.SAXS.SAXSGUIPlugin:SAXSPlugin'
+        ],
+        'xicam.plugins.ProcessingPlugin': [
+            'CorrectFastCCDImage = xicam.SAXS.processing.correction:CorrectFastCCDImage',
+        ],
+        'xicam.plugins.OperationPlugin': [
+            "fourier_autocorrelation = xicam.SAXS.calibration.fourierautocorrelation:fourier_autocorrelation",
+            "naive_sdd = xicam.SAXS.calibration.naivesdd:naive_sdd"
+        ],
+        'xicam.plugins.SettingsPlugin': [
+            'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'
+        ]},
 
     ext_modules=[],
     include_package_data=True

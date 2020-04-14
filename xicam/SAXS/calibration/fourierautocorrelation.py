@@ -1,27 +1,52 @@
 import numpy as np
 from scipy import signal
-from xicam.plugins import ProcessingPlugin, Input, Output, InOut
+from xicam.plugins.operationplugin import OperationPlugin, output_names, display_name, describe_input, describe_output, \
+    categories
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
-class fourierAutocorrelation(ProcessingPlugin):
-    name = 'Fourier Autocorrelation'
 
-    data = Input(description='Calibrant frame image data',
-                 type=np.ndarray)
-    center = Output(description='Approximated position of the direct beam center')
-    ai = InOut(description='Azimuthal integrator; center will be modified in place', type=AzimuthalIntegrator)
+@OperationPlugin
+@output_names('beam_center', 'azimuthal_integrator')
+@display_name('Fourier Autocorrelation')
+@describe_input('data', "SAXS/WAXS calibrant image data")
+@describe_input('azimuthal_integrator', "The `AzimuthalIntegrator` to modify; center will be modified in place")
+@describe_output('beam_center', "Approximated position of the direct beam center")
+@describe_output('azimuthal_integrator',
+                 "The input `AzimuthalIntegrator` with its center shifted to the estimated center. If not provided, then `None`.")
+@categories(('Scattering', 'Calibration'))
+def fourier_autocorrelation(data: np.ndarray, azimuthal_integrator: AzimuthalIntegrator = None):
+    """
+    Estimate beam center of a SAXS/WAXS image using fourier autocorrelation. The validity of this technique depends on
+    having negligible camera tilt/rotation, and a significant fraction of at least one ring feature.
 
-    def evaluate(self):
-        mask = self.ai.value.detector.mask
-        data = np.array(self.data.value)
-        if isinstance(mask, np.ndarray) and mask.shape == self.data.value.shape:
-            data = data * (1 - mask)
+    Parameters
+    ----------
+    data: np.ndarray
+        SAXS/WAXS calibrant image data
+    azimuthal_integrator: Optional[AzimuthalIntegrator]
+        The `AzimuthalIntegrator` to modify; center will be modified in place
 
-        con = signal.fftconvolve(data, data) / np.sqrt(
-            signal.fftconvolve(np.ones_like(self.data.value), np.ones_like(self.data.value)))
+    Returns
+    -------
+    Tuple[float]
+        Approximated position of the direct beam center
+    Union[AzimuthalIntegrator, None]
+        The input `AzimuthalIntegrator` with its center shifted to the estimated center. If not provided, then `None`.
 
-        self.center.value = np.array(np.unravel_index(con.argmax(), con.shape)) / 2.
-        fit2dparams = self.ai.value.getFit2D()
-        fit2dparams['centerX'] = self.center.value[1]
-        fit2dparams['centerY'] = self.center.value[0]
-        self.ai.value.setFit2D(**fit2dparams)
+    """
+
+    mask = azimuthal_integrator.detector.mask
+    data = np.array(data)
+    if mask is not None and mask.shape == data.shape:
+        data = data * (1 - mask)
+
+    con = signal.fftconvolve(data, data) / np.sqrt(
+        signal.fftconvolve(np.ones_like(data), np.ones_like(data)))
+
+    center = np.array(np.unravel_index(con.argmax(), con.shape)) / 2.
+    fit2dparams = azimuthal_integrator.getFit2D()
+    fit2dparams['centerX'] = center[1]
+    fit2dparams['centerY'] = center[0]
+    azimuthal_integrator.setFit2D(**fit2dparams)
+
+    return center, azimuthal_integrator
