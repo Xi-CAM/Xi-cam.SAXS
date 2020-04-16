@@ -1,5 +1,5 @@
 from xicam.plugins.operationplugin import OperationPlugin, output_names, describe_input, \
-                                          describe_output, display_name, categories
+                                          describe_output, categories
 from functools import partial
 import numpy as np
 

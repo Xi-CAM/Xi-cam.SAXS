@@ -1,12 +1,17 @@
-from xicam.plugins import ProcessingPlugin, Input, Output, InOut
+from xicam.plugins.operationplugin import OperationPlugin, describe_input, \
+                                          describe_output, output_names, categories
 import numpy as np
 
 
-class ArrayTranspose(ProcessingPlugin):
-    data = InOut(description='Input array.', type=np.ndarray)
-    axes = Input(
-        description='By default, reverse the dimensions, otherwise permute the axes according to the values given.',
-        type=np.array)
+@OperationPlugin
+@describe_input('data', 'Input array of two or more dimensions')
+@describe_input('axes', 'Axes to define transformation plane')
+@describe_output('data', 'Transposed output array same dimensions as input array')
+@output_names('data')
+@categories('Transformations')
 
-    def evaluate(self):
-        self.data.value = np.transpose(self.data.value, self.axes.value)
+def transpose_array(data: np.ndarray,
+                    axes: np.ndarray) -> np.ndarray:
+    data = np.transpose(data, axes)
+    return data
+
