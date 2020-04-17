@@ -1,4 +1,4 @@
-from xicam.plugins import EZProcessingPlugin, Input, Output
+from xicam.plugins.operationplugin import operation
 import numpy as np
 
-sum = EZProcessingPlugin(np.sum)
+sum = operation(np.sum, name="Sum", categories=(("General", "Mathematics"),))

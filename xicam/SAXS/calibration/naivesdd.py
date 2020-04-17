@@ -1,5 +1,5 @@
 import numpy as np
-from xicam.plugins.operationplugin import OperationPlugin, output_names, display_name, describe_input, describe_output, \
+from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories
 from pyFAI import calibrant
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
@@ -9,7 +9,7 @@ from scipy import signal
 # TODO: use Multigeometry
 
 
-@OperationPlugin
+@operation
 @output_names('azimuthal_integrator')
 @display_name('Sample-Detector Distance estimation (Naive)')
 @describe_input('data', 'Calibrant frame image data')

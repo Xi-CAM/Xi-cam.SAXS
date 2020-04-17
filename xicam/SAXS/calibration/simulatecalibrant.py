@@ -1,11 +1,11 @@
-from xicam.plugins.operationplugin import OperationPlugin, output_names, display_name, describe_input, describe_output, \
+from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories
 from pyFAI import calibrant
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 import numpy as np
 
 
-@OperationPlugin
+@operation
 @display_name('Simulate Calibrant')
 @output_names('data')
 @describe_output('data', 'Simulated calibrant image data')

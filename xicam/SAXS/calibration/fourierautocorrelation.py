@@ -1,11 +1,11 @@
 import numpy as np
 from scipy import signal
-from xicam.plugins.operationplugin import OperationPlugin, output_names, display_name, describe_input, describe_output, \
+from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
-@OperationPlugin
+@operation
 @output_names('beam_center', 'azimuthal_integrator')
 @display_name('Fourier Autocorrelation')
 @describe_input('data', "SAXS/WAXS calibrant image data")

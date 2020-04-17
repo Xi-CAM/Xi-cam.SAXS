@@ -1,4 +1,3 @@
-import cloudpickle as pickle
 from functools import partial
 
 from databroker.core import BlueskyRun

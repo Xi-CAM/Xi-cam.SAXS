@@ -114,7 +114,13 @@ setup(
         ],
         'xicam.plugins.OperationPlugin': [
             "fourier_autocorrelation = xicam.SAXS.calibration.fourierautocorrelation:fourier_autocorrelation",
-            "naive_sdd = xicam.SAXS.calibration.naivesdd:naive_sdd"
+            "naive_sdd = xicam.SAXS.calibration.naivesdd:naive_sdd",
+            "array_transpose = xicam.SAXS.processing.arraytranspose:array_transpose",
+            "ricker_wavelet = xicam.SAXS.calibration.cwt:ricker_wavelet",
+            "simulate_calibrant = xicam.SAXS.calibration.simulatecalibrant:simulate_calibrant",
+            "cake_integrate = xicam.SAXS.processing.cakeintegrate:cake_integration",
+            "chi_integrate = xicam.SAXS.processing.chiintegrate:chi_integrate",
+            "rotate_array = xicam.SAXS.processing.arrayrotate:rotate_array",
         ],
         'xicam.plugins.SettingsPlugin': [
             'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'
