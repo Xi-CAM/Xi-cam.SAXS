@@ -1,10 +1,55 @@
 from xicam.plugins import ProcessingPlugin, Input, Output, InOut, PlotHint
+
 import numpy as np
 from astropy.modeling import fitting
 from astropy.modeling import Fittable1DModel
-from typing import Tuple
 from enum import Enum
+from typing import Union, Tuple
+from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
+    categories, plot_hint
 from xicam.plugins import manager as pluginmanager
+
+@operation
+@display_name('Q Fit (Astropy)')
+@output_names('fitted_model', 'fitting_algorithm')
+@describe_input('q', 'Q bin center positions')
+@describe_input('I_q', 'Q spectra bin intensities')
+@describe_input('model', 'Fittable model class in the style of Astropy')
+@describe_input('domain_min', 'Min bound on the domain of the input data')
+@describe_input('domain_max', 'Max bound on the domain of the input data')
+@describe_input('fitting_algorithm', 'Fitting algorithm from astropy')
+@describe_output('fitted_model', 'A new model with the fitted parameters; behaves as parameterized function')
+@describe_output('fitted_profile', 'The fitted profile from the evaluation of the resulting model over the input range.')
+@plot_hint('q', 'I_q', name='Intensity over q')
+@plot_hint('q', 'fitted_profile', name='fitted profile over q')
+
+
+def astropy_q_spectra_fit(q: np.ndarray,
+                          I_q: np.ndarray,
+                          model: Enum,
+                          domain_min: float,
+                          domain_max: float,
+                          fitting_algorithm: Enum = fitting.LevMarLSQFitter):
+
+    if model is None or model == '----': return
+    norange = domain_min == domain_max
+    if domain_min is None and q is not None or norange:  # truncate the q and I arrays with limits
+        domain_min = q.min()
+    if domain_max is None and q is not None or norange:  # truncate the q and I arrays with limits
+        domain_max = q.max()
+    for name, input in modelvars.items():  # propogate user-defined values to the model
+        getattr(model, name) = input
+        getattr(model, name).fixed = input.fixed
+    filter = np.logical_and(domain_min <= q, q <= domain_max)
+    q = q[filter]
+    I_q = I_q[filter]
+    fitted_model = fitting_algorithm(model, q, I_q)
+    fitted_profile = fitted_model(q)
+    modelvars = {}
+
+    return fitted_model, fitted_profile
+
+#TODO: Are parameter() and reset_parameter() still required?
 
 
 class AstropyQSpectraFit(ProcessingPlugin):
@@ -30,6 +75,8 @@ class AstropyQSpectraFit(ProcessingPlugin):
 
     modelvars = {}
 
+   
+   
     def __init__(self):
         super(AstropyQSpectraFit, self).__init__()
         self.model.limits = {plugin.name: plugin for plugin in

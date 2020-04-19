@@ -1,12 +1,21 @@
-from xicam.plugins import ProcessingPlugin, Input, Output
+from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
+    categories, plot_hint
 import numpy as np
 
 
-class chisquared(ProcessingPlugin):
-    dataA = Input(description='Frame A image data', type=np.ndarray)
-    dataB = Input(description='Frame B image data', type=np.ndarray)
+@operation
+@display_name('Chi squared')
+@output_names('chi_squared')
+@describe_input('dataA', 'Frame A image data')
+@describe_input('dataB', 'Frame B image data')
+@describe_output('chi_squared', 'Chi-squared difference between consecutive frames')
+@categories(('General', 'Mathematics'))
 
-    chisquared = Output(description='Chi-squared difference between consecutive frames')
 
-    def evaluate(self):
-        self.chisquared.value = (self.dataA.value - self.dataB.value) ** 2.
+def chi_squared(dataA: np.ndarray,
+                dataB: np.ndarray) -> np.ndarray:
+    chi_squared = (dataA - dataB) ** 2.and
+    
+    return chi_squared
+
+
