@@ -1,16 +1,7 @@
-from xicam.plugins import ProcessingPlugin, Input, Output, InOut
+from xicam.plugins.operationplugin import operation
 import numpy as np
 from pyFAI.ext.reconstruct import reconstruct
 
+inpaint = operation(reconstruct, name='Inpaint (pyFAI.ext.reconstruct)')
+#TODO: add categories
 
-class InPaint(ProcessingPlugin):
-    name = 'Inpaint (pyFAI)'
-
-    data = InOut(description='2d array representing intensity for each pixel',
-                 type=np.ndarray)
-    mask = Input(description='Array (same size as image) with 1 for masked pixels, and 0 for valid pixels',
-                 type=np.ndarray)
-    inpaint = Output(description='2d array with masking pixels ''reconstructed''', type=np.ndarray)
-
-    def evaluate(self):
-        self.inpaint.value = reconstruct(self.data.value, self.mask.value)

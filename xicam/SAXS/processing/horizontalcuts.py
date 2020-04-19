@@ -1,21 +1,28 @@
-from xicam.plugins import ProcessingPlugin, Input, Output
+rom xicam.plugins.operationplugin import operation, output_names, \
+                                         display_name, describe_input, \
+                                         describe_output, categories
 import numpy as np
 
+@operation
+@display_name("Horizontal Cut")
+@output_names('horizontal_cut')
+@describe_input('data', 'Frame image data')
+@describe_input('q_x', 'horizontal q coordinate corresponding to data')
+@describe_input('mask', 'Frame image data')
+@describe_input('q_x_min', 'horizontal q minimum limit')
+@describe_input('q_x_max', 'horizontal q maximum limit')
+@describe_output('horizontal_cut', 'mask (1 is masked) with dimension of data')
+#TODO: add categories
 
-class HorizontalCutPlugin(ProcessingPlugin):
-    data = Input(description='Frame image data', type=np.ndarray)
-    qx = Input(description='qx coordinate corresponding to data', type=np.ndarray)
-    mask = Input(description='Frame image data', type=np.ndarray, default=None)
+def horizontal_cut(data: np.ndarray,
+                   q_x: np.ndarray,
+                   mask: np.ndarray = None,
+                   q_x_min: int,
+                   q_x_max: int) -> np.ndarray:
+    if mask is not None:
+        horizontal_cut = np.logical_or(mask, q_x < q_x_min, q_x > q_x_max)
+    else:
+        horizontal_cut = np.logical_or(q_x < q_x_min, q_x > q_x_max)
+    return horizontal_cut
 
-    # Make qx range a single parameter, type = tuple
-    qxminimum = Input(description='qx minimum limit', type=int)
-    qxmaximum = Input(description='qx maximum limit', type=int)
 
-    horizontalcut = Output(description='mask (1 is masked) with dimension of data', type=np.ndarray)
-
-    def evaluate(self):
-        if self.mask.value is not None:
-            self.horizontalcut.value = np.logical_or(self.mask.value, self.qx < self.qxminimum.value,
-                                                     self.qx > self.qxmaximum.value)
-        else:
-            self.horizontalcut.value = np.logical_or(self.qx < self.qxminimum.value, self.qx > self.qxmaximum.value)
