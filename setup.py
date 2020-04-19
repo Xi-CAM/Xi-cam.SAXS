@@ -120,7 +120,13 @@ setup(
             "simulate_calibrant = xicam.SAXS.calibration.simulatecalibrant:simulate_calibrant",
             "cake_integrate = xicam.SAXS.processing.cakeintegrate:cake_integration",
             "chi_integrate = xicam.SAXS.processing.chiintegrate:chi_integrate",
-            "rotate_array = xicam.SAXS.processing.arrayrotate:rotate_array",
+            "array_rotate = xicam.SAXS.processing.arrayrotate:array_rotate",
+            "one_time_correlation = xicam.SAXS.processing.ontime:one_time_correlation",
+            "fit_scattering_factor = xicam.SAXS.processing.fitting:fit_scattering_factor",
+            "correct_fastccd_image = xicam.SAXS.processing.correction:correct_fastccd_image",
+            "chi_squared = xicam.SAXS.processing.chisquared:chi_squared"
+            "xicam.SAXS.processing = xicam.SAXS.processing.astropyfit:xicam.SAXS.processing",
+            "q_integrate = xicam.SAXS.processing.electron_density_cor_func:q_integrate"
         ],
         'xicam.plugins.SettingsPlugin': [
             'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'

@@ -14,7 +14,7 @@ import numpy as np
 
 def chi_squared(dataA: np.ndarray,
                 dataB: np.ndarray) -> np.ndarray:
-    chi_squared = (dataA - dataB) ** 2.and
+    chi_squared = (dataA - dataB) ** 2.
     
     return chi_squared
 
