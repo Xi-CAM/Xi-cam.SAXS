@@ -3,6 +3,7 @@ rom xicam.plugins.operationplugin import operation, output_names, \
                                          describe_output, categories
 import numpy as np
 
+#TODO: Delete horizontalcuts.py, seems unused.
 @operation
 @display_name("Horizontal Cut")
 @output_names('horizontal_cut')

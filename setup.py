@@ -126,7 +126,7 @@ setup(
             "correct_fastccd_image = xicam.SAXS.processing.correction:correct_fastccd_image",
             "chi_squared = xicam.SAXS.processing.chisquared:chi_squared"
             "xicam.SAXS.processing = xicam.SAXS.processing.astropyfit:xicam.SAXS.processing",
-            "q_integrate = xicam.SAXS.processing.electron_density_cor_func:q_integrate",
+            "q_integrate = xicam.SAXS.processing.qintegrate:q_integrate",
             "fourier_correlation = xicam.SAXS.processing.fourierautocorrelator:fourier_correlation",
             "inpaint = xicam.SAXS.processing.inpaint:inpaint",
             "horizontal_cut = xicam.SAXS.processing.horizontalcuts:horizontal_cut"

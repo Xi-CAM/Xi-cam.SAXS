@@ -3,7 +3,7 @@ import numpy as np
 from pyFAI import units
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
-
+#TODO Check if this moduel should be deleted as it duplicates qintegrate.py
 class QIntegratePlugin(ProcessingPlugin):
     integrator = Input(description='A PyFAI.AzimuthalIntegrator object',
                        type=AzimuthalIntegrator)
