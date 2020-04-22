@@ -121,6 +121,8 @@ setup(
             "cake_integrate = xicam.SAXS.processing.cakeintegrate:cake_integration",
             "chi_integrate = xicam.SAXS.processing.chiintegrate:chi_integrate",
             "rotate_array = xicam.SAXS.processing.arrayrotate:rotate_array",
+            "x_integrate = xicam.SAXS.processing.xintegrate:x_integrate",
+            "z_integrate = xicam.SAXS.processing.zintegrate:z_integrate"
         ],
         'xicam.plugins.SettingsPlugin': [
             'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'
