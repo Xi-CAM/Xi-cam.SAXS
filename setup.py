@@ -129,7 +129,8 @@ setup(
             "q_integrate = xicam.SAXS.processing.qintegrate:q_integrate",
             "fourier_correlation = xicam.SAXS.processing.fourierautocorrelator:fourier_correlation",
             "inpaint = xicam.SAXS.processing.inpaint:inpaint",
-            "horizontal_cut = xicam.SAXS.processing.horizontalcuts:horizontal_cut"
+            "q_conversion_gisaxs = xicam.SAXS.processing.qconversiongisaxs.py:q_conversion_gisaxs"
+            "q_conversion_saxs = xicam.SAXS.processing.qconversionsaxs.py:q_conversion_saxs"
 
         ],
         'xicam.plugins.SettingsPlugin': [

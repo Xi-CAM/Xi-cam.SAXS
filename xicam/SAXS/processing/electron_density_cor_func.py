@@ -1,9 +1,10 @@
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories
+    categories, plot_hint
 import numpy as np
 from pyFAI import units
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
+#TODO Check if this moduel should be deleted as it duplicates qintegrate.py
 @operation
 @display_name('q Integration')
 @output_names('q', 'I')
@@ -51,6 +52,6 @@ def q_integrate(integrator: AzimuthalIntegrator,
                                   method=method,
                                   unit=unit,
                                   normalization_factor=normalization_factor)   
-    retun q, I           
+    return q, I           
     
 
