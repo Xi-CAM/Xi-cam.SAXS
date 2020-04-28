@@ -1,15 +1,15 @@
-from xicam.plugins.operationplugin import operation, output_names, describe_input, \
+from xicam.plugins.operationplugin import operation, display_name, output_names, describe_input, \
     describe_output, categories
-from functools import partial
 import numpy as np
 
 
 @operation
+@display_name('FastCCD Correction')
 @describe_input('images', '3-dimensional input array containing 2-dimensional images')
 @describe_input('flats', '2-dimensional input array containing flat image data')
 @describe_input('darks', '3-dimensional input array containing 2-dimensional dark image data')
 @describe_input('gains', 'n-dimensional input array containing gain values')
-@output_names('corrected images')
+@output_names('corrected_images')
 @describe_output('corrected_images', 'Corrected fastccd image data')
 @categories(('Scattering', 'Calibration'))
 

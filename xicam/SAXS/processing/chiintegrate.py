@@ -24,6 +24,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_input("method", 'Can be "numpy", "cython", "BBox" or "splitpixel", "lut", "csr", "nosplit_csr", '
                           '"full_csr", "lut_ocl" and "csr_ocl" if you want to go on GPU. To Specify the device: '
                           '"csr_ocl_1,2"')
+@describe_input('normalization_factor', 'Value of a normalization monitor')
 @describe_output("chi", 'Q bin center positions')
 @describe_output("I", 'Binned/pixel-split integrated intensity')
 @plot_hint("chi", "I", name="Chi Integrate")

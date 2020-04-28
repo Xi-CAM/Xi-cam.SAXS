@@ -19,7 +19,7 @@ from xicam.plugins.hints import PlotHint
                  of averaged frames')
 @output_names('g2', 'tau')
 @describe_output('g2', 'Normalized g2 data array with shape = (len(lag_steps), num_rois)')
-@describe_output('lag_steps', 'array describing tau (lag steps)')
+@describe_output('tau', 'array describing tau (lag steps)')
                 
 
 def one_time_correlation(data: np.ndarray,

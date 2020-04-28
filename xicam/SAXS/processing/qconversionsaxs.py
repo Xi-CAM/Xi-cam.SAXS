@@ -1,24 +1,25 @@
-from xicam.plugins import ProcessingPlugin, Input, Output
+from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
+    categories, plot_hint
 import numpy as np
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
-class QconversionSAXS(ProcessingPlugin):
-    integrator = Input(description='A PyFAI.AzimuthalIntegrator object', type=AzimuthalIntegrator)
-    data = Input(description='Frame image data', type=np.ndarray)
+@operation
+@display_name('SAXS q conversion')
+@output_names('q_x', 'q_z')
+@describe_input('integrator', 'A PyFAI.AzimuthalIntegrator object')
+@describe_input('data', 'Frame image data')
+@describe_output('q_x', 'q_x array with dimension of data')
+@describe_output('q_y', 'q_y array with dimension of data')
+# TODO check categories
+@categories('Scattering', 'General Math, Transformation')
+def q_conversion_saxs(integrator: AzimuthalIntegrator,
+                      data: np.ndarray) -> np.ndarray:
+    chi = integrator.chiArray()
+    twotheta = integrator.twoThetaArray()
 
-    qx = Output(description='qx array with dimension of data', type=np.ndarray)
-    qz = Output(description='qz array with dimension of data', type=np.ndarray)
+    # TODO: Doble check what is chi = 0
+    q_x = 2 * np.pi / integrator.getvalue('Wavelength') * np.sin(twotheta) * np.sin(chi)
+    q_z = 2 * np.pi / integrator.getvalue('Wavelength') * np.sin(twotheta) * np.cos(chi)
 
-    def evaluate(self):
-        self.qx, self.qz = self.qconverion()
-
-    def qconverion(self):
-        chi = self.integrator.chiArray()
-        twotheta = self.integrator.twoThetaArray()
-
-        # Doble check what is chi = 0
-        qx = 2 * np.pi / self.integrator.getvalue('Wavelength') * np.sin(twotheta) * np.sin(chi)
-        qz = 2 * np.pi / self.integrator.getvalue('Wavelength') * np.sin(twotheta) * np.cos(chi)
-
-        return qx, qz
+    return q_x, q_z
