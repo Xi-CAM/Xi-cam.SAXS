@@ -1,6 +1,4 @@
 from xicam.core.execution.workflow import Workflow
-from xicam.SAXS.processing.arrayrotate import ArrayRotate
-from xicam.SAXS.processing.arraytranspose import ArrayTranspose
 from .qintegrate import QIntegratePlugin
 from .chiintegrate import ChiIntegratePlugin
 from .xintegrate import XIntegratePlugin
