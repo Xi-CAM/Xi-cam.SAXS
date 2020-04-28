@@ -1,9 +1,10 @@
-from xicam.plugins.operationplugin import OperationPlugin, output_names, describe_input, \
-                                          describe_output, categories
+from xicam.plugins.operationplugin import operation, output_names, describe_input, \
+    describe_output, categories
 from functools import partial
 import numpy as np
 
-@OperationPlugin
+
+@operation
 @describe_input('images', '3-dimensional input array containing 2-dimensional images')
 @describe_input('flats', '2-dimensional input array containing flat image data')
 @describe_input('darks', '3-dimensional input array containing 2-dimensional dark image data')
