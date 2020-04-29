@@ -121,7 +121,8 @@ setup(
             "cake_integrate = xicam.SAXS.processing.cakeintegrate:cake_integration",
             "chi_integrate = xicam.SAXS.processing.chiintegrate:chi_integrate",
             "array_rotate = xicam.SAXS.processing.arrayrotate:array_rotate",
-            "one_time_correlation = xicam.SAXS.processing.ontime:one_time_correlation",
+            "one_time_correlation = xicam.SAXS.processing.onetime:one_time_correlation",
+            "two_time_correlation = xicam.SAXS.processing.twotime:two_time_correlation",
             "fit_scattering_factor = xicam.SAXS.processing.fitting:fit_scattering_factor",
             "correct_fastccd_image = xicam.SAXS.processing.correction:correct_fastccd_image",
             "chi_squared = xicam.SAXS.processing.chisquared:chi_squared"
@@ -132,7 +133,9 @@ setup(
             "q_conversion_gisaxs = xicam.SAXS.processing.qconversiongisaxs.py:q_conversion_gisaxs"
             "q_conversion_saxs = xicam.SAXS.processing.qconversionsaxs.py:q_conversion_saxs"
             "x_integrate = xicam.SAXS.processing.xintegrate:x_integrate",
-            "z_integrate = xicam.SAXS.processing.zintegrate:z_integrate"
+            "z_integrate = xicam.SAXS.processing.zintegrate:z_integrate",
+            "porod_plot = xicam.SAXS.processing.porod_plot:porod_plot",
+            "guinier_plot = xicam.SAXS.processing.guinier_plot:guinier_plot"
         ],
         'xicam.plugins.Fittable1DModelPlugin': [
             'Gaussian1D = xicam.SAXS.models.gaussian1d:Gaussian1D'

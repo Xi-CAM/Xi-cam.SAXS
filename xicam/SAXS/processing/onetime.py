@@ -1,8 +1,8 @@
 from xicam.plugins.operationplugin import OperationPlugin, describe_input, describe_output, \
-                                          input_names, output_names, display_name, categories  
+                        input_names, output_names, display_name, categories, plot_hint 
 import numpy as np
 import skbeam.core.correlation as corr
-from xicam.plugins.hints import PlotHint
+
 
 @OperationPlugin
 @display_name('1-time Correlation')
@@ -20,7 +20,7 @@ from xicam.plugins.hints import PlotHint
 @output_names('g2', 'tau')
 @describe_output('g2', 'Normalized g2 data array with shape = (len(lag_steps), num_rois)')
 @describe_output('tau', 'array describing tau (lag steps)')
-                
+@plot_hint('tau', 'g2', '1-time Correlation')
 
 def one_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
