@@ -18,6 +18,7 @@ from typing import Union, Tuple
 @describe_input('correlation_threshold', 'threshold defining which g2 values to fit')
 @describe_output('fit_curve', 'Fitted model of the g2 curve')
 @describe_output('relaxation_rate', 'Relaxation time associated with the samples dynamics')
+#TODO: check syntax plot_hint and add labels
 @plot_hint('tau', 'g2', 'one-time correlation')
 @plot_hint('tau', 'g2 fit curve', 'one-time correlation fit')
 @categories(('Scattering', 'Fitting'))
