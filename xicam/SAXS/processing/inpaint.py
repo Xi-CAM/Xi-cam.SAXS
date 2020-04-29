@@ -3,5 +3,4 @@ import numpy as np
 from pyFAI.ext.reconstruct import reconstruct
 
 inpaint = operation(reconstruct, name='Inpaint (pyFAI.ext.reconstruct)')
-#TODO: add categories
-
+# TODO: add categories

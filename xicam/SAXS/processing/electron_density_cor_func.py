@@ -4,7 +4,8 @@ import numpy as np
 from pyFAI import units
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
-#TODO Check if this moduel should be deleted as it duplicates qintegrate.py
+
+# TODO Check if this moduel should be deleted as it duplicates qintegrate.py
 @operation
 @display_name('q Integration')
 @output_names('q', 'I')
@@ -28,19 +29,18 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_output('I', 'Binned/pixel-split integrated intensity')
 @plot_hint("q", "I", name="q Integrate")
 @categories(("Scattering", "Integration"))
-
 def q_integrate(integrator: AzimuthalIntegrator,
-                  data: np.ndarray,
-                  npt: int = 1000,
-                  polz_factor: float = 0,
-                  unit: Union[str, units.Unit] = "q_A^-1",
-                  radial_range: Tuple[float, float] = None,
-                  azimuth_range: Tuple[float, float] = None,
-                  mask: np.ndarray = None,
-                  dark: np.ndarray = None,
-                  flat: np.ndarray = None,
-                  method: str = 'splitbbox',
-                  normalization_factor: float = 1, ) -> Tuple[np.ndarray, np.ndarray]:
+                data: np.ndarray,
+                npt: int = 1000,
+                polz_factor: float = 0,
+                unit: Union[str, units.Unit] = "q_A^-1",
+                radial_range: Tuple[float, float] = None,
+                azimuth_range: Tuple[float, float] = None,
+                mask: np.ndarray = None,
+                dark: np.ndarray = None,
+                flat: np.ndarray = None,
+                method: str = 'splitbbox',
+                normalization_factor: float = 1, ) -> Tuple[np.ndarray, np.ndarray]:
     q, I = integrator.integrate1d(data=data,
                                   npt=npt,
                                   radial_range=radial_range,
@@ -51,7 +51,5 @@ def q_integrate(integrator: AzimuthalIntegrator,
                                   flat=flat,
                                   method=method,
                                   unit=unit,
-                                  normalization_factor=normalization_factor)   
-    return q, I           
-    
-
+                                  normalization_factor=normalization_factor)
+    return q, I

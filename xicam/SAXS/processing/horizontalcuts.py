@@ -1,9 +1,12 @@
-rom xicam.plugins.operationplugin import operation, output_names, \
-                                         display_name, describe_input, \
-                                         describe_output, categories
+rom
+xicam.plugins.operationplugin
+import operation, output_names, \
+    display_name, describe_input, \
+    describe_output, categories
 import numpy as np
 
-#TODO: Delete horizontalcuts.py, seems unused.
+
+# TODO: Delete horizontalcuts.py, seems unused.
 @operation
 @display_name("Horizontal Cut")
 @output_names('horizontal_cut')
@@ -13,7 +16,7 @@ import numpy as np
 @describe_input('q_x_min', 'horizontal q minimum limit')
 @describe_input('q_x_max', 'horizontal q maximum limit')
 @describe_output('horizontal_cut', 'mask (1 is masked) with dimension of data')
-#TODO: add categories
+# TODO: add categories
 
 def horizontal_cut(data: np.ndarray,
                    q_x: np.ndarray,
@@ -25,5 +28,3 @@ def horizontal_cut(data: np.ndarray,
     else:
         horizontal_cut = np.logical_or(q_x < q_x_min, q_x > q_x_max)
     return horizontal_cut
-
-

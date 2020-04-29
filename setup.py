@@ -110,7 +110,7 @@ setup(
             'SAXS = xicam.SAXS.SAXSGUIPlugin:SAXSPlugin'
         ],
         'xicam.plugins.ProcessingPlugin': [
-            'CorrectFastCCDImage = xicam.SAXS.processing.correction:CorrectFastCCDImage',
+            'CorrectFastCCDImage = xicam.SAXS.processing.correction:correct_fastccd_image',
         ],
         'xicam.plugins.OperationPlugin': [
             "fourier_autocorrelation = xicam.SAXS.calibration.fourierautocorrelation:fourier_autocorrelation",
@@ -131,7 +131,11 @@ setup(
             "inpaint = xicam.SAXS.processing.inpaint:inpaint",
             "q_conversion_gisaxs = xicam.SAXS.processing.qconversiongisaxs.py:q_conversion_gisaxs"
             "q_conversion_saxs = xicam.SAXS.processing.qconversionsaxs.py:q_conversion_saxs"
-
+            "x_integrate = xicam.SAXS.processing.xintegrate:x_integrate",
+            "z_integrate = xicam.SAXS.processing.zintegrate:z_integrate"
+        ],
+        'xicam.plugins.Fittable1DModelPlugin': [
+            'Gaussian1D = xicam.SAXS.models.gaussian1d:Gaussian1D'
         ],
         'xicam.plugins.SettingsPlugin': [
             'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'

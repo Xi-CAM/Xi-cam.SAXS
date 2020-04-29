@@ -8,11 +8,12 @@ from xicam.plugins.operationplugin import operation, output_names, display_name,
     categories, plot_hint
 from typing import Union, Tuple
 
+
 @operation
 @display_name('Fit Scattering Factor')
 @output_names('fit_curve', 'relaxation_rate')
-@describe_input('g2', 'Normalized intensity-intensity time autocorrelation' )
-@describe_input('lag_steps', 'delay time' )
+@describe_input('g2', 'Normalized intensity-intensity time autocorrelation')
+@describe_input('lag_steps', 'delay time')
 @describe_input('beta', 'Optical contrast (speckle contrast), a sample-independent beamline parameter')
 @describe_input('baseline', 'baseline of one time correlation equal to one for ergodic samples')
 @describe_input('correlation_threshold', 'threshold defining which g2 values to fit')
@@ -22,13 +23,11 @@ from typing import Union, Tuple
 @plot_hint('tau', 'g2', 'one-time correlation')
 @plot_hint('tau', 'g2 fit curve', 'one-time correlation fit')
 @categories(('Scattering', 'Fitting'))
-
 def fit_scattering_factor(g2: np.ndarray,
                           lag_steps: np.ndarray,
                           beta: float = 1.0,
                           baseline: float = 1.0,
                           correlation_threshold: float = 1.5) -> Tuple[np.ndarray, float]:
-    
     relaxation_rate = 0.01  # Some initial guess
     model = ScatteringModel(beta, baseline, relaxation_rate=relaxation_rate)
     fitting_algorithm = fitting.SLSQPLSQFitter()
