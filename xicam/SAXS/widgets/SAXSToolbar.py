@@ -5,7 +5,7 @@ from qtpy.QtGui import *
 from xicam.plugins.widgetplugin import QWidgetPlugin
 from xicam.gui.static import path
 from xicam.core.execution.workflow import Workflow
-from xicam.plugins import ProcessingPlugin, Output
+from xicam.plugins import OperationPlugin
 from xicam.gui.widgets.menuview import MenuView
 from xicam.gui.widgets.ROI import ArcROI, LineROI, BetterPolyLineROI, RectROI, SegmentedRectROI
 from xicam.plugins import Hint
@@ -214,12 +214,12 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
 
     def index(self, row, column, parent=None):
         if parent is None or not parent.isValid():
-            if row > len(self.workflow.processes) - 1: return QModelIndex()
-            return self.createIndex(row, column, self.workflow.processes[row])
+            if row > len(self.workflow.operations) - 1: return QModelIndex()
+            return self.createIndex(row, column, self.workflow.operations[row])
 
         parentNode = parent.internalPointer()
 
-        if isinstance(parentNode, ProcessingPlugin):
+        if isinstance(parentNode, OperationPlugin):
             return self.createIndex(row, column, parentNode.hints[row])
         return QModelIndex()
 
@@ -227,21 +227,21 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
         if not index.isValid():
             return QModelIndex()
         node = index.internalPointer()
-        if isinstance(node, ProcessingPlugin):
+        if isinstance(node, OperationPlugin):
             return QModelIndex()
         if isinstance(node, Hint):
-            if node.parent not in self.workflow.processes: return QModelIndex()
-            return self.createIndex(self.workflow.processes.index(node.parent), 0, node.parent)
+            if node.parent not in self.workflow.operations: return QModelIndex()
+            return self.createIndex(self.workflow.operations.index(node.parent), 0, node.parent)
 
         return QModelIndex()
 
     def rowCount(self, parent=None, *args, **kwargs):
 
         if parent is None or not parent.isValid():
-            return len(self.workflow.processes)
+            return len(self.workflow.operations)
 
         node = parent.internalPointer()
-        if isinstance(node, ProcessingPlugin):
+        if isinstance(node, OperationPlugin):
             return len(node.hints)
 
         return 0
