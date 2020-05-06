@@ -4,11 +4,11 @@ import event_model
 
 from xicam.core.execution import Workflow
 
-from ..processing.fitting import FitScatteringFactor
-from ..processing.fourierautocorrelator import FourierCorrelation
-from ..processing.onetime import OneTimeCorrelation
-from ..processing.twotime import TwoTimeCorrelation
-from ..processing.correction import CorrectFastCCDImage
+from ..processing.fitting import fit_scattering_factor
+from ..processing.fourierautocorrelator import fourier_correlation
+from ..processing.onetime import one_time_correlation
+from ..processing.twotime import two_time_correlation
+from ..processing.correction import correct_fastccd_image
 
 
 class ProcessingAlgorithms:
@@ -58,8 +58,8 @@ class OneTimeAlgorithms(ProcessingAlgorithms):
 class XPCSWorkflow(Workflow):
     def __init__(self):
         super(XPCSWorkflow, self).__init__()
-        self.correct_image = CorrectFastCCDImage()
-        self.addProcess(self.correct_image)
+        self.correct_image = correct_fastccd_image()
+        self.add_operation(self.correct_image)
 
 
 class TwoTime(XPCSWorkflow):
@@ -67,9 +67,9 @@ class TwoTime(XPCSWorkflow):
 
     def __init__(self):
         super(TwoTime, self).__init__()
-        twotime = TwoTimeCorrelation()
-        self.addProcess(twotime)
-        self.correct_image.outputs['corrected_images'].connect(twotime.inputs['data'])
+        twotime = two_time_correlation()
+        self.add_operation(twotime)
+        self.add_link(self.correct_image, twotime, 'corrected_images', 'data')
 
     @staticmethod
     def document(**kwargs):
@@ -86,7 +86,7 @@ class TwoTime(XPCSWorkflow):
 
         peek_result = results[0]
         g2_shape = peek_result['g2'].value.shape[0]
-        tau_shape = peek_result['lag_steps'].value.shape[0]
+        tau_shape = peek_result['tau'].value.shape[0]
         workflow = []
         workflow_shape = len(workflow)
 
@@ -120,7 +120,7 @@ class TwoTime(XPCSWorkflow):
         for result in results:
             yield 'event', reduced_stream_bundle.compose_event(
                 data={'norm-0-g2': result['g2'].value,
-                      'tau': result['lag_steps'].value,
+                      'tau': result['tau'].value,
                       'dqlist': roi,
                       'workflow': workflow},
                 timestamps={'norm-0-g2': timestamp,
@@ -137,14 +137,14 @@ class OneTime(XPCSWorkflow):
 
     def __init__(self):
         super(OneTime, self).__init__()
-        onetime = OneTimeCorrelation()
-        self.addProcess(onetime)
-        fitting = FitScatteringFactor()
-        self.addProcess(fitting)
+        onetime = one_time_correlation()
+        self.add_operation(onetime)
+        fitting = fit_scattering_factor()
+        self.add_operation(fitting)
         # Manually set up connections
-        self.correct_image.outputs['corrected_images'].connect(onetime.inputs['data'])
-        onetime.outputs['g2'].connect(fitting.inputs['g2'])
-        onetime.outputs['lag_steps'].connect(fitting.inputs['lag_steps'])
+        self.add_link(self.correct_image, onetime, "corrected_images", "data")
+        self.add_link(onetime, fitting, "g2", "g2")
+        self.add_link(onetime, fitting, "tau", "tau")
 
     @staticmethod
     def document(**kwargs):
@@ -164,7 +164,7 @@ class OneTime(XPCSWorkflow):
         import numpy as np
         g2_err = np.zeros(g2_shape)
         g2_err_shape = g2_shape
-        tau_shape = peek_result['lag_steps'].value.shape[0]
+        tau_shape = peek_result['tau'].value.shape[0]
         workflow = []
         workflow_shape = len(workflow)
 
@@ -201,7 +201,7 @@ class OneTime(XPCSWorkflow):
             yield 'event', reduced_stream_bundle.compose_event(
                 data={'norm-0-g2': result['g2'].value,
                       'norm-0-stderr': g2_err,
-                      'tau': result['lag_steps'].value,
+                      'tau': result['tau'].value,
                       'g2avgFIT1': result['fit_curve'].value,
                       'dqlist': roi,
                       'workflow': workflow},
