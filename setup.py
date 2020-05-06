@@ -135,7 +135,8 @@ setup(
             "x_integrate = xicam.SAXS.processing.xintegrate:x_integrate",
             "z_integrate = xicam.SAXS.processing.zintegrate:z_integrate",
             "porod_plot = xicam.SAXS.processing.porod_plot:porod_plot",
-            "guinier_plot = xicam.SAXS.processing.guinier_plot:guinier_plot"
+            "guinier_plot = xicam.SAXS.processing.guinier_plot:guinier_plot",
+            "detector_mask = xicam.SAXS.masking.detector:detector_mask_plugin"
         ],
         'xicam.plugins.Fittable1DModelPlugin': [
             'Gaussian1D = xicam.SAXS.models.gaussian1d:Gaussian1D'
