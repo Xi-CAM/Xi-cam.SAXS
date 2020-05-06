@@ -10,8 +10,8 @@ import numpy as np
 @output_names('g2')
 @describe_input('data', 'Array of two or more dimensions.')
 @describe_input('labels', 'Labeled array of the same shape as the image stack.'
-                          'Each ROI is represented by sequential integers starting at one.
-                          'For example, if you have four ROIs, they must be labeled
+                          'Each ROI is represented by sequential integers starting at one.'
+                          'For example, if you have four ROIs, they must be labeled'
                           '1, 2, 3, 4. Background is labeled as 0')
 @describe_output('g2', 'Normalized correlation with shape = (len(lag_steps), num_rois)')
 @categories('Scattering', 'Correlation')
