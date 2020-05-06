@@ -1,10 +1,11 @@
-from xicam.plugins.operationplugin import OperationPlugin, describe_input, describe_output, \
+from xicam.plugins.operationplugin import operation, describe_input, describe_output, \
                         input_names, output_names, display_name, categories, plot_hint 
 import numpy as np
 import skbeam.core.correlation as corr
+from typing import Tuple
 
 
-@OperationPlugin
+@operation
 @display_name('1-time Correlation')
 @input_names('data', 'labels', 'number_of_buffers', 'number_of_levels')
 @describe_input('data', 'Input array of two or more dimensions')
@@ -21,11 +22,10 @@ import skbeam.core.correlation as corr
 @describe_output('g2', 'Normalized g2 data array with shape = (len(lag_steps), num_rois)')
 @describe_output('tau', 'array describing tau (lag steps)')
 @plot_hint('tau', 'g2', '1-time Correlation')
-
 def one_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,
-                         num_levels: int = 8) -> np.ndarray:
+                         num_levels: int = 8) -> Tuple[np.ndarray, np.ndarray]:
     
     g2, lag_steps = corr.multi_tau_auto_corr(num_levels, num_bufs,
                                              labels.astype(np.int),

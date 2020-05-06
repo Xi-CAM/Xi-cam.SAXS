@@ -1,9 +1,10 @@
-from xicam.plugins.operationplugin import OperationPlugin, describe_input, describe_output, \
+from xicam.plugins.operationplugin import operation, describe_input, describe_output, \
                         input_names, output_names, display_name, categories, plot_hint 
 import numpy as np
 from skbeam.core.correlation import two_time_corr
+from typing import Tuple
 
-@OperationPlugin
+@operation
 @display_name('1-time Correlation')
 @input_names('data', 'labels', 'number_of_buffers', 'number_of_levels')
 @describe_input('data', 'dimensions are: (rr, cc), iterable of 2D arrays')
@@ -17,11 +18,10 @@ from skbeam.core.correlation import two_time_corr
 @describe_output('tau', 'the times at which the correlation was computed')
 #TODO: check plothint
 @plot_hint('tau_1', 'tau_2', '2-time Correlation')
-
 def two_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,
-                         num_levels: int = 8) -> np.ndarray:
+                         num_levels: int = 8) -> Tuple[np.ndarray, np.ndarray]:
     #TODO -- make composite parameter item widget to allow default (all frames) or enter value
     num_frames = len(data)
     corr = two_time_corr(labels.astype(np.int),

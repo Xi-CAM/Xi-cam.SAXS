@@ -1,7 +1,7 @@
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories, plot_hint
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Union
 from pyFAI import units
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
