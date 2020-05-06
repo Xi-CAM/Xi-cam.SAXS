@@ -3,6 +3,7 @@ from scipy import signal
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
+from typing import Tuple
 
 
 @operation
@@ -14,7 +15,8 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_output('azimuthal_integrator',
                  "The input `AzimuthalIntegrator` with its center shifted to the estimated center. If not provided, then `None`.")
 @categories(('Scattering', 'Calibration'))
-def fourier_autocorrelation(data: np.ndarray, azimuthal_integrator: AzimuthalIntegrator = None):
+def fourier_autocorrelation(data: np.ndarray, azimuthal_integrator: AzimuthalIntegrator = None) -> \
+        Tuple[Tuple[float, float], AzimuthalIntegrator]:
     """
     Estimate beam center of a SAXS/WAXS image using fourier autocorrelation. The validity of this technique depends on
     having negligible camera tilt/rotation, and a significant fraction of at least one ring feature.
