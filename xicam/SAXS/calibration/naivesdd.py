@@ -20,7 +20,7 @@ from scipy import signal
 @describe_output('azimuthal_integrator', "Azimuthal integrator with the SDD be modified in-place")
 @categories(('Scattering', 'Calibration'))
 def naive_sdd(data: np.ndarray, mask: np.ndarray, calibrant: calibrant.Calibrant,
-              azimuthal_integrator: AzimuthalIntegrator, npts: int = 2000):
+              azimuthal_integrator: AzimuthalIntegrator, npts: int = 2000) -> AzimuthalIntegrator:
     # Un-calibrated azimuthal integration
     r, radialprofile = azimuthal_integrator.integrate1d(data, npts, unit='r_mm', mask=mask)
 
