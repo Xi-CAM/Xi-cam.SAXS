@@ -6,7 +6,6 @@ from pyFAI import units
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
-
 @operation
 @display_name('q Integration')
 @output_names('q', 'I')
