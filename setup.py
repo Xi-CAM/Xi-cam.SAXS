@@ -125,13 +125,13 @@ setup(
             "two_time_correlation = xicam.SAXS.processing.twotime:two_time_correlation",
             "fit_scattering_factor = xicam.SAXS.processing.fitting:fit_scattering_factor",
             "correct_fastccd_image = xicam.SAXS.processing.correction:correct_fastccd_image",
-            "chi_squared = xicam.SAXS.processing.chisquared:chi_squared"
-            "xicam.SAXS.processing = xicam.SAXS.processing.astropyfit:xicam.SAXS.processing",
+            "chi_squared = xicam.SAXS.processing.chisquared:chi_squared",
+            "astropyfit = xicam.SAXS.processing.astropyfit:AstropyQSpectraFit",
             "q_integrate = xicam.SAXS.processing.qintegrate:q_integrate",
             "fourier_correlation = xicam.SAXS.processing.fourierautocorrelator:fourier_correlation",
             "inpaint = xicam.SAXS.processing.inpaint:inpaint",
-            "q_conversion_gisaxs = xicam.SAXS.processing.qconversiongisaxs.py:q_conversion_gisaxs"
-            "q_conversion_saxs = xicam.SAXS.processing.qconversionsaxs.py:q_conversion_saxs"
+            "q_conversion_gisaxs = xicam.SAXS.processing.qconversiongisaxs:q_conversion_gisaxs",
+            "q_conversion_saxs = xicam.SAXS.processing.qconversionsaxs:q_conversion_saxs",
             "x_integrate = xicam.SAXS.processing.xintegrate:x_integrate",
             "z_integrate = xicam.SAXS.processing.zintegrate:z_integrate",
             "porod_plot = xicam.SAXS.processing.porod_plot:porod_plot",
