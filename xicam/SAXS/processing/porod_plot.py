@@ -1,7 +1,7 @@
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories, plot_hint
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Union
 from pyFAI import units
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
@@ -30,7 +30,6 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_output('I_q4', 'Porod constant, i.e. Binned/pixel-split integrated intensity times qˆ4')
 @plot_hint("q", "I_qˆ4", name="Porod plot")
 @categories(("Scattering", "Integration"))
-
 def porod_plot(integrator: AzimuthalIntegrator,
                 data: np.ndarray,
                 npt: int = 1000,
