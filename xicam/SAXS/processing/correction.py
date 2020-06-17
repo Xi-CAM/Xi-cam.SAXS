@@ -1,5 +1,5 @@
 from xicam.plugins.operationplugin import operation, display_name, output_names, describe_input, \
-    describe_output, categories
+    describe_output, categories, visible
 import numpy as np
 
 
@@ -12,10 +12,12 @@ import numpy as np
 @output_names('corrected_images')
 @describe_output('corrected_images', 'Corrected fastccd image data')
 @categories(('Scattering', 'Calibration'))
-
+@visible('images', False)
+@visible('flats', False)
+@visible('darks', False)
 def correct_fastccd_image(images: np.ndarray,
-                          flats: np.ndarray,
-                          darks: np.ndarray,
+                          flats: np.ndarray = None,
+                          darks: np.ndarray = None,
                           gains: np.ndarray = (1, 4, 8)) -> np.ndarray:
     
     def calc_correction(array, flats, bkg, gain_map=(1, 4, 8)):
@@ -46,7 +48,6 @@ def correct_fastccd_image(images: np.ndarray,
     if flats.ndim != 2:
         raise ValueError(f"\"flats\" should be 2-dimensional; shape = \"{flats.shape}\"")
 
-    darks = darks
     if darks is None:
         darks = np.zeros(images.shape)
     if darks.ndim != 3:
@@ -54,9 +55,9 @@ def correct_fastccd_image(images: np.ndarray,
 
     darks = np.sum(darks, axis=0) / darks.shape[0]
     corrected_images = calc_correction(np.asarray(images, dtype=np.uint16),
-                                            np.asarray(flats, dtype=np.float32),
-                                            np.asarray(darks, dtype=np.float32),
-                                            gains)
+                                       np.asarray(flats, dtype=np.float32),
+                                       np.asarray(darks, dtype=np.float32),
+                                       gains)
     
     return corrected_images
 

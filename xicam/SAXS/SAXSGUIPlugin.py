@@ -85,9 +85,7 @@ class SAXSPlugin(GUIPlugin):
                                           workflow=self.roiworkflow,
                                           index=0)
         self.oneTimeProcessor = OneTimeParameterTree(processor=self.processOneTime)
-        self.oneTimeToolBar = XPCSToolBar(headermodel=self.catalogModel,
-                                          selectionmodel=self.selectionmodel,
-                                          view=self.correlationView.currentWidget,
+        self.oneTimeToolBar = XPCSToolBar(view=self.correlationView.currentWidget,
                                           workflow=self.roiworkflow,
                                           index=0)
 
@@ -308,6 +306,7 @@ class SAXSPlugin(GUIPlugin):
 
     @threads.method()
     def doReduceWorkflow(self):
+        return
         if not self.reducetabview.currentWidget(): return
         multimode = self.reducetoolbar.multiplot.isChecked()
         currentItem = self.catalogModel.itemFromIndex(self.selectionmodel.currentIndex())
@@ -426,7 +425,7 @@ class SAXSPlugin(GUIPlugin):
             roiFuture = self.roiworkflow.execute(data=self.correlationView.currentWidget().image[0],
                                                  image=self.correlationView.currentWidget().imageItem)  # Pass in single frame for data shape
             roiResult = roiFuture.result()
-            label = roiResult[-1]["roi"].value
+            label = roiResult[-1]["roi"]
             if label is None:
                 msg.notifyMessage("Please define an ROI using the toolbar before running correlation.")
                 return
