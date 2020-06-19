@@ -1,8 +1,11 @@
+import numpy as np
+from dask import array as da
+from typing import Tuple
+
+import skbeam.core.correlation as corr
+
 from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible,\
                         input_names, output_names, display_name, categories, plot_hint 
-import numpy as np
-import skbeam.core.correlation as corr
-from typing import Tuple
 
 
 @operation
@@ -23,11 +26,11 @@ from typing import Tuple
 @describe_output('tau', 'array describing tau (lag steps)')
 @visible('data', False)
 @visible('labels', False)
-@plot_hint('tau', 'g2', name='1-time Correlation')
+@plot_hint('tau', 'g2', name='1-time Correlation', yLog=True)
 def one_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,
-                         num_levels: int = 8) -> Tuple[np.ndarray, np.ndarray]:
+                         num_levels: int = 8) -> Tuple[da.array, da.array]:
     
     g2, tau = corr.multi_tau_auto_corr(num_levels, num_bufs,
                                        labels.astype(np.int),
