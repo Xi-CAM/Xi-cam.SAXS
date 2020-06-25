@@ -154,10 +154,10 @@ class ROIs(SAXSToolbarBase):
         view = self._get_view()
         if view:
             view.getView().addItem(roi)
-            self.workflow.insertProcess(self.index, roi.process, autoconnectall=True)
+            self.workflow.insert_operation(self.index, roi.process)
             # Remove the roi process from the workflow when the roi is removed
             # TODO -- should this be in BetterROI?
-            roi.sigRemoveRequested.connect(lambda roi: self.workflow.removeProcess(roi.process))
+            roi.sigRemoveRequested.connect(lambda roi: self.workflow.remove_operation(roi.process))
         else:
             msg.notifyMessage("Please open an image before creating an ROI.", level=msg.WARNING)
 

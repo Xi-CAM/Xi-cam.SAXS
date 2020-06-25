@@ -1,8 +1,9 @@
-from xicam.plugins.operationplugin import operation, describe_input, describe_output, \
-                        input_names, output_names, display_name, categories, plot_hint 
+from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible, \
+                        input_names, output_names, display_name, categories#, image_hint
 import numpy as np
 from skbeam.core.correlation import two_time_corr
 from typing import Tuple
+
 
 @operation
 @display_name('1-time Correlation')
@@ -16,8 +17,10 @@ from typing import Tuple
 @output_names('g2', 'tau')
 @describe_output('g2', 'the normalized correlation shape is (num_rois, len(lag_steps), len(lag_steps))')
 @describe_output('tau', 'the times at which the correlation was computed')
+@visible('data', False)
+@visible('labels', False)
 #TODO: check plothint
-@plot_hint('tau_1', 'tau_2', '2-time Correlation')
+#@image_hint('g2', name='2-time Correlation', xlabel="&tau;<sub>1</sub>", ylabel="&tau;<sub>2</sub>")
 def two_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,
