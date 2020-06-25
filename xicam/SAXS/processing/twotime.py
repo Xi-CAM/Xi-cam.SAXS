@@ -1,5 +1,5 @@
 from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible, \
-                        input_names, output_names, display_name, categories, image_hint
+                        input_names, output_names, display_name, categories#, image_hint
 import numpy as np
 from skbeam.core.correlation import two_time_corr
 from typing import Tuple
@@ -20,7 +20,7 @@ from typing import Tuple
 @visible('data', False)
 @visible('labels', False)
 #TODO: check plothint
-@image_hint('g2', name='2-time Correlation', xlabel="&tau;<sub>1</sub>", ylabel="&tau;<sub>2</sub>")
+#@image_hint('g2', name='2-time Correlation', xlabel="&tau;<sub>1</sub>", ylabel="&tau;<sub>2</sub>")
 def two_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,
