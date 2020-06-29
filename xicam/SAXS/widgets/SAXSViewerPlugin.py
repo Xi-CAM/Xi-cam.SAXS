@@ -13,7 +13,8 @@ from xicam.gui.widgets.imageviewmixins import Crosshair, QCoordinates, CenterMar
 import pyqtgraph as pg
 
 
-class SAXSViewerPluginBase(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView, XArrayView, CatalogView, ImageViewHistogramOverflowFix):
+# TODO LogScaleIntensity
+class SAXSViewerPluginBase(CenterMarker, BetterButtons, Crosshair, QCoordinates, DynImageView, CatalogView, ImageViewHistogramOverflowFix):
 
     def __init__(self, *args, **kwargs):
 

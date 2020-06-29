@@ -1,12 +1,12 @@
 from xicam.core.execution.workflow import Workflow
-from .detector import DetectorMaskPlugin
+from .detector import detector_mask_plugin
 
 
 class MaskingWorkflow(Workflow):
     def __init__(self):
         super(MaskingWorkflow, self).__init__('Masking')
 
-        detectormask = DetectorMaskPlugin()
+        detectormask = detector_mask_plugin()
 
-        self.processes = [detectormask]
-        self.autoConnectAll()
+        self.add_operation(detectormask)
+        self.auto_connect_all()

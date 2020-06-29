@@ -1,33 +1,25 @@
 from xicam.core.execution.workflow import Workflow
-from .fourierautocorrelation import fourierAutocorrelation
-from xicam.SAXS.processing.arrayrotate import ArrayRotate
-from xicam.SAXS.processing.arraytranspose import ArrayTranspose
-from xicam.SAXS.calibration.simulatecalibrant import SimulateCalibrant
-from .naivesdd import NaiveSDD
+from .fourierautocorrelation import fourier_autocorrelation
+from xicam.SAXS.calibration.simulatecalibrant import simulate_calibrant
+from .naivesdd import naive_sdd
 
 
 class FourierCalibrationWorkflow(Workflow):
     def __init__(self):
         super(FourierCalibrationWorkflow, self).__init__('Fourier Calibration')
 
-        autocor = fourierAutocorrelation()
+        autocor = fourier_autocorrelation()
 
-        sdd = NaiveSDD()
+        sdd = naive_sdd()
 
-        self.processes = [autocor, sdd]
-        self.autoConnectAll()
-
-    # def execute(self, connection, data=None, ai=None, calibrant=None, **kwargs):
-    #     self.processes[0].data.value = data
-    #     self.processes[2].ai.value = ai
-    #     self.processes[3].calibrant.value = calibrant
-    #     return super(FourierCalibrationWorkflow, self).execute(connection,**kwargs)
+        self.add_operations(autocor, sdd)
+        self.auto_connect_all()
 
 
 class SimulateWorkflow(Workflow):
     def __init__(self):
         super(SimulateWorkflow, self).__init__('Calibrant Simulation')
 
-        simulate = SimulateCalibrant()
+        simulate = simulate_calibrant()
 
-        self.processes = [simulate]
+        self.add_operations(simulate)

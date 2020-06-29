@@ -1,18 +1,18 @@
-from xicam.plugins import ProcessingPlugin, Input, Output, InOut
+from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
+    categories
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 import numpy as np
 
 
-class DetectorMaskPlugin(ProcessingPlugin):
-    name = 'Detector Mask'
-    ai = Input(
-        description='PyFAI azimuthal integrator instance; the geometry of the detector''s inactive area will be masked.',
-        type=AzimuthalIntegrator)
-    mask = InOut(description='Mask array (1 is masked).',
-                  type=np.ndarray)
-
-    def evaluate(self):
-        if self.ai.value and self.ai.value.detector:
-            mask = self.ai.value.detector.calc_mask()
-            if mask is None: mask = np.zeros(self.ai.value.detector.shape)
-            self.mask.value = np.logical_or(self.mask.value, mask)
+@operation
+@display_name("Detector Mask")
+@describe_input('azimuthal_integrator', "The `AzimuthalIntegrator` to including a detector instance describing the camera hardware.")
+@describe_output("mask", "The calculated mask derived from the detector's profile. (1 is masked)")
+@output_names("mask")
+@categories(("Scattering", "Masking"))
+def detector_mask_plugin(azimuthal_integrator: AzimuthalIntegrator = None, mask:np.ndarray = None) -> np.ndarray:
+    if azimuthal_integrator and azimuthal_integrator.detector:
+        if mask is None:
+            mask = np.zeros(azimuthal_integrator.detector.shape)
+        mask = np.logical_or(azimuthal_integrator.detector.calc_mask(), mask)
+        return mask

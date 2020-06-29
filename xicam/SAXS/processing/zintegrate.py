@@ -1,40 +1,38 @@
-from xicam.plugins import ProcessingPlugin, Input, Output, PlotHint
+from typing import Tuple
+from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
+    categories, plot_hint
 import numpy as np
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
-class ZIntegratePlugin(ProcessingPlugin):
-    name = 'Z Integrate'
-    ai = Input(description='A PyFAI.AzimuthalIntegrator object',
-               type=AzimuthalIntegrator)
-    data = Input(description='2d array representing intensity for each pixel',
-                 type=np.ndarray)
-    mask = Input(description='Array (same size as image) with 1 for masked pixels, and 0 for valid pixels',
-                 type=np.ndarray)
-    dark = Input(description='Dark noise image',
-                 type=np.ndarray)
-    flat = Input(description='Flat field image',
-                 type=np.ndarray)
+@operation
+@output_names("q_z", "I")
+@display_name("Z Integration")
+@describe_input("azimuthal_integrator", 'A PyFAI.AzimuthalIntegrator object')
+@describe_input("data", '2d array representing intensity for each pixel')
+@describe_input("mask", 'Array (same size as image) with 1 for masked pixels, and 0 for valid pixels')
+@describe_input("dark", "Dark noise image")
+@describe_input("flat", "Flat field image")
+@describe_input("normalization_factor", 'Value of normalization monitor')
+@describe_output("q", 'q_z bin center positions')
+@describe_output("I", "Binned/pixel-split integrated intensity")
+@categories(("Scattering", "Integration"))
+@plot_hint("q_z", "I", name="Z Integration")
+def z_integrate(azimuthal_integrator: AzimuthalIntegrator,
+                data: np.ndarray,
+                mask: np.ndarray,
+                dark: np.ndarray,
+                flat: np.ndarray,
+                normalization_factor: float = 1) -> Tuple[np.ndarray, np.ndarray]:
+    if dark is None: dark = np.zeros_like(data)
+    if flat is None: flat = np.ones_like(data)
+    if mask is None: mask = np.zeros_like(data)
+    I = np.sum((data - dark) * np.average(flat - dark) / (
+            flat - dark) / normalization_factor * np.logical_not(mask), axis=1)[::-1]
+    centerx = azimuthal_integrator.getFit2D()['centerX']
+    centerz = azimuthal_integrator.getFit2D()['centerY']
+    q_z = azimuthal_integrator.qFunction(np.arange(0, data.shape[0]),
+                                         np.array([centerx] * data.shape[0])) / 10
+    q_z[np.arange(0, data.shape[0]) < centerz] *= -1.
 
-    normalization_factor = Input(description='Value of a normalization monitor',
-                                 type=float, default=1.)
-    qz = Output(description='Q_x bin center positions',
-                type=np.array)
-    Iz = Output(description='Binned/pixel-split integrated intensity',
-                type=np.array, )  # hints={'plotx': ['qz']})
-
-    # hints = [PlotHint(qz, Iz)]
-
-    def evaluate(self):
-        if self.dark.value is None: self.dark.value = np.zeros_like(self.data.value)
-        if self.flat.value is None: self.flat.value = np.ones_like(self.data.value)
-        if self.mask.value is None: self.mask.value = np.zeros_like(self.data.value)
-        self.Iz.value = np.sum((self.data.value - self.dark.value) * np.average(self.flat.value - self.dark.value) / (
-                self.flat.value - self.dark.value) * np.logical_not(self.mask.value), axis=1)[::-1]
-        centerx = self.ai.value.getFit2D()['centerX']
-        centerz = self.ai.value.getFit2D()['centerY']
-        self.qz.value = self.ai.value.qFunction(np.arange(0, self.data.value.shape[0]),
-                                                np.array([centerx] * self.data.value.shape[0])) / 10
-        self.qz.value[np.arange(0, self.data.value.shape[0]) < centerz] *= -1.
-
-        self.hints = [PlotHint(self.qz.value, self.Iz.value, name="Z Integrate")]
+    return q_z, I
