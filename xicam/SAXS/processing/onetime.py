@@ -26,7 +26,8 @@ from xicam.plugins.operationplugin import operation, describe_input, describe_ou
 @describe_output('tau', 'array describing tau (lag steps)')
 @visible('data', False)
 @visible('labels', False)
-@plot_hint('tau', 'g2', name='1-time Correlation', yLog=True)
+@plot_hint('tau', 'g2', group='1-time Correlation', name='g2', yLog=True, labels={"bottom": "&tau;",
+                                                                                  "left": "g2"})
 def one_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,
