@@ -291,11 +291,11 @@ class HintTabView(QAbstractItemView):
                 hint = topLeft.data(Qt.UserRole)
                 if hint:
                     if topLeft.data(Qt.CheckStateRole) == Qt.Checked:
-                        if hint.name not in [self._tabWidget.tabText(index) for index in range(self._tabWidget.count())]:
+                        if hint.group not in [self._tabWidget.tabText(index) for index in range(self._tabWidget.count())]:
                             canvas = hint.init_canvas(addLegend=True)
-                            self._tabWidget.addTab(canvas, hint.name)
+                            self._tabWidget.addTab(canvas, hint.group)
                         else:
-                            canvas = self._findTab(hint.name)
+                            canvas = self._findTab(hint.group)
                         hint.visualize(canvas)
                     else:
                         hint.remove()
@@ -456,12 +456,12 @@ if __name__ == "__main__":
     import numpy as np
     for i in range(3):
         hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"1-Time")
-        item = QStandardItem(hint.name)
+        item = QStandardItem(hint.group)
         item.setData(hint, Qt.UserRole)
         item.setCheckable(True)
         parentItem.appendRow(item)
     hint = ImageHint(np.random.random((100,100)), xlabel="x", ylabel="y", name="2-Time")
-    item = QStandardItem(hint.name)
+    item = QStandardItem(hint.group)
     item.setData(hint, Qt.UserRole)
     item.setCheckable(True)
     parentItem.appendRow(item)

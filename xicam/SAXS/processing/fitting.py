@@ -21,7 +21,8 @@ from typing import Union, Tuple
 @describe_output('relaxation_rate', 'Relaxation time associated with the samples dynamics')
 #TODO: check syntax plot_hint and add labels
 # @plot_hint('tau', 'g2', name='one-time correlation')
-@plot_hint('tau', 'fit_curve', name='one-time correlation fit')
+@plot_hint('tau', 'fit_curve', group='1-time Correlation', name='g2 fit', labels={"bottom": "&tau;",
+                                                                                  "left": "g2"})
 @categories(('Scattering', 'Fitting'))
 def fit_scattering_factor(g2: np.ndarray,
                           tau: np.ndarray,

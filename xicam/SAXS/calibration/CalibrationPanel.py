@@ -42,7 +42,9 @@ class CalibrationPanel(ParameterTree):
 
         self.setParameters(self.parameter, showTop=False)
 
-        self.workflow = FourierCalibrationWorkflow()
+        from xicam.core.execution import Workflow
+        self.workflow = Workflow()
+        # self.workflow = FourierCalibrationWorkflow()
 
     def calibrate(self):
         self.sigDoCalibrateWorkflow.emit(self.workflow)
