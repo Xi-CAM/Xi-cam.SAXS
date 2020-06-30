@@ -187,15 +187,15 @@ class FileSelectionView(QWidget):
         )
 
 
-class DerivedDataWidget(QWidget):
+class ResultsWidget(QWidget):
     
     def __init__(self, model, parent=None):
-        super(DerivedDataWidget, self).__init__(parent)
+        super(ResultsWidget, self).__init__(parent)
         
         self._model = model
-        self._derivedDataView = DerivedDataTreeView()
+        self._derivedDataView = DataSelectorView()
         self._derivedDataView.setModel(self._model)
-        self._hintView = HintTabView()
+        self._hintView = ResultsTabView()
         self._hintView.setModel(self._model)
         self._derivedDataWidget = CollapsibleWidget(self._derivedDataView, "Results")
         self._derivedDataWidget.addWidget(self._hintView)
@@ -230,13 +230,13 @@ class DerivedDataWidgetTestClass(QWidget):
         self.setLayout(self.collapseWidget.layout())
 
 
-class HintTabView(QAbstractItemView):
+class ResultsTabView(QAbstractItemView):
     """
     View that is responsible for displaying Hints in a tab-based manner.
     """
 
     def __init__(self, parent=None):
-        super(HintTabView, self).__init__(parent)
+        super(ResultsTabView, self).__init__(parent)
 
         self._tabWidget = QTabWidget()
         self._tabWidget.setParent(self)
@@ -299,7 +299,7 @@ class HintTabView(QAbstractItemView):
                         hint.visualize(canvas)
                     else:
                         hint.remove()
-            super(HintTabView, self).dataChanged(topLeft, bottomRight, roles)
+            super(ResultsTabView, self).dataChanged(topLeft, bottomRight, roles)
 
     def horizontalOffset(self):
         return 0
@@ -327,7 +327,7 @@ class HintTabView(QAbstractItemView):
         return QRect()
 
 
-class DerivedDataTreeView(QTreeView):
+class DataSelectorView(QTreeView):
     # TODO -- this could probably be moved into a more generic class, e.g. CheckableTreeView
     """
     Tree view responsible for selecting which derived data to visualize.
@@ -338,7 +338,7 @@ class DerivedDataTreeView(QTreeView):
     """
 
     def __init__(self, parent=None):
-        super(DerivedDataTreeView, self).__init__(parent)
+        super(DataSelectorView, self).__init__(parent)
 
         self.setHeaderHidden(True)
         self.setEditTriggers(QAbstractItemView.NoEditTriggers)
@@ -422,7 +422,7 @@ class DerivedDataTreeView(QTreeView):
                     self.model().itemFromIndex(parentIndex).setCheckState(Qt.Unchecked)
 
 
-class DerivedDataModel(QStandardItemModel):
+class CatalogModel(QStandardItemModel):
     """
     Derived data model that disables user interaction with the items.
 
@@ -430,7 +430,7 @@ class DerivedDataModel(QStandardItemModel):
     Using the Qt.ItemIsEnabled flag prevents the user from direcly checking / unchecking the item.
     """
     def __init__(self):
-        super(DerivedDataModel, self).__init__()
+        super(CatalogModel, self).__init__()
 
     def flags(self, index: QModelIndex):
         if not index.isValid():
@@ -438,7 +438,7 @@ class DerivedDataModel(QStandardItemModel):
         if index.column() == 0:
             flags = Qt.ItemIsEnabled
         else:
-            flags = super(DerivedDataModel, self).flags(index)
+            flags = super(CatalogModel, self).flags(index)
         return flags
 
 
@@ -448,7 +448,7 @@ if __name__ == "__main__":
 
     window = QMainWindow()
     layout = QVBoxLayout()
-    model = DerivedDataModel()
+    model = CatalogModel()
 
     from xicam.plugins.hints import PlotHint, ImageHint, CoPlotHint
     parentItem = QStandardItem("blah")
@@ -501,9 +501,9 @@ if __name__ == "__main__":
     workflowItem.appendRow(coPlotItem)
     model.appendRow(workflowItem)
 
-    lview = DerivedDataTreeView()
+    lview = DataSelectorView()
     lview.setModel(model)
-    rview = HintTabView()
+    rview = ResultsTabView()
     rview.setModel(model)
 
     widget = DerivedDataWidgetTestClass(lview, rview)

@@ -20,7 +20,7 @@ from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import DerivedDataModel, DerivedDataWidget
+from .widgets.views import CatalogModel, ResultsWidget
 from .workflows.roi import ROIWorkflow
 
 
@@ -34,7 +34,7 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
-        self.derivedDataModel = DerivedDataModel()
+        self.derivedDataModel = CatalogModel()
         self.catalogModel = QStandardItemModel()
 
         # Data model
@@ -110,14 +110,14 @@ class SAXSPlugin(GUIPlugin):
         # Setup reduction widgets
         self.displayeditor = WorkflowEditor(self.displayworkflow)
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
-        self.reduceplot = DerivedDataWidget(self.derivedDataModel)
+        self.reduceplot = ResultsWidget(self.derivedDataModel)
         self.reducetoolbar.sigDoWorkflow.connect(self.doReduceWorkflow)
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(self.catalogChanged)
 
         # Setup correlation widgets
-        self.correlationResults = DerivedDataWidget(self.derivedDataModel)
+        self.correlationResults = ResultsWidget(self.derivedDataModel)
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
@@ -477,6 +477,8 @@ class SAXSPlugin(GUIPlugin):
                                                        # workflow_pickle=workflow_pickle))
 
     def updateDerivedDataModel(self, workflow, **kwargs):
+        # TODO: update to store "Ensembles"
+        # Ensemble contains Catalogs, contains data (g2, 2-time, etc.)
         parentItem = CheckableItem(workflow.name)
         for hint in workflow.hints:
             item = CheckableItem(hint.name)
