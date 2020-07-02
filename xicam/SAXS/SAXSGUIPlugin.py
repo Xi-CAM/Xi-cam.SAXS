@@ -20,8 +20,12 @@ from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import CatalogModel, ResultsWidget
+from .widgets.views import ResultsWidget
+from xicam.SAXS.data import EnsembleModel
 from .workflows.roi import ROIWorkflow
+
+# TODO rename/move the data module
+from .data import Ensemble
 
 
 class SAXSPlugin(GUIPlugin):
@@ -34,7 +38,7 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
-        self.derivedDataModel = CatalogModel()
+        self.derivedDataModel = EnsembleModel()
         self.catalogModel = QStandardItemModel()
 
         # Data model
@@ -212,9 +216,10 @@ class SAXSPlugin(GUIPlugin):
         else:
             displayName = f"UID: {catalog.metadata['start']['uid']}"
 
+        ensemble = Ensemble(catalogs=[catalog])
         item = CheckableItem(displayName)
         item.setData(displayName, Qt.DisplayRole)
-        item.setData(catalog, Qt.UserRole)
+        item.setData(ensemble, Qt.UserRole)
         self.catalogModel.appendRow(item)
         self.catalogModel.dataChanged.emit(item.index(), item.index())
 
