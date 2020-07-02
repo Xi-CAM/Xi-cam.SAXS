@@ -4,7 +4,8 @@ import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
 from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt
 from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent
-from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QWidget
+from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QLayout,\
+                           QWidget, QStackedWidget, QGridLayout
 
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
 
@@ -195,11 +196,39 @@ class DerivedDataWidget(QWidget):
         self._model = model
         self._derivedDataView = DerivedDataTreeView()
         self._derivedDataView.setModel(self._model)
+
         self._hintView = HintTabView()
         self._hintView.setModel(self._model)
+
         self._derivedDataWidget = CollapsibleWidget(self._derivedDataView, "Results")
         self._derivedDataWidget.addWidget(self._hintView)
         self.setLayout(self._derivedDataWidget.layout())
+
+
+class StackedResultsView(QWidget):
+    """
+    Widget for viewing results in two different ways using the QStackedWidget and
+    two stacks one for tabview and one for splitview
+    """
+
+    def __init__(self, model, parent=None):
+        super(StackedResultsView, self).__init__(parent)
+
+        self._model = model
+        self._hintView = HintTabView()
+        self._hintView.setModel(self._model)
+
+        #TODO add split (2x2) View for 2nd stack in the stackedWidget
+        self._splitview = HintTabView()
+        self._splitview.setModel(self._model)
+
+        self._stackedWidget = QStackedWidget(self._hintView, "A", "B")
+        # self._stackedWidget.addWidget(self._hintView)
+        self._stackedWidget.addWidget(self._splitview)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self._stackedWidget)
+        self.setLayout(layout)
 
 
 class DerivedDataWidgetTestClass(QWidget):

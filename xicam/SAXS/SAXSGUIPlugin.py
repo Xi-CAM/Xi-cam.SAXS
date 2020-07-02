@@ -20,7 +20,7 @@ from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import DerivedDataModel, DerivedDataWidget
+from .widgets.views import DerivedDataModel, DerivedDataWidget, StackedResultsView
 from .workflows.roi import ROIWorkflow
 
 
@@ -110,7 +110,8 @@ class SAXSPlugin(GUIPlugin):
         # Setup reduction widgets
         self.displayeditor = WorkflowEditor(self.displayworkflow)
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
-        self.reduceplot = DerivedDataWidget(self.derivedDataModel)
+        # self.reduceplot = DerivedDataWidget(self.derivedDataModel)
+        self.reduceplot = StackedResultsView(self.DerivedDataModel)
         self.reducetoolbar.sigDoWorkflow.connect(self.doReduceWorkflow)
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
