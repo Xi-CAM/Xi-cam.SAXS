@@ -20,7 +20,7 @@ from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import CatalogModel, ResultsWidget
+from .widgets.views import CatalogModel, ResultsWidget, StackedResultsWidget
 from .workflows.roi import ROIWorkflow
 
 
@@ -72,6 +72,7 @@ class SAXSPlugin(GUIPlugin):
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
+        #TODO: will be replaced by StackedWidget
         self.comparemultiview = QLabel("COMING SOON!")  # SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
 
         # Setup correlation views
@@ -116,6 +117,9 @@ class SAXSPlugin(GUIPlugin):
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(self.catalogChanged)
 
+        # Setup compare widget (results viewer)
+        self.compareplot = StackedResultsWidget(self.derivedDataModel)
+
         # Setup correlation widgets
         self.correlationResults = ResultsWidget(self.derivedDataModel)
 
@@ -130,7 +134,7 @@ class SAXSPlugin(GUIPlugin):
             'Reduce': GUILayout(self.reducetabview,
                                 bottom=self.reduceplot, right=self.reduceeditor, righttop=self.displayeditor,
                                 top=self.reducetoolbar),
-            'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar, bottom=self.reduceplot,
+            'Compare': GUILayout(self.compareplot, top=self.reducetoolbar,
                                  right=self.reduceeditor),
             'Correlate': {
                 '2-Time Correlation': GUILayout(self.correlationView,

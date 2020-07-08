@@ -5,9 +5,10 @@ from pyqtgraph.graphicsItems.LegendItem import ItemSample
 from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt
 from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent
 from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QLayout,\
-                           QWidget, QStackedWidget, QGridLayout
+                           QWidget, QStackedWidget, QGridLayout, QToolButton, QStyle, QLabel, QGraphicsView
 
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
+# from xicam.gui.widgets.stackedwidget import StackedWidgetWithArrowButtons
 
 
 # For some reason, LegendItem.removeItem(ref) wasn't working, so this class stores the data name
@@ -204,30 +205,78 @@ class ResultsWidget(QWidget):
         self.setLayout(self._derivedDataWidget.layout())
 
 
-class StackedResultsView(QWidget):
+class StackedResultsWidget(QWidget):
     """
     Widget for viewing results in two different ways using the QStackedWidget and
     two stacks one for tabview and one for splitview
     """
 
-    def __init__(self, model, parent=None):
-        super(StackedResultsView, self).__init__(parent)
+    def __init__(self, model):
+        super(StackedResultsWidget, self).__init__()
 
         self._model = model
-        self._hintView = HintTabView()
-        self._hintView.setModel(self._model)
 
+        self.view1 = ResultsTabView()
+        self.view1.setModel(self._model)
         #TODO add split (2x2) View for 2nd stack in the stackedWidget
-        self._splitview = HintTabView()
-        self._splitview.setModel(self._model)
+        # add a button to switch views
+        # self.view2 = ResultsSplitView()
+        self.view2 = ResultsSplitView()
 
-        self._stackedWidget = QStackedWidget(self._hintView, "A", "B")
-        # self._stackedWidget.addWidget(self._hintView)
-        self._stackedWidget.addWidget(self._splitview)
+        self.widget = QStackedWidget()
+        self.widget.addWidget(self.view2)
+        self.widget.addWidget(self.view1)
+
+        # add buttons
+        self.backwardButton = QToolButton(self)
+        # self.backwardButton.setIcon(self.style().standardIcon(QStyle.SP_ArrowLeft))
+        # self.backwardButton.setMaximumSize(24, 24)
+        # self.backwardButton.setFocusPolicy(Qt.NoFocus)
+        self.forwardButton = QToolButton(self)
+        # self.forwardButton.setIcon(self.style().standardIcon(QStyle.SP_ArrowRight))
+        # self.forwardButton.setMaximumSize(24, 24)
+        # self.forwardButton.setFocusPolicy(Qt.NoFocus)
+
 
         layout = QVBoxLayout()
-        layout.addWidget(self._stackedWidget)
+        layout.addWidget(self.backwardButton)
+        layout.addWidget(self.forwardButton)
+        layout.addWidget(self.widget)
         self.setLayout(layout)
+
+
+class ResultsSplitView(QAbstractItemView):
+    """
+    Displaying results in a 2x2 split view.
+    """
+
+    def __init__(self, parent=None):
+        super(ResultsSplitView, self).__init__(parent)
+
+
+        self._view1 = QGraphicsView()
+        self._view2 = QGraphicsView()
+        self._view3 = QGraphicsView()
+        self._view4 = QGraphicsView()
+        # self._view2 = QLabel('g2')
+        # self._view3 = QLabel('1-time')
+        # self._view4 = QLabel('2-time')
+
+        self.gridLayout = QGridLayout()
+        self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.gridLayout.addWidget(self._view1, 0, 0, 1, 1)
+        self.gridLayout.addWidget(self._view2, 0, 1, 1, 1)
+        self.gridLayout.addWidget(self._view3, 1, 0, 1, 1)
+        self.gridLayout.addWidget(self._view4, 1, 1, 1, 1)
+
+        self.setLayout(self.gridLayout)
+
+        # self.setLayout(QVBoxLayout())
+        # self.layout().setContentsMargins(0, 0, 0, 0)
+        # self.layout().addWidget(self._view1)
+        # self.layout().addWidget(self._view2)
+        # self.layout().addWidget(self._view3)
+        # self.layout().addWidget(self._view4)
 
 
 class DerivedDataWidgetTestClass(QWidget):
