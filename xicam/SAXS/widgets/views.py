@@ -4,8 +4,8 @@ import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
 from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt
 from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent
-from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QLayout,\
-                           QWidget, QStackedWidget, QGridLayout, QToolButton, QStyle, QLabel, QGraphicsView
+from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
+                           QWidget, QStackedWidget, QGridLayout, QPushButton, QStyle, QLabel, QGraphicsView
 
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
 # from xicam.gui.widgets.stackedwidget import StackedWidgetWithArrowButtons
@@ -214,35 +214,37 @@ class StackedResultsWidget(QWidget):
     def __init__(self, model):
         super(StackedResultsWidget, self).__init__()
 
-        self._model = model
+        # self._model = model
 
-        self.view1 = ResultsTabView()
-        self.view1.setModel(self._model)
-        #TODO add split (2x2) View for 2nd stack in the stackedWidget
-        # add a button to switch views
-        # self.view2 = ResultsSplitView()
-        self.view2 = ResultsSplitView()
+        # self.view1 = QWidget()
+        # self.view2 = QWidget()
 
-        self.widget = QStackedWidget()
-        self.widget.addWidget(self.view2)
-        self.widget.addWidget(self.view1)
+
+        self.tabview =  ResultsTabView()
+        # self.view1.setModel(self._model)
+        self.splitview = ResultsSplitView()
+
+        self.stackedwidget = QStackedWidget()
+        self.stackedwidget.addWidget(self.tabview)
+        self.stackedwidget.addWidget(self.splitview)
 
         # add buttons
-        self.backwardButton = QToolButton(self)
-        # self.backwardButton.setIcon(self.style().standardIcon(QStyle.SP_ArrowLeft))
-        # self.backwardButton.setMaximumSize(24, 24)
-        # self.backwardButton.setFocusPolicy(Qt.NoFocus)
-        self.forwardButton = QToolButton(self)
-        # self.forwardButton.setIcon(self.style().standardIcon(QStyle.SP_ArrowRight))
-        # self.forwardButton.setMaximumSize(24, 24)
-        # self.forwardButton.setFocusPolicy(Qt.NoFocus)
+        self.TabViewButton = QPushButton('Tab')
+        self.SplitViewButton = QPushButton('Split')
 
 
+        # define outer layout
         layout = QVBoxLayout()
-        layout.addWidget(self.backwardButton)
-        layout.addWidget(self.forwardButton)
-        layout.addWidget(self.widget)
+        button_layout = QHBoxLayout()
+        layout.addWidget(self.TabViewButton)
+        layout.addWidget(self.SplitViewButton)
+        layout.addWidget(self.stackedwidget)
         self.setLayout(layout)
+        self.TabViewButton.clicked.connect(lambda:self.stackedwidget.setCurrentIndex(0))
+        self.SplitViewButton.clicked.connect(lambda:self.stackedwidget.setCurrentIndex(1))
+
+    def display(self, i):
+        self.stackedwidget.setCurrentIndex(i)
 
 
 class ResultsSplitView(QAbstractItemView):
@@ -250,17 +252,14 @@ class ResultsSplitView(QAbstractItemView):
     Displaying results in a 2x2 split view.
     """
 
-    def __init__(self, parent=None):
-        super(ResultsSplitView, self).__init__(parent)
+    def __init__(self):
+        super(ResultsSplitView, self).__init__()
 
-
+        #TODO add actual data view to placeholders
         self._view1 = QGraphicsView()
         self._view2 = QGraphicsView()
         self._view3 = QGraphicsView()
         self._view4 = QGraphicsView()
-        # self._view2 = QLabel('g2')
-        # self._view3 = QLabel('1-time')
-        # self._view4 = QLabel('2-time')
 
         self.gridLayout = QGridLayout()
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
@@ -271,12 +270,8 @@ class ResultsSplitView(QAbstractItemView):
 
         self.setLayout(self.gridLayout)
 
-        # self.setLayout(QVBoxLayout())
-        # self.layout().setContentsMargins(0, 0, 0, 0)
-        # self.layout().addWidget(self._view1)
-        # self.layout().addWidget(self._view2)
-        # self.layout().addWidget(self._view3)
-        # self.layout().addWidget(self._view4)
+
+
 
 
 class DerivedDataWidgetTestClass(QWidget):
