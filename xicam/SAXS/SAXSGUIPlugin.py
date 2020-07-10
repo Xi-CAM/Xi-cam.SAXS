@@ -31,7 +31,7 @@ class SAXSPlugin(GUIPlugin):
         # Late imports required due to plugin system
         from xicam.SAXS.calibration import CalibrationPanel
         from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer
-        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
+        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce, SAXSToolbarCompare
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
         self.derivedDataModel = CatalogModel()
@@ -95,6 +95,7 @@ class SAXSPlugin(GUIPlugin):
         self.masktoolbar = SAXSToolbarMask(self.catalogModel, self.selectionmodel)
         self.reducetoolbar = SAXSToolbarReduce(self.catalogModel, self.selectionmodel,
                                                view=self.reducetabview.currentWidget, workflow=self.reduceworkflow)
+        self.comparetoolbar = SAXSToolbarCompare(self.catalogModel, self.selectionmodel)
         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
         self.reducetoolbar.sigDeviceChanged.connect(self.deviceChanged)
 
@@ -119,6 +120,7 @@ class SAXSPlugin(GUIPlugin):
 
         # Setup compare widget (results viewer)
         self.compareplot = StackedResultsWidget(self.derivedDataModel)
+        self.comparetoolbar.sigDoWorkflow
 
         # Setup correlation widgets
         self.correlationResults = ResultsWidget(self.derivedDataModel)
@@ -134,7 +136,7 @@ class SAXSPlugin(GUIPlugin):
             'Reduce': GUILayout(self.reducetabview,
                                 bottom=self.reduceplot, right=self.reduceeditor, righttop=self.displayeditor,
                                 top=self.reducetoolbar),
-            'Compare': GUILayout(self.compareplot, top=self.reducetoolbar,
+            'Compare': GUILayout(self.compareplot, top=self.comparetoolbar,
                                  right=self.reduceeditor),
             'Correlate': {
                 '2-Time Correlation': GUILayout(self.correlationView,

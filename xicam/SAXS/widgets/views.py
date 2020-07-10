@@ -216,10 +216,6 @@ class StackedResultsWidget(QWidget):
 
         # self._model = model
 
-        # self.view1 = QWidget()
-        # self.view2 = QWidget()
-
-
         self.tabview =  ResultsTabView()
         # self.view1.setModel(self._model)
         self.splitview = ResultsSplitView()
@@ -232,10 +228,8 @@ class StackedResultsWidget(QWidget):
         self.TabViewButton = QPushButton('Tab')
         self.SplitViewButton = QPushButton('Split')
 
-
         # define outer layout
         layout = QVBoxLayout()
-        button_layout = QHBoxLayout()
         layout.addWidget(self.TabViewButton)
         layout.addWidget(self.SplitViewButton)
         layout.addWidget(self.stackedwidget)
@@ -243,8 +237,6 @@ class StackedResultsWidget(QWidget):
         self.TabViewButton.clicked.connect(lambda:self.stackedwidget.setCurrentIndex(0))
         self.SplitViewButton.clicked.connect(lambda:self.stackedwidget.setCurrentIndex(1))
 
-    def display(self, i):
-        self.stackedwidget.setCurrentIndex(i)
 
 
 class ResultsSplitView(QAbstractItemView):
@@ -269,9 +261,6 @@ class ResultsSplitView(QAbstractItemView):
         self.gridLayout.addWidget(self._view4, 1, 1, 1, 1)
 
         self.setLayout(self.gridLayout)
-
-
-
 
 
 class DerivedDataWidgetTestClass(QWidget):

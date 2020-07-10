@@ -61,6 +61,7 @@ class FieldSelector(SAXSToolbarBase):
             self.detectorcombobox.clear()
             self.detectorcombobox.addItems(fields)
 
+
 class ModeSelector(SAXSToolbarBase):
     def __init__(self, *args, **kwargs):
         super(ModeSelector, self).__init__(*args, **kwargs)
@@ -72,6 +73,17 @@ class ModeSelector(SAXSToolbarBase):
         self.remeshaction = self.mkAction('icons/remesh.png', 'Wrap Ewald Sphere', checkable=True, group=self.modegroup)
         self.addAction(self.remeshaction)
         self.addSeparator()
+
+
+class ResultsViewSelector(SAXSToolbarBase):
+    def __init__(self, *args, **kwargs):
+        super(ResultsViewSelector, self).__init__(*args, **kwargs)
+        #TODO add buttons to swap between tab and split view in compare
+
+        self.TabViewButton = QPushButton('Tab')
+        self.SplitViewButton = QPushButton('Split')
+        self.addWidget(self.TabViewButton)
+        self.addWidget(self.SplitViewButton)
 
 
 class MultiPlot(SAXSToolbarBase):
@@ -204,6 +216,11 @@ class SAXSToolbarMask(FieldSelector):
 class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector, FieldSelector):
     def __init__(self, *args, **kwargs):
         super(SAXSToolbarReduce, self).__init__(*args, **kwargs)
+
+
+class SAXSToolbarCompare(ResultsViewSelector, MultiPlot, ROIs, FieldSelector):
+    def __init__(self, *args, **kwargs):
+        super(SAXSToolbarCompare, self).__init__(*args, **kwargs)
 
 
 class CheckableWorkflowOutputModel(QAbstractItemModel):
