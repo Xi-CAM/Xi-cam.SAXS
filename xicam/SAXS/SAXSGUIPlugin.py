@@ -52,7 +52,7 @@ class SAXSPlugin(GUIPlugin):
         self.calibrationsettings = pluginmanager.get_plugin_by_name('xicam.SAXS.calibration',
                                                                     'SettingsPlugin')
 
-        # Setup TabViews
+        # Setup TabViews (central view widget for different stages
         # FIXME -- rework how fields propagate to displays (i.e. each image has its own detector, switching
         # between tabs updates the detector combobbox correctly)
         field = "fccd_image"
@@ -72,8 +72,15 @@ class SAXSPlugin(GUIPlugin):
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
-        #TODO: will be replaced by StackedWidget
-        self.comparemultiview = QLabel("COMING SOON!")  # SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
+        #TODO: add another version of TabView that can also show different fields from derived data not only multiply scans
+        self.comparemultiview = StackedResultsWidget(tabview= TabView(self.catalogModel,
+                                                                      widgetcls=SAXSReductionViewer,
+                                                                      selectionmodel=self.selectionmodel,
+                                                                      stream='primary',
+                                                                      field=field,
+                                                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
+                                                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
+                                                                      geometry=self.getAI))
 
         # Setup correlation views
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
@@ -95,7 +102,6 @@ class SAXSPlugin(GUIPlugin):
         self.masktoolbar = SAXSToolbarMask(self.catalogModel, self.selectionmodel)
         self.reducetoolbar = SAXSToolbarReduce(self.catalogModel, self.selectionmodel,
                                                view=self.reducetabview.currentWidget, workflow=self.reduceworkflow)
-        # self.comparetoolbar = SAXSToolbarCompare(self.catalogModel, self.selectionmodel)
         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
         self.reducetoolbar.sigDeviceChanged.connect(self.deviceChanged)
 
@@ -118,10 +124,6 @@ class SAXSPlugin(GUIPlugin):
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(self.catalogChanged)
 
-        # Setup compare widget (results viewer)
-        self.compareplot = StackedResultsWidget(self.derivedDataModel)
-        # self.comparetoolbar.sigDoWorkflow
-
         # Setup correlation widgets
         self.correlationResults = ResultsWidget(self.derivedDataModel)
 
@@ -133,10 +135,10 @@ class SAXSPlugin(GUIPlugin):
             'Mask': GUILayout(self.masktabview,
                               right=self.maskeditor,
                               top=self.masktoolbar),
-            'Reduce': GUILayout(self.reducetabview,
+            'Reduce': GUILayout(center=self.reducetabview,
                                 bottom=self.reduceplot, right=self.reduceeditor, righttop=self.displayeditor,
                                 top=self.reducetoolbar),
-            'Compare': GUILayout(self.compareplot, top=self.reducetoolbar,
+            'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar,
                                  right=self.reduceeditor),
             'Correlate': {
                 '2-Time Correlation': GUILayout(self.correlationView,

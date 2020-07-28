@@ -2,12 +2,15 @@ from collections import OrderedDict
 
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
-from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt
+from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt, Signal, Slot, QItemSelectionModel
 from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent
 from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
-                           QWidget, QStackedWidget, QGridLayout, QPushButton, QStyle, QLabel, QGraphicsView
+                           QWidget, QStackedWidget, QGridLayout, QPushButton, QStyle, QLabel, QGraphicsView, QScrollArea, \
+                           QListWidget, QFormLayout, QRadioButton, QCheckBox
 
+from xicam.gui.widgets.tabview import TabView
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
+from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSReductionViewer
 # from xicam.gui.widgets.stackedwidget import StackedWidgetWithArrowButtons
 
 
@@ -139,7 +142,6 @@ class OneTimeWidget(CorrelationWidget):
             self.legend.show()
 
 
-
 class TwoTimeWidget(CorrelationWidget):
     ...
 
@@ -207,39 +209,55 @@ class ResultsWidget(QWidget):
 
 class StackedResultsWidget(QWidget):
     """
-    Widget for viewing results in two different ways using the QStackedWidget and
-    two stacks one for tabview and one for splitview
+    Widget for viewing results in two different ways using the QStackedWidget with
+    two pages one for tabview and one for splitview
     """
 
-    def __init__(self, model):
+    def __init__(self,
+                 tabview):
         super(StackedResultsWidget, self).__init__()
+        # self.catalog_model = model
+        self.catalogmodel = QStandardItemModel()
+        self.selectionmodel = QItemSelectionModel(self.catalogmodel)
+        field = "fccd_image"
 
-        # self._model = model
+        #TODO: implement TabView so that it shows different scans and different fields
+        self.tabview = tabview
 
-        self.tabview =  ResultsTabView()
+        # self.tabview = QLabel("tabVIEW")
         # self.view1.setModel(self._model)
         self.splitview = ResultsSplitView()
 
-        self.stackedwidget = QStackedWidget()
+        self.stackedwidget = QStackedWidget(self)
         self.stackedwidget.addWidget(self.tabview)
         self.stackedwidget.addWidget(self.splitview)
 
         # add buttons
-        self.TabViewButton = QPushButton('Tab')
-        self.SplitViewButton = QPushButton('Split')
+        self.tab_button = QPushButton("tab")
+        self.split_button = QPushButton("split")
+        # to a button sub layout
+        self.buttonbox = QHBoxLayout()
+        self.buttonbox.addStretch(1)
+        self.buttonbox.addWidget(self.tab_button)
+        self.buttonbox.addWidget(self.split_button)
+        self.tab_button.clicked.connect(self.display_tab)
+        self.split_button.clicked.connect(self.display_split)
 
         # define outer layout
-        layout = QVBoxLayout()
-        layout.addWidget(self.TabViewButton)
-        layout.addWidget(self.SplitViewButton)
-        layout.addWidget(self.stackedwidget)
-        self.setLayout(layout)
-        self.TabViewButton.clicked.connect(lambda:self.stackedwidget.setCurrentIndex(0))
-        self.SplitViewButton.clicked.connect(lambda:self.stackedwidget.setCurrentIndex(1))
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.stackedwidget)
+        self.layout.addLayout(self.buttonbox)
+        self.setLayout(self.layout)
+        # self.show()
+
+    def display_tab(self):
+        self.stackedwidget.setCurrentIndex(0)
+
+    def display_split(self):
+        self.stackedwidget.setCurrentIndex(1)
 
 
-
-class ResultsSplitView(QAbstractItemView):
+class ResultsSplitView(QWidget):
     """
     Displaying results in a 2x2 split view.
     """
@@ -247,18 +265,24 @@ class ResultsSplitView(QAbstractItemView):
     def __init__(self):
         super(ResultsSplitView, self).__init__()
 
-        #TODO add actual data view to placeholders
-        self._view1 = QGraphicsView()
-        self._view2 = QGraphicsView()
-        self._view3 = QGraphicsView()
-        self._view4 = QGraphicsView()
-
         self.gridLayout = QGridLayout()
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.gridLayout.addWidget(self._view1, 0, 0, 1, 1)
-        self.gridLayout.addWidget(self._view2, 0, 1, 1, 1)
-        self.gridLayout.addWidget(self._view3, 1, 0, 1, 1)
-        self.gridLayout.addWidget(self._view4, 1, 1, 1, 1)
+
+        #TODO make row_max and col_max dynamic based on requested number of view widgets
+        # and a horizontal or vertical layout preference
+        self._max_widgets = 4
+
+        row_max = self._max_widgets//2 - 1
+        col_max = self._max_widgets//2 - 1
+        row, col = 0, 0
+        for i in range(self._max_widgets):
+            # print('row is', row, 'col is', col)
+            # TODO add actual view to Label placeholders
+            self.gridLayout.addWidget(QLabel('View' + str(i+1)), row, col, row_max, col_max)
+            col += 1
+            if col == col_max + 1:
+                col = 0
+                row += 1
 
         self.setLayout(self.gridLayout)
 
