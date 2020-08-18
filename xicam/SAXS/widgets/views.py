@@ -238,8 +238,11 @@ class StackedResultsWidget(QWidget):
         self.stackedwidget.addWidget(self.splitview)
 
         # add buttons
-        self.tab_button = QPushButton("tab")
-        self.split_button = QPushButton("split")
+        self.tab_button = QPushButton()
+        self.tab_button.setIcon(QIcon(path('icons/tabs.png')))
+        self.split_button = QPushButton()
+        self.split_button.setIcon(QIcon(path('icons/grid.png')))
+
         # to a button sub layout
         self.buttonbox = QHBoxLayout()
         self.buttonbox.addStretch(1)
@@ -276,21 +279,25 @@ class ResultsSplitView(QWidget):
         self.tabview = tabview
 
         self.buttonbox = QHBoxLayout()
-        self.button1 = QPushButton('horizontal')
-        self.button2 = QPushButton('vertical')
-        self.button3 = QPushButton('3')
-        self.button4 = QPushButton('4')
-        self.buttonbox.addWidget(self.button1)
-        self.buttonbox.addWidget(self.button2)
-        self.buttonbox.addWidget(self.button3)
-        self.buttonbox.addWidget(self.button4)
+        self.button_hor= QPushButton()
+        self.button_hor.setIcon(QIcon(path('icons/1x1hor.png')))
+        self.button_vert = QPushButton()
+        self.button_vert.setIcon(QIcon(path('icons/1x1vert.png')))
+        self.button_2x1 = QPushButton()
+        self.button_2x1.setIcon(QIcon(path('icons/2x1grid.png')))
+        self.button_2x2 = QPushButton()
+        self.button_2x2.setIcon(QIcon(path('icons/2x2grid.png')))
+        self.buttonbox.addWidget(self.button_hor)
+        self.buttonbox.addWidget(self.button_vert)
+        self.buttonbox.addWidget(self.button_2x1)
+        self.buttonbox.addWidget(self.button_2x2)
 
         self.gridLayout = QGridLayout()
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.button1.clicked.connect(self.horizontal)
-        self.button2.clicked.connect(self.vertical)
-        self.button3.clicked.connect(self.threeview)
-        self.button4.clicked.connect(self.fourview)
+        self.button_hor.clicked.connect(self.horizontal)
+        self.button_vert.clicked.connect(self.vertical)
+        self.button_2x1.clicked.connect(self.threeview)
+        self.button_2x2.clicked.connect(self.fourview)
 
         #set general Layout
         self.layout = QVBoxLayout()
