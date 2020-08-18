@@ -236,25 +236,40 @@ class StackedResultsWidget(QWidget):
         self.stackedwidget = QStackedWidget(self)
         self.stackedwidget.addWidget(self.tabview)
         self.stackedwidget.addWidget(self.splitview)
-
-        # add buttons
+        #Create Button Panel
+        self.buttonpanel = QHBoxLayout()
+        # self.buttonpanel.addStretch(1)
+        #Create Buttons
         self.tab_button = QPushButton()
         self.tab_button.setIcon(QIcon(path('icons/tabs.png')))
         self.split_button = QPushButton()
         self.split_button.setIcon(QIcon(path('icons/grid.png')))
-
-        # to a button sub layout
-        self.buttonbox = QHBoxLayout()
-        self.buttonbox.addStretch(1)
-        self.buttonbox.addWidget(self.tab_button)
-        self.buttonbox.addWidget(self.split_button)
+        self.button_hor = QPushButton()
+        self.button_hor.setIcon(QIcon(path('icons/1x1hor.png')))
+        self.button_vert = QPushButton()
+        self.button_vert.setIcon(QIcon(path('icons/1x1vert.png')))
+        self.button_2x1 = QPushButton()
+        self.button_2x1.setIcon(QIcon(path('icons/2x1grid.png')))
+        self.button_2x2 = QPushButton()
+        self.button_2x2.setIcon(QIcon(path('icons/2x2grid.png')))
+        #Add Buttons to Panel
+        self.buttonpanel.addWidget(self.tab_button)
+        self.buttonpanel.addWidget(self.split_button)
+        self.buttonpanel.addWidget(self.button_hor)
+        self.buttonpanel.addWidget(self.button_vert)
+        self.buttonpanel.addWidget(self.button_2x1)
+        self.buttonpanel.addWidget(self.button_2x2)
+        #Connect Buttons to function
         self.tab_button.clicked.connect(self.display_tab)
         self.split_button.clicked.connect(self.display_split)
-
-        # define outer layout
+        self.button_hor.clicked.connect(self.splitview.horizontal)
+        self.button_vert.clicked.connect(self.splitview.vertical)
+        self.button_2x1.clicked.connect(self.splitview.threeview)
+        self.button_2x2.clicked.connect(self.splitview.fourview)
+        # define outer layout & add stacked widget and button panel
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.stackedwidget)
-        self.layout.addLayout(self.buttonbox)
+        self.layout.addLayout(self.buttonpanel)
         self.setLayout(self.layout)
         # self.show()
 
@@ -278,32 +293,9 @@ class ResultsSplitView(QWidget):
         self.field = field
         self.tabview = tabview
 
-        self.buttonbox = QHBoxLayout()
-        self.button_hor= QPushButton()
-        self.button_hor.setIcon(QIcon(path('icons/1x1hor.png')))
-        self.button_vert = QPushButton()
-        self.button_vert.setIcon(QIcon(path('icons/1x1vert.png')))
-        self.button_2x1 = QPushButton()
-        self.button_2x1.setIcon(QIcon(path('icons/2x1grid.png')))
-        self.button_2x2 = QPushButton()
-        self.button_2x2.setIcon(QIcon(path('icons/2x2grid.png')))
-        self.buttonbox.addWidget(self.button_hor)
-        self.buttonbox.addWidget(self.button_vert)
-        self.buttonbox.addWidget(self.button_2x1)
-        self.buttonbox.addWidget(self.button_2x2)
-
         self.gridLayout = QGridLayout()
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.button_hor.clicked.connect(self.horizontal)
-        self.button_vert.clicked.connect(self.vertical)
-        self.button_2x1.clicked.connect(self.threeview)
-        self.button_2x2.clicked.connect(self.fourview)
-
-        #set general Layout
-        self.layout = QVBoxLayout()
-        self.layout.addLayout(self.buttonbox)
-        self.layout.addLayout(self.gridLayout)
-        self.setLayout(self.layout)
+        self.setLayout(self.gridLayout)
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
@@ -375,51 +367,10 @@ class ResultsSplitView(QWidget):
             if child.widget():
                 child.widget().deleteLater()
 
-    #copied from tabview
-    def setCatalogModel(self, model: QStandardItemModel):
-        self.catalogmodel = model
-        if not self.selectionmodel:
-            self.selectionmodel = TabItemSelectionModel(self)
-        model.dataChanged.connect(self.dataChanged)
 
-    def dataChanged(self, start, end):
-        for i in range(self.catalogmodel.rowCount()):
-            itemdata = None
-            if hasattr(self.catalogmodel.item(i), "header"):
-                itemdata = self.catalogmodel.item(i).header
-            else:
-                itemdata = self.catalogmodel.item(i).data(Qt.UserRole)
 
-            if self.widget(i):
-                if (hasattr(self.widget(i), "catalog") and self.widget(i).catalog == itemdata) or (
-                    hasattr(self.widget(i), "header") and self.widget(i).header == itemdata
-                ):
-                    continue
-            try:
-                newwidget = self.widgetcls(itemdata, stream=self.stream, field=self.field, **self.kwargs)
-            except Exception as ex:
-                msg.logMessage(
-                    f"A widget of type {self.widgetcls} could not be initialized with args: {itemdata, self.field, self.kwargs}"
-                )
-                msg.logError(ex)
-                self.catalogmodel.removeRow(i)
-                self.dataChanged(0, 0)
-                return
 
-            self.setCurrentIndex(self.insertTab(i, newwidget, self.catalogmodel.item(i).text()))
 
-            for sender, receiver in self.bindings:
-                if isinstance(sender, str):
-                    sender = getattr(newwidget, sender)
-                if isinstance(receiver, str):
-                    receiver = getattr(newwidget, receiver)
-                sender.connect(receiver)
-
-        for i in reversed(range(self.catalogmodel.rowCount(), self.count())):
-            self.removeTab(i)
-
-    def setWidgetClass(self, cls):
-        self.widgetcls = cls
 
 class DerivedDataWidgetTestClass(QWidget):
     """
