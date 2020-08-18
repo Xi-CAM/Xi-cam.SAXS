@@ -3,16 +3,18 @@ from collections import OrderedDict
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
 from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt, Signal, Slot, QItemSelectionModel
-from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent
+from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent, QIcon, QPixmap
 from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
                            QWidget, QStackedWidget, QGridLayout, QPushButton, QStyle, QLabel, QGraphicsView, QScrollArea, \
-                           QListWidget, QFormLayout, QRadioButton, QCheckBox
+                           QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar
 
 from xicam.gui.widgets.tabview import TabView
+from xicam.gui.static import path
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
 from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSReductionViewer
 # from xicam.gui.widgets.stackedwidget import StackedWidgetWithArrowButtons
 
+from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarBase
 
 # For some reason, LegendItem.removeItem(ref) wasn't working, so this class stores the data name
 class CurveItemSample(ItemSample):
@@ -207,39 +209,58 @@ class ResultsWidget(QWidget):
         self.setLayout(self._derivedDataWidget.layout())
 
 
-class StackedResultsWidget(QWidget):
+
+class StackedResultsWidget(QToolBar):
     """
     Widget for viewing results in two different ways using the QStackedWidget with
     two pages one for tabview and one for splitview
     """
 
-    def __init__(self,
-                 tabview):
+    def __init__(self, tabview):
         super(StackedResultsWidget, self).__init__()
         # self.catalog_model = model
-        self.catalogmodel = QStandardItemModel()
-        self.selectionmodel = QItemSelectionModel(self.catalogmodel)
+        # self.catalogmodel = QStandardItemModel()
+        # self.selectionmodel = QItemSelectionModel(self.catalogmodel)
         field = "fccd_image"
 
         #TODO: implement TabView so that it shows different scans and different fields
         self.tabview = tabview
-
+        self.catalogmodel = tabview.catalogmodel
+        self.selectionmodel = tabview.selectionmodel
         # self.tabview = QLabel("tabVIEW")
         # self.view1.setModel(self._model)
-        self.splitview = ResultsSplitView()
+        self.splitview = ResultsSplitView(tabview= self.tabview,
+                                          model=self.catalogmodel,
+                                          selectionmodel=self.selectionmodel,
+                                          stream='primary',
+                                          field='fccd_image')
 
+        #Create stacked widget
         self.stackedwidget = QStackedWidget(self)
         self.stackedwidget.addWidget(self.tabview)
         self.stackedwidget.addWidget(self.splitview)
+        self.toolbarbase = SAXSToolbarBase()
+        mkAction = self.toolbarbase.mkAction
+
+        self.viewmodegroup = QActionGroup(self)
+        self.tabmode = mkAction(iconpath='icons/tabs.png', text='Tab View', checkable=True, group=self.viewmodegroup, checked=True)
+        self.addAction(self.tabmode)
+        self.gridmode = mkAction(iconpath='icons/grid.png', text='Grid View', checkable=True, group=self.viewmodegroup)
+        self.addAction(self.gridmode)
+        self.addSeparator()
 
         # add buttons
-        self.tab_button = QPushButton("tab")
-        self.split_button = QPushButton("split")
+        self.tab_button = QPushButton(self)
+        self.tab_button.setIcon(QIcon(path('icons/tabs.png')))
+        self.split_button = QPushButton(self)
+        self.split_button.setIcon(QIcon(path('icons/grid.png')))
         # to a button sub layout
         self.buttonbox = QHBoxLayout()
         self.buttonbox.addStretch(1)
         self.buttonbox.addWidget(self.tab_button)
         self.buttonbox.addWidget(self.split_button)
+        self.buttonbox.addWidget(self.viewmodegroup)
+        self.buttonbox.add
         self.tab_button.clicked.connect(self.display_tab)
         self.split_button.clicked.connect(self.display_split)
 
@@ -259,33 +280,155 @@ class StackedResultsWidget(QWidget):
 
 class ResultsSplitView(QWidget):
     """
-    Displaying results in a 2x2 split view.
+    Displaying results in a (dynamic) split view.
     """
 
-    def __init__(self):
+    def __init__(self, tabview, model, selectionmodel, stream, field, widgetcls=None,  num_of_views = None):
         super(ResultsSplitView, self).__init__()
+        self.catalogmodel = model
+        self.selectionmodel = selectionmodel
+        self.stream = stream
+        self.field = field
+        self.tabview = tabview
+
+        self.buttonbox = QHBoxLayout()
+        self.button1 = QPushButton('horizontal')
+        self.button2 = QPushButton('vertical')
+        self.button3 = QPushButton('3')
+        self.button4 = QPushButton('4')
+        self.buttonbox.addWidget(self.button1)
+        self.buttonbox.addWidget(self.button2)
+        self.buttonbox.addWidget(self.button3)
+        self.buttonbox.addWidget(self.button4)
 
         self.gridLayout = QGridLayout()
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
+        self.button1.clicked.connect(self.horizontal)
+        self.button2.clicked.connect(self.vertical)
+        self.button3.clicked.connect(self.threeview)
+        self.button4.clicked.connect(self.fourview)
 
-        #TODO make row_max and col_max dynamic based on requested number of view widgets
-        # and a horizontal or vertical layout preference
-        self._max_widgets = 4
+        #set general Layout
+        self.layout = QVBoxLayout()
+        self.layout.addLayout(self.buttonbox)
+        self.layout.addLayout(self.gridLayout)
+        self.setLayout(self.layout)
 
-        row_max = self._max_widgets//2 - 1
-        col_max = self._max_widgets//2 - 1
-        row, col = 0, 0
-        for i in range(self._max_widgets):
-            # print('row is', row, 'col is', col)
-            # TODO add actual view to Label placeholders
-            self.gridLayout.addWidget(QLabel('View' + str(i+1)), row, col, row_max, col_max)
-            col += 1
-            if col == col_max + 1:
-                col = 0
-                row += 1
+    def update_view(self):
+        available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
+        for i in range(self.catalogmodel.rowCount()):
+            if i > available_widgets - 1 :
+                return
+            itemdata = self.catalogmodel.item(i).data(Qt.UserRole)
+            # TODO: use projection from catalog data to figure this out
+            widget = QLabel(self.catalogmodel.item(i).data(Qt.DisplayRole)) # temporary
 
-        self.setLayout(self.gridLayout)
 
+    #TODO connect derived data views with widgets
+    def horizontal(self):
+        self.clear_layout()
+        self.gridLayout.addWidget(QGraphicsView(), 0, 0, 1, 1)
+        self.gridLayout.addWidget(QGraphicsView(), 1, 0, 1, 1)
+
+    def vertical(self):
+        self.clear_layout()
+        # selected_indexes = self.selectionmodel.selectedIndexes()
+        selected_indexes = [self.catalogmodel.item(i) for i in range(self.catalogmodel.rowCount())]
+        print("#1", self.catalogmodel.item)
+        print("#2", self.catalogmodel)
+
+        # view1 = pg.ImageView(self.catalogmodel.item(0).data(Qt.UserRole))
+        # view1.setImage()
+        widgets = []
+        for index in selected_indexes:
+            data = index.data(Qt.DisplayRole) # data: scan xxxxxx,  index.data(Qt.UserRole)s
+            widget = QLabel(data)
+            # widget = QStackedWidget(self)
+            # widget.addWidget(self.tabview)
+            widgets.append(widget)
+
+        if len(widgets) < 1:
+            print("len <1", len(widgets))
+            w1 = QLabel("1")
+            w2 = QLabel("2")
+        elif len(widgets) >= 1 and len(widgets) < 2:
+            print("len 1<w<2", len(widgets))
+            w1 = widgets[0]
+            w2 = QLabel("2")
+        else:
+            print("else", len(widgets))
+            w1 = widgets[0]
+            #w1 = self.setCatalogModel(self.catalogmodel)
+            w2 = widgets[-1]
+
+        self.gridLayout.addWidget(w1, 0, 0, 1, 1)
+        self.gridLayout.addWidget(w2, 0, 1, 1, 1)
+
+
+    def threeview(self):
+        self.clear_layout()
+        self.gridLayout.addWidget(QGraphicsView(), 0, 0, 1, 1)
+        self.gridLayout.addWidget(QGraphicsView(), 0, 1, 1, 1)
+        self.gridLayout.addWidget(QGraphicsView(), 1, 0, 1, 0)
+
+    def fourview(self):
+        self.clear_layout()
+        self.gridLayout.addWidget(QGraphicsView(), 0, 0, 1, 1)
+        self.gridLayout.addWidget(QGraphicsView(), 0, 1, 1, 1)
+        self.gridLayout.addWidget(QGraphicsView(), 1, 0, 1, 1)
+        self.gridLayout.addWidget(QGraphicsView(), 1, 1, 1, 1)
+
+    def clear_layout(self):
+        while self.gridLayout.count():
+            child = self.gridLayout.takeAt(0)
+            if child.widget():
+                child.widget().deleteLater()
+
+    #copied from tabview
+    def setCatalogModel(self, model: QStandardItemModel):
+        self.catalogmodel = model
+        if not self.selectionmodel:
+            self.selectionmodel = TabItemSelectionModel(self)
+        model.dataChanged.connect(self.dataChanged)
+
+    def dataChanged(self, start, end):
+        for i in range(self.catalogmodel.rowCount()):
+            itemdata = None
+            if hasattr(self.catalogmodel.item(i), "header"):
+                itemdata = self.catalogmodel.item(i).header
+            else:
+                itemdata = self.catalogmodel.item(i).data(Qt.UserRole)
+
+            if self.widget(i):
+                if (hasattr(self.widget(i), "catalog") and self.widget(i).catalog == itemdata) or (
+                    hasattr(self.widget(i), "header") and self.widget(i).header == itemdata
+                ):
+                    continue
+            try:
+                newwidget = self.widgetcls(itemdata, stream=self.stream, field=self.field, **self.kwargs)
+            except Exception as ex:
+                msg.logMessage(
+                    f"A widget of type {self.widgetcls} could not be initialized with args: {itemdata, self.field, self.kwargs}"
+                )
+                msg.logError(ex)
+                self.catalogmodel.removeRow(i)
+                self.dataChanged(0, 0)
+                return
+
+            self.setCurrentIndex(self.insertTab(i, newwidget, self.catalogmodel.item(i).text()))
+
+            for sender, receiver in self.bindings:
+                if isinstance(sender, str):
+                    sender = getattr(newwidget, sender)
+                if isinstance(receiver, str):
+                    receiver = getattr(newwidget, receiver)
+                sender.connect(receiver)
+
+        for i in reversed(range(self.catalogmodel.rowCount(), self.count())):
+            self.removeTab(i)
+
+    def setWidgetClass(self, cls):
+        self.widgetcls = cls
 
 class DerivedDataWidgetTestClass(QWidget):
     """
