@@ -8,13 +8,10 @@ from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, 
                            QWidget, QStackedWidget, QGridLayout, QPushButton, QStyle, QLabel, QGraphicsView, QScrollArea, \
                            QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar
 
-from xicam.gui.widgets.tabview import TabView
 from xicam.gui.static import path
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
-from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSReductionViewer
-# from xicam.gui.widgets.stackedwidget import StackedWidgetWithArrowButtons
 
-from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarBase
+
 
 # For some reason, LegendItem.removeItem(ref) wasn't working, so this class stores the data name
 class CurveItemSample(ItemSample):
@@ -239,28 +236,15 @@ class StackedResultsWidget(QToolBar):
         self.stackedwidget = QStackedWidget(self)
         self.stackedwidget.addWidget(self.tabview)
         self.stackedwidget.addWidget(self.splitview)
-        self.toolbarbase = SAXSToolbarBase()
-        mkAction = self.toolbarbase.mkAction
-
-        self.viewmodegroup = QActionGroup(self)
-        self.tabmode = mkAction(iconpath='icons/tabs.png', text='Tab View', checkable=True, group=self.viewmodegroup, checked=True)
-        self.addAction(self.tabmode)
-        self.gridmode = mkAction(iconpath='icons/grid.png', text='Grid View', checkable=True, group=self.viewmodegroup)
-        self.addAction(self.gridmode)
-        self.addSeparator()
 
         # add buttons
-        self.tab_button = QPushButton(self)
-        self.tab_button.setIcon(QIcon(path('icons/tabs.png')))
-        self.split_button = QPushButton(self)
-        self.split_button.setIcon(QIcon(path('icons/grid.png')))
+        self.tab_button = QPushButton("tab")
+        self.split_button = QPushButton("split")
         # to a button sub layout
         self.buttonbox = QHBoxLayout()
         self.buttonbox.addStretch(1)
         self.buttonbox.addWidget(self.tab_button)
         self.buttonbox.addWidget(self.split_button)
-        self.buttonbox.addWidget(self.viewmodegroup)
-        self.buttonbox.add
         self.tab_button.clicked.connect(self.display_tab)
         self.split_button.clicked.connect(self.display_split)
 
