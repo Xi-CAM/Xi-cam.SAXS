@@ -207,7 +207,7 @@ class ResultsWidget(QWidget):
 
 
 
-class StackedResultsWidget(QToolBar):
+class StackedResultsWidget(QWidget):
     """
     Widget for viewing results in two different ways using the QStackedWidget with
     two pages one for tabview and one for splitview

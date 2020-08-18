@@ -31,7 +31,7 @@ class SAXSPlugin(GUIPlugin):
         # Late imports required due to plugin system
         from xicam.SAXS.calibration import CalibrationPanel
         from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer
-        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
+        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce, SAXSToolbarCompare
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
         self.derivedDataModel = CatalogModel()
@@ -102,6 +102,7 @@ class SAXSPlugin(GUIPlugin):
         self.masktoolbar = SAXSToolbarMask(self.catalogModel, self.selectionmodel)
         self.reducetoolbar = SAXSToolbarReduce(self.catalogModel, self.selectionmodel,
                                                view=self.reducetabview.currentWidget, workflow=self.reduceworkflow)
+        # self.comparetoolbar = SAXSToolbarCompare()
         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
         self.reducetoolbar.sigDeviceChanged.connect(self.deviceChanged)
 
