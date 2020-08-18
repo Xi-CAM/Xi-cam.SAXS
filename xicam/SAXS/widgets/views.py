@@ -215,10 +215,6 @@ class StackedResultsWidget(QWidget):
 
     def __init__(self, tabview):
         super(StackedResultsWidget, self).__init__()
-        # self.catalog_model = model
-        # self.catalogmodel = QStandardItemModel()
-        # self.selectionmodel = QItemSelectionModel(self.catalogmodel)
-        field = "fccd_image"
 
         #TODO: implement TabView so that it shows different scans and different fields
         self.tabview = tabview
@@ -242,8 +238,8 @@ class StackedResultsWidget(QWidget):
         #Create Buttons
         self.tab_button = QPushButton()
         self.tab_button.setIcon(QIcon(path('icons/tabs.png')))
-        self.split_button = QPushButton()
-        self.split_button.setIcon(QIcon(path('icons/grid.png')))
+        # self.split_button = QPushButton()
+        # self.split_button.setIcon(QIcon(path('icons/grid.png')))
         self.button_hor = QPushButton()
         self.button_hor.setIcon(QIcon(path('icons/1x1hor.png')))
         self.button_vert = QPushButton()
@@ -254,18 +250,23 @@ class StackedResultsWidget(QWidget):
         self.button_2x2.setIcon(QIcon(path('icons/2x2grid.png')))
         #Add Buttons to Panel
         self.buttonpanel.addWidget(self.tab_button)
-        self.buttonpanel.addWidget(self.split_button)
+        # self.buttonpanel.addWidget(self.split_button)
         self.buttonpanel.addWidget(self.button_hor)
         self.buttonpanel.addWidget(self.button_vert)
         self.buttonpanel.addWidget(self.button_2x1)
         self.buttonpanel.addWidget(self.button_2x2)
         #Connect Buttons to function
         self.tab_button.clicked.connect(self.display_tab)
-        self.split_button.clicked.connect(self.display_split)
+        # self.split_button.clicked.connect(self.display_split)
+        #TODO: condense the next lines of code to always set split display, if either of grid buttons is clicked
         self.button_hor.clicked.connect(self.splitview.horizontal)
+        self.button_hor.clicked.connect(self.display_split)
         self.button_vert.clicked.connect(self.splitview.vertical)
+        self.button_vert.clicked.connect(self.display_split)
         self.button_2x1.clicked.connect(self.splitview.threeview)
+        self.button_2x1.clicked.connect(self.display_split)
         self.button_2x2.clicked.connect(self.splitview.fourview)
+        self.button_2x2.clicked.connect(self.display_split)
         # define outer layout & add stacked widget and button panel
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.stackedwidget)
@@ -296,6 +297,7 @@ class ResultsSplitView(QWidget):
         self.gridLayout = QGridLayout()
         self.gridLayout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(self.gridLayout)
+        # self.stackedwidget = StackedResultsWidget()
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
@@ -309,6 +311,7 @@ class ResultsSplitView(QWidget):
 
     #TODO connect derived data views with widgets
     def horizontal(self):
+        # self.stackedwidget.setCurrentIndex(1)
         self.clear_layout()
         self.gridLayout.addWidget(QGraphicsView(), 0, 0, 1, 1)
         self.gridLayout.addWidget(QGraphicsView(), 1, 0, 1, 1)
