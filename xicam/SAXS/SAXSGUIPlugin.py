@@ -73,7 +73,7 @@ class SAXSPlugin(GUIPlugin):
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
         #TODO: add another version of TabView that can also show different fields from derived data not only multiply scans
-        self.comparemultiview = StackedResultsWidget(tabview= TabView(self.catalogModel,
+        self.comparemultiview = StackedResultsWidget(tabview=TabView(self.catalogModel,
                                                                       widgetcls=SAXSReductionViewer,
                                                                       selectionmodel=self.selectionmodel,
                                                                       stream='primary',
