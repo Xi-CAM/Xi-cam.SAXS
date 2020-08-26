@@ -311,64 +311,75 @@ class ResultsSplitView(QWidget):
             widget = QLabel(self.catalogmodel.item(i).data(Qt.DisplayRole)) # temporary
 
 
-    #TODO connect derived data views with widgets
+    # TODO [x] add note if to few dataset selected
+    #      [] label dataset in view
+    #      [] add widgetcls to all option --> automatic filling
+    #      [] scalable split widget sizes
+    #      [] get 1d plot results to show
+    #      [] make nicer code blocks
+    #      [] automatic update view when more data is selected
+    #      [] show hint if too many datasets are selected for display
+
+    def add_data(self):
+        selected_indexes = [self.catalogmodel.item(i) for i in range(self.catalogmodel.rowCount())]
+        widgets = []
+        for index in selected_indexes:
+            # dataname = index.data(Qt.DisplayRole)  # data: scan xxxxxx,  index.data(Qt.UserRole)
+            # data = catalog_run.primary.to_dask()['fccd_image']
+            catalog_run = index.data(Qt.UserRole)
+            catalog_label = index.data(Qt.DisplayRole)
+            widget2D = self.widgetcls(catalog=catalog_run, stream=self.stream, field=self.field)
+            widgets.append(widget2D)
+        return widgets
+
+
     def horizontal(self):
         # self.stackedwidget.setCurrentIndex(1)
         self.clear_layout()
-        self.gridLayout.addWidget(QGraphicsView(), 0, 0, 1, 1)
-        self.gridLayout.addWidget(QGraphicsView(), 1, 0, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 0, 0, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 1, 0, 1, 1)
 
     def vertical(self):
         self.clear_layout()
-        # selected_indexes = self.selectionmodel.selectedIndexes()
-        selected_indexes = [self.catalogmodel.item(i) for i in range(self.catalogmodel.rowCount())]
-        print("#1", self.catalogmodel.item)
-        print("#2", self.catalogmodel)
+        widgets = self.add_data()
+        if len(widgets) >= 2:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
+        elif len(widgets) == 1:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
+        elif len(widgets) == 0:
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
 
-        # view1 = pg.ImageView(self.catalogmodel.item(0).data(Qt.UserRole))
-        # view1.setImage()
-        widgets = []
-        for index in selected_indexes:
-            data = index.data(Qt.DisplayRole) # data: scan xxxxxx,  index.data(Qt.UserRole)s
-            widget = QLabel(data)
-            # widget = QStackedWidget(self)
-            # widget.addWidget(self.tabview)
-            widgets.append(widget)
-
-        if len(widgets) < 1:
-            print("len <1", len(widgets))
-            w1 = QLabel("1")
-            w2 = QLabel("2")
-        elif len(widgets) >= 1 and len(widgets) < 2:
-            print("len 1<w<2", len(widgets))
-            w1 = widgets[0]
-            w2 = QLabel("2")
-        else:
-            print("else", len(widgets))
-            w1 = widgets[0]
-            #w1 = self.setCatalogModel(self.catalogmodel)
-            w2 = widgets[-1]
-
-        self.gridLayout.addWidget(w1, 0, 0, 1, 1)
-        self.gridLayout.addWidget(w2, 0, 1, 1, 1)
 
 
     def threeview(self):
         self.clear_layout()
-        self.gridLayout.addWidget(QGraphicsView(), 0, 0, 1, 1)
-        self.gridLayout.addWidget(QGraphicsView(), 0, 1, 1, 1)
-        self.gridLayout.addWidget(QGraphicsView(), 1, 0, 1, 0)
+        widgets = self.add_data()
+        if len(widgets) == 3:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
+            self.grid_layout.addWidget(widgets[2], 1, 0, 1, 0)
+        for n in range(len(widgets)+1):
+            try:
+                self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+                self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
+                self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 0)
+            except:
+                pass
+
 
     def fourview(self):
         self.clear_layout()
-        self.gridLayout.addWidget(QGraphicsView(), 0, 0, 1, 1)
-        self.gridLayout.addWidget(QGraphicsView(), 0, 1, 1, 1)
-        self.gridLayout.addWidget(QGraphicsView(), 1, 0, 1, 1)
-        self.gridLayout.addWidget(QGraphicsView(), 1, 1, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 0, 0, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 0, 1, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 1, 0, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 1, 1, 1, 1)
 
     def clear_layout(self):
-        while self.gridLayout.count():
-            child = self.gridLayout.takeAt(0)
+        while self.grid_layout.count():
+            child = self.grid_layout.takeAt(0)
             if child.widget():
                 child.widget().deleteLater()
 
