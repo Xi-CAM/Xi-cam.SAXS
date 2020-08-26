@@ -37,7 +37,30 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
+#<<<<<<< Updated upstream
         self.derivedDataModel = EnsembleModel()
+#=======
+        # MODEL with Ensembles
+        # Ensemble
+            # RunCatalogs
+                # Hints
+
+        # Hints --> easily swappable with whatever databroker hint system is used eventually
+        # a function call, extract_hints(catalog) -> [Hint]
+        # eg. extract_hints(catalog_with_g2_curves) -> [PlotHint]
+        # extract_hints needs to be context specific (e.g. nxXPCS) -> xpcs_extract_hints, uses assumed knowledge of the
+        # keys in nexus that can be displayed in some way
+
+        # ----------------------
+
+        # (catalog),  interpret the projections in the catalog and return list of hints
+        # filter (like projector does) to get the nxXPCS projection, and then give explicit hints based on the projection
+
+        # Hint: whatever xicam thinks it needs to display things
+
+        # TODO: [raw, raw_derived, internal_derived]
+        #self.derivedDataModel = DerivedDataModel()
+#>>>>>>> Stashed changes
         self.catalogModel = QStandardItemModel()
 
         # Data model
@@ -58,7 +81,7 @@ class SAXSPlugin(GUIPlugin):
         # Setup TabViews
         # FIXME -- rework how fields propagate to displays (i.e. each image has its own detector, switching
         # between tabs updates the detector combobbox correctly)
-        field = "fccd_image"
+        field = 'fast_ccd'
         self.calibrationtabview = TabView(self.catalogModel, widgetcls=SAXSCalibrationViewer,
                                           stream='primary', field=field,
                                           selectionmodel=self.selectionmodel,
