@@ -21,11 +21,10 @@ from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
 from .widgets.views import ResultsWidget
-from xicam.SAXS.data import EnsembleModel
+# TODO rename/move the data module
+from .data.ensemble import EnsembleModel
 from .workflows.roi import ROIWorkflow
 
-# TODO rename/move the data module
-from .data import Ensemble
 
 
 class SAXSPlugin(GUIPlugin):

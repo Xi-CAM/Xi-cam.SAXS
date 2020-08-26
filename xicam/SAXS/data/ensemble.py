@@ -1,12 +1,13 @@
 from itertools import count
 
 from qtpy.QtCore import Qt
-from qtpy.QtGui import QStandardItem, QStandardItemModel
+from qtpy.QtGui import QStandardItemModel
 
-from xicam.SAXS.widgets.items import CheckableItem
+from ..widgets.items import CheckableItem
 
 
 class Ensemble:
+    """Represents an organized collection of catalogs."""
     _count = count(1)
 
     def __init__(self, name=""):
@@ -36,6 +37,7 @@ class Ensemble:
             self.append_catalog(catalog)
 
 
+# TODO encapsulate the Ensemble and Catalog Items (if we need to store more info than just checkstate)
 # class EnsembleItem(QStandardItem):
 #     def __init__(self, *args, **kwargs):
 #         super(EnsembleItem, self).__init__(*args, **kwargs)
@@ -45,6 +47,10 @@ class Ensemble:
 #
 
 class EnsembleModel(QStandardItemModel):
+    """Model that stores Ensembles.
+
+    Each ensemble may store multiple Catalogs.
+    """
     def __init__(self, *args, **kwargs):
         super(EnsembleModel, self).__init__(*args, **kwargs)
 
@@ -72,7 +78,8 @@ class EnsembleModel(QStandardItemModel):
         self.appendRow(ensemble_item)
 
     def remove_ensemble(self, ensemble):
-        ...
+        # TODO
+        raise NotImplementedError
 
     def rename_ensemble(self, ensemble, name):
         found_ensemble_items = self.findItems(ensemble.name)

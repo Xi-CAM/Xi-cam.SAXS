@@ -12,6 +12,7 @@ from qtpy.QtWidgets import (
     QWidget,
 )
 
+from xicam.core import msg
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
 
 
@@ -211,10 +212,10 @@ class DataSelectorView(QTreeView):
             self.contextMenu.exec_(self.viewport().mapToGlobal(point))
 
     def _delete_triggered(self):
-        print("DELETE")
+        msg.logMessage("DataSelectorView._delete_triggered not implemented")
 
     def _rename_triggered(self):
-        print("RENAME")
+        msg.logMessage("DataSelectorView._rename_triggered not implemented")
 
     def keyPressEvent(self, event: QKeyEvent):
         # We want to ignore any key press events for now
@@ -331,9 +332,7 @@ class DataSelectorView(QTreeView):
 
 if __name__ == "__main__":
     from qtpy.QtWidgets import QApplication, QMainWindow
-    from databroker.core import BlueskyRun
     from xicam.SAXS.data.ensemble import Ensemble, EnsembleModel
-    from xicam.SAXS.widgets.items import CheckableItem
 
     class Catalog:
         def __init__(self, name):
@@ -355,71 +354,3 @@ if __name__ == "__main__":
     window.setCentralWidget(view)
     window.show()
     app.exec_()
-    # app = QApplication([])
-    #
-    # window = QMainWindow()
-    # layout = QVBoxLayout()
-    # model = EnsembleModel()
-    #
-    # from xicam.plugins.hints import PlotHint, ImageHint, CoPlotHint
-    # parentItem = QStandardItem("blah")
-    # parentItem.setCheckable(True)
-    # import numpy as np
-    # for i in range(3):
-    #     hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"1-Time")
-    #     item = QStandardItem(hint.group)
-    #     item.setData(hint, Qt.UserRole)
-    #     item.setCheckable(True)
-    #     parentItem.appendRow(item)
-    # hint = ImageHint(np.random.random((100,100)), xlabel="x", ylabel="y", name="2-Time")
-    # item = QStandardItem(hint.group)
-    # item.setData(hint, Qt.UserRole)
-    # item.setCheckable(True)
-    # parentItem.appendRow(item)
-    # model.appendRow(parentItem)
-    #
-    # workflowItem = QStandardItem("A Workflow Result")
-    # workflowItem.setCheckable(True)
-    # hints = []
-    # for i in range(2):
-    #     if i == 0:
-    #         style = Qt.SolidLine
-    #     else:
-    #         style = Qt.DashLine
-    #     hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"plot{i}", style=style)
-    #     hints.append(hint)
-    # coplothint = CoPlotHint(*hints, name="COPLOT")
-    # coPlotItem = QStandardItem(coplothint.name)
-    # coPlotItem.setCheckable(True)
-    # coPlotItem.setData(coplothint, Qt.UserRole)
-    # workflowItem.appendRow(coPlotItem)
-    # model.appendRow(workflowItem)
-    #
-    # workflowItem = QStandardItem("A Workflow Result")
-    # workflowItem.setCheckable(True)
-    # hints = []
-    # for i in range(2):
-    #     if i == 0:
-    #         style = Qt.SolidLine
-    #     else:
-    #         style = Qt.DashLine
-    #     hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"plot{i}", style=style)
-    #     hints.append(hint)
-    # coplothint = CoPlotHint(*hints, name="COPLOT")
-    # coPlotItem = QStandardItem(coplothint.name)
-    # coPlotItem.setCheckable(True)
-    # coPlotItem.setData(coplothint, Qt.UserRole)
-    # workflowItem.appendRow(coPlotItem)
-    # model.appendRow(workflowItem)
-    #
-    # lview = DataSelectorView()
-    # lview.setModel(model)
-    # rview = ResultsTabView()
-    # rview.setModel(model)
-    #
-    # widget = DerivedDataWidgetTestClass(lview, rview)
-    #
-    # window.setCentralWidget(widget)
-    # window.show()
-    #
-    # app.exec()
