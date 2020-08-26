@@ -206,59 +206,61 @@ class ResultsWidget(QWidget):
         self.setLayout(self._derivedDataWidget.layout())
 
 
-
 class StackedResultsWidget(QWidget):
     """
-    Widget for viewing results in two different ways using the QStackedWidget with
+    Outer Widget for viewing results in two different ways using the QStackedWidget with
     two pages one for tabview and one for splitview
     """
 
-    def __init__(self, tabview):
+    def __init__(self, tabview, splitview):
         super(StackedResultsWidget, self).__init__()
 
-        #TODO: implement TabView so that it shows different scans and different fields
+        #TODO:
+        # [] implement TabView so that it shows not only different scans and but also different fields
         self.tabview = tabview
         self.catalogmodel = tabview.catalogmodel
         self.selectionmodel = tabview.selectionmodel
-        # self.tabview = QLabel("tabVIEW")
-        # self.view1.setModel(self._model)
-        self.splitview = ResultsSplitView(tabview= self.tabview,
-                                          model=self.catalogmodel,
-                                          selectionmodel=self.selectionmodel,
-                                          stream='primary',
-                                          field='fccd_image')
 
-        #Create stacked widget
+        self.splitview = splitview
+
+        ### Create stacked widget
         self.stackedwidget = QStackedWidget(self)
         self.stackedwidget.addWidget(self.tabview)
         self.stackedwidget.addWidget(self.splitview)
-        #Create Button Panel
+
+        ### Create Button Panel
+        # TODO make button panel look nice
         self.buttonpanel = QHBoxLayout()
-        # self.buttonpanel.addStretch(1)
-        #Create Buttons
+        self.buttonpanel.addStretch(1)
+        ### Create Buttons
         self.tab_button = QPushButton()
         self.tab_button.setIcon(QIcon(path('icons/tabs.png')))
         # self.split_button = QPushButton()
         # self.split_button.setIcon(QIcon(path('icons/grid.png')))
         self.button_hor = QPushButton()
         self.button_hor.setIcon(QIcon(path('icons/1x1hor.png')))
+        self.button_hor.setGeometry(QRect(5,5,5,5))
         self.button_vert = QPushButton()
+        self.button_vert.resize(10,10)
         self.button_vert.setIcon(QIcon(path('icons/1x1vert.png')))
         self.button_2x1 = QPushButton()
+        self.button_2x1.resize(5,5)
         self.button_2x1.setIcon(QIcon(path('icons/2x1grid.png')))
         self.button_2x2 = QPushButton()
         self.button_2x2.setIcon(QIcon(path('icons/2x2grid.png')))
-        #Add Buttons to Panel
+        ### Add Buttons to Panel
         self.buttonpanel.addWidget(self.tab_button)
         # self.buttonpanel.addWidget(self.split_button)
         self.buttonpanel.addWidget(self.button_hor)
         self.buttonpanel.addWidget(self.button_vert)
         self.buttonpanel.addWidget(self.button_2x1)
         self.buttonpanel.addWidget(self.button_2x2)
-        #Connect Buttons to function
+        ### Connect Buttons to function
         self.tab_button.clicked.connect(self.display_tab)
         # self.split_button.clicked.connect(self.display_split)
-        #TODO: condense the next lines of code to always set split display, if either of grid buttons is clicked
+        #TODO:
+        # [ ] condense the next lines of code to always set split display, if either of grid buttons is clicked
+        # [ ] resize buttons to take less space and "squeeze" to one side
         self.button_hor.clicked.connect(self.splitview.horizontal)
         self.button_hor.clicked.connect(self.display_split)
         self.button_vert.clicked.connect(self.splitview.vertical)
