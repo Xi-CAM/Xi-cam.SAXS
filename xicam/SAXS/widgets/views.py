@@ -1,15 +1,17 @@
 from collections import OrderedDict
+from typing import List
 
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
-from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt, Signal, Slot, QItemSelectionModel
+from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt, Signal, Slot, QItemSelectionModel, QRect
 from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent, QIcon, QPixmap
 from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
                            QWidget, QStackedWidget, QGridLayout, QPushButton, QStyle, QLabel, QGraphicsView, QScrollArea, \
-                           QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar
+                           QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar, QDockWidget
 
 from xicam.gui.static import path
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
+from xicam.gui.widgets.imageviewmixins import CatalogView
 
 
 
@@ -226,7 +228,11 @@ class StackedResultsWidget(QWidget):
         ### Create stacked widget
         self.stackedwidget = QStackedWidget(self)
         self.stackedwidget.addWidget(self.tabview)
-        self.stackedwidget.addWidget(self.splitview)
+        self.stackedwidget.addWidget(self.horizontal_split)
+        self.stackedwidget.addWidget(self.vertical_split)
+        self.stackedwidget.addWidget(self.split_in3)
+        self.stackedwidget.addWidget(self.split_2x2)
+
 
         ### Create Button Panel
         # TODO make button panel look nice
@@ -269,7 +275,7 @@ class StackedResultsWidget(QWidget):
         self.button_2x1.clicked.connect(self.display_split)
         self.button_2x2.clicked.connect(self.splitview.fourview)
         self.button_2x2.clicked.connect(self.display_split)
-        # define outer layout & add stacked widget and button panel
+        ### define outer layout & add stacked widget and button panel
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.stackedwidget)
         self.layout.addLayout(self.buttonpanel)
@@ -288,18 +294,27 @@ class ResultsSplitView(QWidget):
     Displaying results in a (dynamic) split view.
     """
 
-    def __init__(self, tabview, model, selectionmodel, stream, field, widgetcls=None,  num_of_views = None):
+    def __init__(
+        self,
+        catalogmodel: QStandardItemModel = None,
+        selectionmodel: QItemSelectionModel = None,
+        widgetcls=None,
+        stream=None,
+        field=None,
+        bindings: List[tuple] = [],
+        **kwargs,
+    ):
         super(ResultsSplitView, self).__init__()
-        self.catalogmodel = model
+        self.catalogmodel = catalogmodel
         self.selectionmodel = selectionmodel
+        self.widgetcls = widgetcls
         self.stream = stream
         self.field = field
-        self.tabview = tabview
 
-        self.gridLayout = QGridLayout()
-        self.gridLayout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.gridLayout)
-        # self.stackedwidget = StackedResultsWidget()
+
+        self.grid_layout = QGridLayout()
+        self.grid_layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(self.grid_layout)
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
@@ -315,29 +330,39 @@ class ResultsSplitView(QWidget):
     #      [] label dataset in view
     #      [] add widgetcls to all option --> automatic filling
     #      [] scalable split widget sizes
-    #      [] get 1d plot results to show
+    #      [] get 1d plot results to show --> need dataset for testing
     #      [] make nicer code blocks
     #      [] automatic update view when more data is selected
     #      [] show hint if too many datasets are selected for display
 
     def add_data(self):
         selected_indexes = [self.catalogmodel.item(i) for i in range(self.catalogmodel.rowCount())]
+        # TODO ensemblemodel will replace catalog or selectionmodel
         widgets = []
         for index in selected_indexes:
             # dataname = index.data(Qt.DisplayRole)  # data: scan xxxxxx,  index.data(Qt.UserRole)
             # data = catalog_run.primary.to_dask()['fccd_image']
             catalog_run = index.data(Qt.UserRole)
             catalog_label = index.data(Qt.DisplayRole)
+            widgets_dock = QDockWidget()
             widget2D = self.widgetcls(catalog=catalog_run, stream=self.stream, field=self.field)
-            widgets.append(widget2D)
+            widgets_dock.setWidget(widget2D)
+            widgets.append(widgets_dock)
         return widgets
-
 
     def horizontal(self):
         # self.stackedwidget.setCurrentIndex(1)
         self.clear_layout()
-        self.grid_layout.addWidget(QGraphicsView(), 0, 0, 1, 1)
-        self.grid_layout.addWidget(QGraphicsView(), 1, 0, 1, 1)
+        widgets = self.add_data()
+        if len(widgets) >= 2:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(widgets[1], 1, 0, 1, 1)
+        elif len(widgets) == 1:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
+        elif len(widgets) == 0:
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
 
     def vertical(self):
         self.clear_layout()
@@ -352,30 +377,59 @@ class ResultsSplitView(QWidget):
             self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 1)
             self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
 
-
-
     def threeview(self):
         self.clear_layout()
         widgets = self.add_data()
-        if len(widgets) == 3:
+        if len(widgets) >= 3:
             self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
             self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
             self.grid_layout.addWidget(widgets[2], 1, 0, 1, 0)
-        for n in range(len(widgets)+1):
-            try:
-                self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-                self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
-                self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 0)
-            except:
-                pass
-
+        elif len(widgets) == 2:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 0)
+        elif len(widgets) == 1:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 0)
+        elif len(widgets) == 0:
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 0)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 0)
 
     def fourview(self):
         self.clear_layout()
-        self.grid_layout.addWidget(QGraphicsView(), 0, 0, 1, 1)
-        self.grid_layout.addWidget(QGraphicsView(), 0, 1, 1, 1)
-        self.grid_layout.addWidget(QGraphicsView(), 1, 0, 1, 1)
-        self.grid_layout.addWidget(QGraphicsView(), 1, 1, 1, 1)
+        widgets = self.add_data()
+        # TODO get autofill for grid
+        # for n in range(len(widgets)+1):
+        #     try:
+        #         self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+
+        if len(widgets) >= 4:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
+            self.grid_layout.addWidget(widgets[2], 1, 0, 1, 1)
+            self.grid_layout.addWidget(widgets[3], 1, 1, 1, 1)
+        if len(widgets) >= 3:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
+            self.grid_layout.addWidget(widgets[2], 1, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
+        elif len(widgets) == 2:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
+        elif len(widgets) == 1:
+            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
+        elif len(widgets) == 0:
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 0)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
+            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
 
     def clear_layout(self):
         while self.grid_layout.count():
