@@ -239,12 +239,12 @@ class StackedResultsWidget(QWidget):
         # self.split_button.setIcon(QIcon(path('icons/grid.png')))
         self.button_hor = QPushButton()
         self.button_hor.setIcon(QIcon(path('icons/1x1hor.png')))
-        self.button_hor.setGeometry(QRect(5,5,5,5))
+        # self.button_hor.setGeometry(QRect(5,5,5,5))
         self.button_vert = QPushButton()
-        self.button_vert.resize(10,10)
+        # self.button_vert.resize(10,10)
         self.button_vert.setIcon(QIcon(path('icons/1x1vert.png')))
         self.button_2x1 = QPushButton()
-        self.button_2x1.resize(5,5)
+        # self.button_2x1.resize(5,5)
         self.button_2x1.setIcon(QIcon(path('icons/2x1grid.png')))
         self.button_2x2 = QPushButton()
         self.button_2x2.setIcon(QIcon(path('icons/2x2grid.png')))
@@ -288,13 +288,13 @@ class ResultsSplitView(QWidget):
     Displaying results in a (dynamic) split view.
     """
 
-    def __init__(self, tabview, model, selectionmodel, stream, field, widgetcls=None,  num_of_views = None):
+    def __init__(self, model, selectionmodel, stream, field, widgetcls=None,  num_of_views = None):
         super(ResultsSplitView, self).__init__()
         self.catalogmodel = model
         self.selectionmodel = selectionmodel
         self.stream = stream
         self.field = field
-        self.tabview = tabview
+
 
         self.gridLayout = QGridLayout()
         self.gridLayout.setContentsMargins(0, 0, 0, 0)

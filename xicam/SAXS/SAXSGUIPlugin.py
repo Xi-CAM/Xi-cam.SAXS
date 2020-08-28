@@ -20,7 +20,7 @@ from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import CatalogModel, ResultsWidget, StackedResultsWidget
+from .widgets.views import CatalogModel, ResultsWidget, StackedResultsWidget, ResultsSplitView
 from .workflows.roi import ROIWorkflow
 
 
@@ -31,7 +31,7 @@ class SAXSPlugin(GUIPlugin):
         # Late imports required due to plugin system
         from xicam.SAXS.calibration import CalibrationPanel
         from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer
-        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce, SAXSToolbarCompare
+        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
         self.derivedDataModel = CatalogModel()
@@ -80,7 +80,9 @@ class SAXSPlugin(GUIPlugin):
                                                                       field=field,
                                                                       bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                                                 (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
-                                                                      geometry=self.getAI))
+                                                                      geometry=self.getAI),
+                                                     splitview=ResultsSplitView(model=self.catalogModel, selectionmodel=self.selectionmodel,widgetcls=SAXSReductionViewer, stream='primary',
+                                                                                field=field))
 
         # Setup correlation views
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
