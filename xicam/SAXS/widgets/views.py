@@ -7,7 +7,7 @@ from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt, Signal, 
 from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent, QIcon, QPixmap
 from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
                            QWidget, QStackedWidget, QGridLayout, QPushButton, QStyle, QLabel, QGraphicsView, QScrollArea, \
-                           QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar, QDockWidget
+                           QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar, QDockWidget, QSplitter
 
 from xicam.gui.static import path
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
@@ -210,8 +210,8 @@ class ResultsWidget(QWidget):
 
 class StackedResultsWidget(QWidget):
     """
-    Outer Widget for viewing results in two different ways using the QStackedWidget with
-    two pages one for tabview and one for splitview
+    Outer Widget for viewing results in different ways using the QStackedWidget with
+    several pages one for tabview and others for different split views
     """
 
     def __init__(self, tabview, splitview):
@@ -228,53 +228,47 @@ class StackedResultsWidget(QWidget):
         ### Create stacked widget
         self.stackedwidget = QStackedWidget(self)
         self.stackedwidget.addWidget(self.tabview)
-        self.stackedwidget.addWidget(self.horizontal_split)
-        self.stackedwidget.addWidget(self.vertical_split)
-        self.stackedwidget.addWidget(self.split_in3)
-        self.stackedwidget.addWidget(self.split_2x2)
+        self.stackedwidget.addWidget(self.splitview)
+        # self.stackedwidget.addWidget(self.split_vert)
+        # self.stackedwidget.addWidget(self.split_in3)
+        # self.stackedwidget.addWidget(self.split_2x2)
 
 
         ### Create Button Panel
         # TODO make button panel look nice
         self.buttonpanel = QHBoxLayout()
-        self.buttonpanel.addStretch(1)
+        self.buttonpanel.addStretch(10)
         ### Create Buttons
-        self.tab_button = QPushButton()
-        self.tab_button.setIcon(QIcon(path('icons/tabs.png')))
-        # self.split_button = QPushButton()
-        # self.split_button.setIcon(QIcon(path('icons/grid.png')))
+        self.button_tab = QPushButton()
+        self.button_tab.setIcon(QIcon(path('icons/tabs.png')))
         self.button_hor = QPushButton()
         self.button_hor.setIcon(QIcon(path('icons/1x1hor.png')))
         self.button_hor.setGeometry(QRect(5,5,5,5))
-        self.button_vert = QPushButton()
-        self.button_vert.resize(10,10)
-        self.button_vert.setIcon(QIcon(path('icons/1x1vert.png')))
-        self.button_2x1 = QPushButton()
-        self.button_2x1.resize(5,5)
-        self.button_2x1.setIcon(QIcon(path('icons/2x1grid.png')))
-        self.button_2x2 = QPushButton()
-        self.button_2x2.setIcon(QIcon(path('icons/2x2grid.png')))
+        # self.button_vert = QPushButton()
+        # self.button_vert.resize(10,10)
+        # self.button_vert.setIcon(QIcon(path('icons/1x1vert.png')))
+        # self.button_in3 = QPushButton()
+        # self.button_in3.resize(5,5)
+        # self.button_in3.setIcon(QIcon(path('icons/2x1grid.png')))
+        # self.button_2x2 = QPushButton()
+        # self.button_2x2.setIcon(QIcon(path('icons/2x2grid.png')))
         ### Add Buttons to Panel
-        self.buttonpanel.addWidget(self.tab_button)
-        # self.buttonpanel.addWidget(self.split_button)
+        self.buttonpanel.addWidget(self.button_tab)
         self.buttonpanel.addWidget(self.button_hor)
-        self.buttonpanel.addWidget(self.button_vert)
-        self.buttonpanel.addWidget(self.button_2x1)
-        self.buttonpanel.addWidget(self.button_2x2)
+        # self.buttonpanel.addWidget(self.button_vert)
+        # self.buttonpanel.addWidget(self.button_in3)
+        # self.buttonpanel.addWidget(self.button_2x2)
         ### Connect Buttons to function
         self.tab_button.clicked.connect(self.display_tab)
-        # self.split_button.clicked.connect(self.display_split)
-        #TODO:
-        # [ ] condense the next lines of code to always set split display, if either of grid buttons is clicked
-        # [ ] resize buttons to take less space and "squeeze" to one side
-        self.button_hor.clicked.connect(self.splitview.horizontal)
-        self.button_hor.clicked.connect(self.display_split)
-        self.button_vert.clicked.connect(self.splitview.vertical)
-        self.button_vert.clicked.connect(self.display_split)
-        self.button_2x1.clicked.connect(self.splitview.threeview)
-        self.button_2x1.clicked.connect(self.display_split)
-        self.button_2x2.clicked.connect(self.splitview.fourview)
-        self.button_2x2.clicked.connect(self.display_split)
+        # self.button_hor.clicked.connect(self.splitview.horizontal)
+        self.button_hor.clicked.connect(self.display_hor)
+        # self.button_vert.clicked.connect(self.splitview.vertical)
+        # self.button_vert.clicked.connect(self.display_vert)
+        # self.button_in3.clicked.connect(self.splitview.threeview)
+        # self.button_in3.clicked.connect(self.display_in3)
+        # self.button_2x2.clicked.connect(self.splitview.fourview)
+        # self.button_2x2.clicked.connect(self.display_2x2)
+
         ### define outer layout & add stacked widget and button panel
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.stackedwidget)
@@ -285,11 +279,21 @@ class StackedResultsWidget(QWidget):
     def display_tab(self):
         self.stackedwidget.setCurrentIndex(0)
 
-    def display_split(self):
+    def display_hor(self):
         self.stackedwidget.setCurrentIndex(1)
 
+    # def display_vert(self):
+    #     self.stackedwidget.setCurrentIndex(2)
+    #
+    # def display_in3(self):
+    #     self.stackedwidget.setCurrentIndex(3)
+    #
+    # def display_2x2(self):
+    #     self.stackedwidget.setCurrentIndex(4)
 
-class ResultsSplitView(QWidget):
+
+
+class SplitView(QWidget):
     """
     Displaying results in a (dynamic) split view.
     """
@@ -304,17 +308,19 @@ class ResultsSplitView(QWidget):
         bindings: List[tuple] = [],
         **kwargs,
     ):
-        super(ResultsSplitView, self).__init__()
+        super(SplitView, self).__init__()
         self.catalogmodel = catalogmodel
         self.selectionmodel = selectionmodel
         self.widgetcls = widgetcls
         self.stream = stream
         self.field = field
 
+        self.mywidget = self.add_static_data()
+        self.horizontal_widget = SplitHorizontal(self.mywidget)
 
-        self.grid_layout = QGridLayout()
-        self.grid_layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(self.grid_layout)
+        # self.grid_layout = QGridLayout()
+        # self.grid_layout.setContentsMargins(0, 0, 0, 0)
+        # self.setLayout(self.grid_layout)
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
@@ -325,7 +331,6 @@ class ResultsSplitView(QWidget):
             # TODO: use projection from catalog data to figure this out
             widget = QLabel(self.catalogmodel.item(i).data(Qt.DisplayRole)) # temporary
 
-
     # TODO [x] add note if to few dataset selected
     #      [] label dataset in view
     #      [] add widgetcls to all option --> automatic filling
@@ -335,19 +340,26 @@ class ResultsSplitView(QWidget):
     #      [] automatic update view when more data is selected
     #      [] show hint if too many datasets are selected for display
 
+    def add_static_data(self):
+        try:
+            catalog = self.catalogmodel.item(-1).data(Qt.UserRole)
+            widget2D = self.widgetcls(catalog=catalog, stream=self.stream, field=self.field)
+            return widget2D
+        except:
+            pass
+            # raise AttributeError
+            # print("No Catalog selected yet")
+
     def add_data(self):
         selected_indexes = [self.catalogmodel.item(i) for i in range(self.catalogmodel.rowCount())]
         # TODO ensemblemodel will replace catalog or selectionmodel
         widgets = []
         for index in selected_indexes:
-            # dataname = index.data(Qt.DisplayRole)  # data: scan xxxxxx,  index.data(Qt.UserRole)
             # data = catalog_run.primary.to_dask()['fccd_image']
             catalog_run = index.data(Qt.UserRole)
             catalog_label = index.data(Qt.DisplayRole)
-            widgets_dock = QDockWidget()
             widget2D = self.widgetcls(catalog=catalog_run, stream=self.stream, field=self.field)
-            widgets_dock.setWidget(widget2D)
-            widgets.append(widgets_dock)
+            widgets.append(widget2D)
         return widgets
 
     def horizontal(self):
@@ -438,6 +450,16 @@ class ResultsSplitView(QWidget):
                 child.widget().deleteLater()
 
 
+class SplitHorizontal(QWidget):
+
+    def __init__(self, widget: QWidget):
+
+        super(SplitHorizontal, self).__init__()
+        self.widget = widget
+        self.collapsed = False
+
+        self.splitter = QSplitter(Qt.Horizontal)
+        self.splitter.addWidget(self.widget)
 
 
 

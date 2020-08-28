@@ -20,7 +20,7 @@ from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import CatalogModel, ResultsWidget, StackedResultsWidget
+from .widgets.views import CatalogModel, ResultsWidget, StackedResultsWidget, SplitView
 from .workflows.roi import ROIWorkflow
 
 
@@ -30,12 +30,11 @@ class SAXSPlugin(GUIPlugin):
     def __init__(self):
         # Late imports required due to plugin system
         from xicam.SAXS.calibration import CalibrationPanel
-        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer
-        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce, SAXSToolbarCompare
+        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer, SAXSCompareViewer
+        from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
         self.derivedDataModel = CatalogModel()
-        self.catalogModel = QStandardItemModel()
 
         # Data model
         self.catalogModel = QStandardItemModel()
@@ -73,14 +72,17 @@ class SAXSPlugin(GUIPlugin):
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
         #TODO: add another version of TabView that can also show different fields from derived data not only multiply scans
-        self.comparemultiview = StackedResultsWidget(tabview=TabView(self.catalogModel,
-                                                                      widgetcls=SAXSReductionViewer,
-                                                                      selectionmodel=self.selectionmodel,
-                                                                      stream='primary',
-                                                                      field=field,
-                                                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
-                                                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
-                                                                      geometry=self.getAI))
+        self.comparemultiview = StackedResultsWidget(tabview=TabView(catalogmodel=self.catalogModel,
+                                                                     widgetcls=SAXSCompareViewer,
+                                                                     selectionmodel=self.selectionmodel,
+                                                                     stream='primary',
+                                                                     field=field,
+                                                                     bindings=[('sigTimeChangeFinished', self.indexChanged),
+                                                                               (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
+                                                                     geometry=self.getAI),
+                                                     splitview=SplitView(catalogmodel=self.catalogModel,
+                                                                                selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
+                                                                                stream='primary', field=field))
 
         # Setup correlation views
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
