@@ -369,7 +369,7 @@ class ResultsSplitView(QWidget):
         if len(widgets) >= 3:
             self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
             self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 1, 0, 1, 1)
+            self.grid_layout.addWidget(widgets[2], 1, 0, 1, 1)
         elif len(widgets) == 2:
             self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
             self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
@@ -386,36 +386,36 @@ class ResultsSplitView(QWidget):
 
     def fourview(self):
         self.clear_layout()
-        widgets = self.add_data()
-        if len(widgets) >= 4:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-            self.grid_layout.addWidget(widgets[2], 1, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[2], 1, 1, 1, 1)
-        elif len(widgets) == 3:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-            self.grid_layout.addWidget(widgets[2], 1, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
-        elif len(widgets) == 2:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
-        elif len(widgets) == 1:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
-        elif len(widgets) == 0:
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
-        # self.grid_layout.addWidget(QGraphicsView(), 0, 0, 1, 1)
-        # self.grid_layout.addWidget(QGraphicsView(), 0, 1, 1, 1)
-        # self.grid_layout.addWidget(QGraphicsView(), 1, 0, 1, 1)
-        # self.grid_layout.addWidget(QGraphicsView(), 1, 1, 1, 1)
+        # widgets = self.add_data()
+        # if len(widgets) >= 4:
+        #     self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+        #     self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
+        #     self.grid_layout.addWidget(widgets[2], 1, 0, 1, 1)
+        #     self.grid_layout.addWidget(widgets[3], 1, 1, 1, 1)
+        # elif len(widgets) == 3:
+        #     self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+        #     self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
+        #     self.grid_layout.addWidget(widgets[2], 1, 0, 1, 1)
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
+        # elif len(widgets) == 2:
+        #     self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+        #     self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
+        # elif len(widgets) == 1:
+        #     self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
+        # elif len(widgets) == 0:
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 1)
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
+        #     self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 0, 0, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 0, 1, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 1, 0, 1, 1)
+        self.grid_layout.addWidget(QGraphicsView(), 1, 1, 1, 1)
 
     def clear_layout(self):
         while self.grid_layout.count():
