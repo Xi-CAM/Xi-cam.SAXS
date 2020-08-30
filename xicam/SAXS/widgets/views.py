@@ -293,6 +293,65 @@ class StackedResultsWidget(QWidget):
     # def display_2x2(self):
     #     self.stackedwidget.setCurrentIndex(4)
 
+
+# TODO [] add data variable to different splitview classes to connect to data later
+#      [] access different splitviews in main SplitResultsView class
+#      [] make all buttons work
+
+class VerticalSplitView(QWidget):
+
+    def __init__(self):
+        super(VerticalSplitView, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        hbox = QHBoxLayout(self)
+
+        left = QFrame()
+        right = QFrame()
+        left.setFrameShape(QFrame.StyledPanel)
+        right.setFrameShape(QFrame.StyledPanel)
+
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(left)
+        splitter.addWidget(right)
+        splitter.setSizes([100, 200])
+
+        hbox.addWidget(splitter)
+        self.setLayout(hbox)
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+
+        self.setGeometry(300, 300, 300, 200)
+        self.show()
+
+
+class HorizontalSplitView(QWidget):
+
+    def __init__(self):
+        super(HorizontalSplitView, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        hbox = QHBoxLayout(self)
+
+        left = QFrame()
+        right = QFrame()
+        left.setFrameShape(QFrame.StyledPanel)
+        right.setFrameShape(QFrame.StyledPanel)
+
+        splitter = QSplitter(Qt.Vertical)
+        splitter.addWidget(left)
+        splitter.addWidget(right)
+        splitter.setSizes([100, 200])
+
+        hbox.addWidget(splitter)
+        self.setLayout(hbox)
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+
+        self.setGeometry(300, 300, 300, 200)
+        self.show()
+
+
 class ThreeSplitView(QWidget):
 
     def __init__(self):
@@ -330,7 +389,7 @@ class ThreeSplitView(QWidget):
 
 def main():
     app = QApplication(sys.argv)
-    ex = ThreeSplitView()
+    ex = HorizontalSplitView()
     sys.exit(app.exec_())
 
 
@@ -370,15 +429,6 @@ class SplitView(QWidget):
             # TODO: use projection from catalog data to figure this out
             widget = QLabel(self.catalogmodel.item(i).data(Qt.DisplayRole)) # temporary
 
-    # TODO [x] add note if to few dataset selected
-    #      [] label dataset in view
-    #      [] add widgetcls to all option --> automatic filling
-    #      [] scalable split widget sizes
-    #      [] get 1d plot results to show --> need dataset for testing
-    #      [] make nicer code blocks
-    #      [] automatic update view when more data is selected
-    #      [] show hint if too many datasets are selected for display
-
     def add_static_data(self):
         try:
             catalog = self.catalogmodel.item(-1).data(Qt.UserRole)
@@ -401,23 +451,14 @@ class SplitView(QWidget):
             widgets.append(widget2D)
         return widgets
 
-    
-
-
-class SplitHorizontal(QWidget):
-
-    def __init__(self, widget: QWidget):
-
-        super(SplitHorizontal, self).__init__()
-        self.widget = widget
-        self.collapsed = False
-
-        self.splitter = QSplitter(Qt.Horizontal)
-        self.splitter.addWidget(self.widget)
-
-        layout = QHBoxLayout()
-        layout.addWidget(self.splitter)
-        self.setLayout(layout)
+    # TODO [x] add note if to few dataset selected
+    #      [] label dataset in view
+    #      [] add widgetcls to all option --> automatic filling
+    #      [] scalable split widget sizes
+    #      [] get 1d plot results to show --> need dataset for testing
+    #      [] make nicer code blocks
+    #      [] automatic update view when more data is selected
+    #      [] show hint if too many datasets are selected for display
 
 
 class DerivedDataWidgetTestClass(QWidget):
