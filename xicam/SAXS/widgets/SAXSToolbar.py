@@ -74,6 +74,17 @@ class ModeSelector(SAXSToolbarBase):
         self.addAction(self.remeshaction)
         self.addSeparator()
 
+# TODO maybe toolbar is not the best solution here, instead having the buttonbox in the compare stage
+# class ResultsModeSelector(SAXSToolbarBase):
+#     def __init__(self, *args, **kwargs):
+#         super(ResultsModeSelector, self).__init__(*args, **kwargs)
+#         self.viewmodegroup = QActionGroup(self)
+#         self.tabmode = self.mkAction(iconpath='icons/tabs.png', text='Tab View', checkable=True, group=self.viewmodegroup, checked=True)
+#         self.addAction(self.tabmode)
+#         self.gridmode = self.mkAction(iconpath='icons/grid.png', text='Grid View', checkable=True, group=self.viewmodegroup)
+#         self.addAction(self.gridmode)
+#         self.addSeparator()
+
 
 class MultiPlot(SAXSToolbarBase):
     def __init__(self, *args, **kwargs):
@@ -205,6 +216,10 @@ class SAXSToolbarMask(FieldSelector):
 class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector, FieldSelector):
     def __init__(self, *args, **kwargs):
         super(SAXSToolbarReduce, self).__init__(*args, **kwargs)
+
+
+# class  SAXSToolbarCompare(ResultsModeSelector):
+#     pass
 
 
 class CheckableWorkflowOutputModel(QAbstractItemModel):

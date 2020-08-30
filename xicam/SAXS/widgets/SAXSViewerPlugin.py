@@ -77,6 +77,10 @@ class SAXSMaskingViewer(SAXSViewerPluginBase):
     pass
 
 
+class SAXSCompareViewer(SAXSViewerPluginBase):
+    pass
+
+
 class SAXSReductionViewer(EwaldCorrected, SAXSViewerPluginBase):
     def __init__(self, *args, toolbar: QToolBar = None, **kwargs):
         super(SAXSReductionViewer, self).__init__(*args, **kwargs)

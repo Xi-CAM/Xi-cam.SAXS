@@ -1,13 +1,15 @@
 from collections import OrderedDict
 from typing import List
+import sys
 
 import pyqtgraph as pg
 from pyqtgraph.graphicsItems.LegendItem import ItemSample
 from qtpy.QtCore import QModelIndex, QPersistentModelIndex, QPoint, Qt, Signal, Slot, QItemSelectionModel, QRect
 from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent, QIcon, QPixmap
-from qtpy.QtWidgets import QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
+from qtpy.QtWidgets import QApplication, QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
                            QWidget, QStackedWidget, QGridLayout, QPushButton, QStyle, QLabel, QGraphicsView, QScrollArea, \
-                           QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar, QDockWidget, QSplitter
+                           QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar, QDockWidget, QSplitter, \
+                           QFrame, QTextEdit, QStyleFactory
 
 from xicam.gui.static import path
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
@@ -291,7 +293,49 @@ class StackedResultsWidget(QWidget):
     # def display_2x2(self):
     #     self.stackedwidget.setCurrentIndex(4)
 
+class ThreeSplitView(QWidget):
 
+    def __init__(self):
+        super(ThreeSplitView, self).__init__()
+        self.initUI()
+
+    def initUI(self):
+        hbox = QHBoxLayout(self)
+
+        topleft = QFrame()
+        topright = QFrame()
+        topleft.setFrameShape(QFrame.StyledPanel)
+        topright.setFrameShape(QFrame.StyledPanel)
+        bottom = QFrame()
+        bottom.setFrameShape(QFrame.StyledPanel)
+
+        splitter1 = QSplitter(Qt.Horizontal)
+        splitter1.addWidget(topleft)
+        splitter1.addWidget(topright)
+        splitter1.setSizes([100, 200])
+
+        splitter2 = QSplitter(Qt.Vertical)
+        splitter2.addWidget(splitter1)
+        splitter2.addWidget(bottom)
+
+        hbox.addWidget(splitter2)
+
+        self.setLayout(hbox)
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+
+        self.setGeometry(300, 300, 300, 200)
+        # self.setWindowTitle('QSplitter demo')
+        self.show()
+
+
+def main():
+    app = QApplication(sys.argv)
+    ex = ThreeSplitView()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
 
 class SplitView(QWidget):
     """
@@ -315,12 +359,7 @@ class SplitView(QWidget):
         self.stream = stream
         self.field = field
 
-        self.mywidget = self.add_static_data()
-        self.horizontal_widget = SplitHorizontal(self.mywidget)
 
-        # self.grid_layout = QGridLayout()
-        # self.grid_layout.setContentsMargins(0, 0, 0, 0)
-        # self.setLayout(self.grid_layout)
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
@@ -362,92 +401,7 @@ class SplitView(QWidget):
             widgets.append(widget2D)
         return widgets
 
-    def horizontal(self):
-        # self.stackedwidget.setCurrentIndex(1)
-        self.clear_layout()
-        widgets = self.add_data()
-        if len(widgets) >= 2:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 1, 0, 1, 1)
-        elif len(widgets) == 1:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
-        elif len(widgets) == 0:
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
-
-    def vertical(self):
-        self.clear_layout()
-        widgets = self.add_data()
-        if len(widgets) >= 2:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-        elif len(widgets) == 1:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
-        elif len(widgets) == 0:
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
-
-    def threeview(self):
-        self.clear_layout()
-        widgets = self.add_data()
-        if len(widgets) >= 3:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-            self.grid_layout.addWidget(widgets[2], 1, 0, 1, 0)
-        elif len(widgets) == 2:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 0)
-        elif len(widgets) == 1:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 0)
-        elif len(widgets) == 0:
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 0)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 0)
-
-    def fourview(self):
-        self.clear_layout()
-        widgets = self.add_data()
-        # TODO get autofill for grid
-        # for n in range(len(widgets)+1):
-        #     try:
-        #         self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-
-        if len(widgets) >= 4:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-            self.grid_layout.addWidget(widgets[2], 1, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[3], 1, 1, 1, 1)
-        if len(widgets) >= 3:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-            self.grid_layout.addWidget(widgets[2], 1, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
-        elif len(widgets) == 2:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(widgets[1], 0, 1, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
-        elif len(widgets) == 1:
-            self.grid_layout.addWidget(widgets[0], 0, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
-        elif len(widgets) == 0:
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 0, 1, 0)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 0, 1, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 0, 1, 1)
-            self.grid_layout.addWidget(QLabel('Select data to display'), 1, 1, 1, 1)
-
-    def clear_layout(self):
-        while self.grid_layout.count():
-            child = self.grid_layout.takeAt(0)
-            if child.widget():
-                child.widget().deleteLater()
+    
 
 
 class SplitHorizontal(QWidget):
@@ -461,7 +415,9 @@ class SplitHorizontal(QWidget):
         self.splitter = QSplitter(Qt.Horizontal)
         self.splitter.addWidget(self.widget)
 
-
+        layout = QHBoxLayout()
+        layout.addWidget(self.splitter)
+        self.setLayout(layout)
 
 
 class DerivedDataWidgetTestClass(QWidget):
@@ -704,73 +660,84 @@ class CatalogModel(QStandardItemModel):
         return flags
 
 
-if __name__ == "__main__":
-    from qtpy.QtWidgets import QApplication, QMainWindow, QAction
-    app = QApplication([])
+# if __name__ == "__main__":
+#     from qtpy.QtWidgets import QApplication, QMainWindow, QAction
+#     app = QApplication([])
+#
+#     window = QMainWindow()
+#     layout = QVBoxLayout()
+#     model = CatalogModel()
+#
+#     from xicam.plugins.hints import PlotHint, ImageHint, CoPlotHint
+#     parentItem = QStandardItem("blah")
+#     parentItem.setCheckable(True)
+#     import numpy as np
+#     for i in range(3):
+#         hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"1-Time")
+#         item = QStandardItem(hint.group)
+#         item.setData(hint, Qt.UserRole)
+#         item.setCheckable(True)
+#         parentItem.appendRow(item)
+#     hint = ImageHint(np.random.random((100,100)), xlabel="x", ylabel="y", name="2-Time")
+#     item = QStandardItem(hint.group)
+#     item.setData(hint, Qt.UserRole)
+#     item.setCheckable(True)
+#     parentItem.appendRow(item)
+#     model.appendRow(parentItem)
+#
+#     workflowItem = QStandardItem("A Workflow Result")
+#     workflowItem.setCheckable(True)
+#     hints = []
+#     for i in range(2):
+#         if i == 0:
+#             style = Qt.SolidLine
+#         else:
+#             style = Qt.DashLine
+#         hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"plot{i}", style=style)
+#         hints.append(hint)
+#     coplothint = CoPlotHint(*hints, name="COPLOT")
+#     coPlotItem = QStandardItem(coplothint.name)
+#     coPlotItem.setCheckable(True)
+#     coPlotItem.setData(coplothint, Qt.UserRole)
+#     workflowItem.appendRow(coPlotItem)
+#     model.appendRow(workflowItem)
+#
+#     workflowItem = QStandardItem("A Workflow Result")
+#     workflowItem.setCheckable(True)
+#     hints = []
+#     for i in range(2):
+#         if i == 0:
+#             style = Qt.SolidLine
+#         else:
+#             style = Qt.DashLine
+#         hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"plot{i}", style=style)
+#         hints.append(hint)
+#     coplothint = CoPlotHint(*hints, name="COPLOT")
+#     coPlotItem = QStandardItem(coplothint.name)
+#     coPlotItem.setCheckable(True)
+#     coPlotItem.setData(coplothint, Qt.UserRole)
+#     workflowItem.appendRow(coPlotItem)
+#     model.appendRow(workflowItem)
+#
+#     lview = DataSelectorView()
+#     lview.setModel(model)
+#     rview = ResultsTabView()
+#     rview.setModel(model)
+#
+#     widget = DerivedDataWidgetTestClass(lview, rview)
+#
+#     window.setCentralWidget(widget)
+#     window.show()
+#
+#     app.exec()
 
-    window = QMainWindow()
-    layout = QVBoxLayout()
-    model = CatalogModel()
 
-    from xicam.plugins.hints import PlotHint, ImageHint, CoPlotHint
-    parentItem = QStandardItem("blah")
-    parentItem.setCheckable(True)
-    import numpy as np
-    for i in range(3):
-        hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"1-Time")
-        item = QStandardItem(hint.group)
-        item.setData(hint, Qt.UserRole)
-        item.setCheckable(True)
-        parentItem.appendRow(item)
-    hint = ImageHint(np.random.random((100,100)), xlabel="x", ylabel="y", name="2-Time")
-    item = QStandardItem(hint.group)
-    item.setData(hint, Qt.UserRole)
-    item.setCheckable(True)
-    parentItem.appendRow(item)
-    model.appendRow(parentItem)
-
-    workflowItem = QStandardItem("A Workflow Result")
-    workflowItem.setCheckable(True)
-    hints = []
-    for i in range(2):
-        if i == 0:
-            style = Qt.SolidLine
-        else:
-            style = Qt.DashLine
-        hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"plot{i}", style=style)
-        hints.append(hint)
-    coplothint = CoPlotHint(*hints, name="COPLOT")
-    coPlotItem = QStandardItem(coplothint.name)
-    coPlotItem.setCheckable(True)
-    coPlotItem.setData(coplothint, Qt.UserRole)
-    workflowItem.appendRow(coPlotItem)
-    model.appendRow(workflowItem)
-
-    workflowItem = QStandardItem("A Workflow Result")
-    workflowItem.setCheckable(True)
-    hints = []
-    for i in range(2):
-        if i == 0:
-            style = Qt.SolidLine
-        else:
-            style = Qt.DashLine
-        hint = PlotHint(np.arange(10), np.random.random((10,)), name=f"plot{i}", style=style)
-        hints.append(hint)
-    coplothint = CoPlotHint(*hints, name="COPLOT")
-    coPlotItem = QStandardItem(coplothint.name)
-    coPlotItem.setCheckable(True)
-    coPlotItem.setData(coplothint, Qt.UserRole)
-    workflowItem.appendRow(coPlotItem)
-    model.appendRow(workflowItem)
-
-    lview = DataSelectorView()
-    lview.setModel(model)
-    rview = ResultsTabView()
-    rview.setModel(model)
-
-    widget = DerivedDataWidgetTestClass(lview, rview)
-
-    window.setCentralWidget(widget)
-    window.show()
-
-    app.exec()
+# def main():
+#     app = QApplication([])
+#     window = SplitHorizontal(QLabel('Test'))
+#     window.show()
+#     sys.exit(app.exec_())
+#
+#
+# if __name__ == '__main__':
+#     main()
