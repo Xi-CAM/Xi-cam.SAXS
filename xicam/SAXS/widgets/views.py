@@ -230,7 +230,6 @@ class StackedResultsWidget(QWidget):
         super(StackedResultsWidget, self).__init__()
         #TODO:
         # [] implement TabView so that it shows not only different scans and but also different fields
-        # self.tabview = tabview
         self.catalogmodel = catalogmodel
         self.selectionmodel = selectionmodel
         self.widgetcls = widgetcls
@@ -302,11 +301,6 @@ class StackedResultsWidget(QWidget):
         self.stackedwidget.setCurrentIndex(4)
 
 
-# TODO [] add data variable to different splitview classes to connect to data later
-#      [] access different splitviews in main SplitResultsView class
-#      [] make all buttons work
-
-
 class SplitView(QWidget):
     """
     Displaying results in a (dynamic) split view.
@@ -320,7 +314,7 @@ class SplitView(QWidget):
         stream=None,
         field=None,
         bindings: List[tuple] = [],
-        split_mode: str = 'gridview',
+        split_mode: str = 'dockgrid',
         **kwargs,
     ):
         super(SplitView, self).__init__()
@@ -339,9 +333,11 @@ class SplitView(QWidget):
             self.threeview_split()
         if self.split_mode == 'gridview':
             self.grid()
+        if self.split_mode == 'dockgrid':
+            self.dockgrid()
 
     def horizontal_split(self):
-        hbox = QHBoxLayout(self)
+        hbox = QHBoxLayout()
         top = QFrame()
         bottom = QFrame()
         top.setFrameShape(QFrame.StyledPanel)
@@ -373,7 +369,6 @@ class SplitView(QWidget):
         self.setLayout(hbox)
         # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
         self.setGeometry(300, 300, 300, 200)
-
 
     def threeview_split(self):
         hbox = QHBoxLayout(self)
@@ -445,6 +440,23 @@ class SplitView(QWidget):
         splt.moveSplitter(index, pos)
         splt.blockSignals(False)
 
+    def dockgrid(self):
+        layout = QGridLayout()
+
+        topleft = QDockWidget()
+        topright = QDockWidget()
+        bottomleft = QDockWidget()
+        bottomright = QDockWidget()
+
+        layout.addWidget(topleft)
+        layout.addWidget(topright)
+        layout.addWidget(bottomleft)
+        layout.addWidget(bottomright)
+
+        self.setLayout(layout)
+        self.show()
+
+
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
         for i in range(self.catalogmodel.rowCount()):
@@ -480,7 +492,6 @@ class SplitView(QWidget):
     #      [ ] label dataset in view
     #      [ ] add widgetcls to all option --> automatic filling
     #      [ ] get 1d plot results to show --> need dataset for testing
-    #      [ ] make nicer code blocks
     #      [ ] automatic update view when more data is selected
 
 
