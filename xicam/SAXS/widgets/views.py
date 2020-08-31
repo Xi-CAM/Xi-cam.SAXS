@@ -5,6 +5,7 @@ from qtpy.QtGui import QKeyEvent
 from qtpy.QtWidgets import (
     QAbstractItemView,
     QAction,
+    QLabel,
     QMenu,
     QTabWidget,
     QTreeView,
@@ -15,6 +16,7 @@ from qtpy.QtWidgets import (
 from xicam.core import msg
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
 
+from xicam.XPCS.hints import Hint, PlotHintCanvas, ImageHintCanvas
 
 class ResultsWidget(QWidget):
     def __init__(self, model, parent=None):
@@ -70,6 +72,14 @@ class ResultsTabView(QAbstractItemView):
 
         self._tabWidget = QTabWidget()
         self._tabWidget.setParent(self)
+        self._categories = {
+            "raw": ImageHintCanvas,
+            "avg": ImageHintCanvas,
+            "g2": PlotHintCanvas,
+            "2-time": ImageHintCanvas
+        }
+        for category, canvas_type in self._categories.items():
+            self._tabWidget.addTab(canvas_type(), category)
         self._indexToTabMap = OrderedDict()
 
         self.setLayout(QVBoxLayout())
@@ -121,20 +131,23 @@ class ResultsTabView(QAbstractItemView):
             # empty list indicates ALL roles have changed (see documentation)
             if Qt.CheckStateRole in roles or len(roles) == 0:
                 hint = topLeft.data(Qt.UserRole)
-                if hint:
+                if isinstance(hint, Hint):
                     if topLeft.data(Qt.CheckStateRole) == Qt.Checked:
-                        if hint.group not in [
+                        if hint.category not in [
                             self._tabWidget.tabText(index)
                             for index in range(self._tabWidget.count())
                         ]:
-                            canvas = hint.init_canvas(addLegend=True)
-                            self._tabWidget.addTab(canvas, hint.group)
+                            canvas = hint.canvas(hint)()
+                            self._tabWidget.addTab(canvas, hint.category)
                         else:
-                            canvas = self._findTab(hint.group)
-                        hint.visualize(canvas)
+                            canvas = self._findTab(hint.category)
+                        canvas.render(hint)
                     else:
                         hint.remove()
             super(ResultsTabView, self).dataChanged(topLeft, bottomRight, roles)
+
+    # try to use a selection model here instead of dataChanged
+    # take the diff of unselected, newselected: initialze canvases that are new, keep the old, dump the unselected
 
     def horizontalOffset(self):
         return 0
@@ -328,6 +341,14 @@ class DataSelectorView(QTreeView):
 
             # Recurse up tree via parent item
             self._partial_check_item(model.itemFromIndex(parent_index), check)
+
+#
+# class ResultsWidget(QWidget):
+#
+#     def __init__(self, *args, **kwargs):
+#         super(ResultsWidget, self).__init__(*args, **kwargs)
+
+
 
 
 if __name__ == "__main__":

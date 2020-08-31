@@ -22,7 +22,7 @@ from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTr
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
 from .widgets.views import ResultsWidget
 # TODO rename/move the data module
-from .data.ensemble import EnsembleModel
+from .data.ensemble import Ensemble, EnsembleModel
 from .workflows.roi import ROIWorkflow
 
 
@@ -38,7 +38,7 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
 #<<<<<<< Updated upstream
-        self.derivedDataModel = EnsembleModel()
+        self.ensembleModel = EnsembleModel()
 #=======
         # MODEL with Ensembles
         # Ensemble
@@ -136,14 +136,14 @@ class SAXSPlugin(GUIPlugin):
         # Setup reduction widgets
         self.displayeditor = WorkflowEditor(self.displayworkflow)
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
-        self.reduceplot = ResultsWidget(self.derivedDataModel)
+        self.reduceplot = ResultsWidget(self.ensembleModel)
         self.reducetoolbar.sigDoWorkflow.connect(self.doReduceWorkflow)
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(self.catalogChanged)
 
         # Setup correlation widgets
-        self.correlationResults = ResultsWidget(self.derivedDataModel)
+        self.correlationResults = ResultsWidget(self.ensembleModel)
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
@@ -238,12 +238,14 @@ class SAXSPlugin(GUIPlugin):
         else:
             displayName = f"UID: {catalog.metadata['start']['uid']}"
 
-        ensemble = Ensemble(catalogs=[catalog])
-        item = CheckableItem(displayName)
-        item.setData(displayName, Qt.DisplayRole)
-        item.setData(ensemble, Qt.UserRole)
-        self.catalogModel.appendRow(item)
-        self.catalogModel.dataChanged.emit(item.index(), item.index())
+        ensemble = Ensemble()
+        ensemble.append_catalog(catalog)
+        self.ensembleModel.add_ensemble(ensemble)
+        # item = CheckableItem(displayName)
+        # item.setData(displayName, Qt.DisplayRole)
+        # item.setData(ensemble, Qt.UserRole)
+        # self.catalogModel.appendRow(item)
+        # self.catalogModel.dataChanged.emit(item.index(), item.index())
 
     def checkDataShape(self, data):
         """Checks the shape of the data and gets the first frame if able to."""
@@ -366,7 +368,7 @@ class SAXSPlugin(GUIPlugin):
                     item = CheckableItem(hint.name)
                     item.setData(hint, Qt.UserRole)
                     parentItem.appendRow(item)
-            self.derivedDataModel.appendRow(parentItem)
+            self.ensembleModel.appendRow(parentItem)
 
         self.reduceworkflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
 
@@ -512,6 +514,6 @@ class SAXSPlugin(GUIPlugin):
             item.setData(hint, Qt.UserRole)
             item.setCheckable(True)
             parentItem.appendRow(item)
-        self.derivedDataModel.appendRow(parentItem)
+        self.ensembleModel.appendRow(parentItem)
 
 

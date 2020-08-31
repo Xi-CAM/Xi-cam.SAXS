@@ -1,7 +1,10 @@
 from itertools import count
 
-from qtpy.QtCore import Qt
+from qtpy.QtCore import Qt, QAbstractItemModel, QModelIndex
 from qtpy.QtGui import QStandardItemModel
+
+from xicam.core.msg import logMessage, WARNING
+from xicam.XPCS.projectors.nexus import project_nxXPCS
 
 from ..widgets.items import CheckableItem
 
@@ -46,6 +49,76 @@ class Ensemble:
 #
 #
 
+
+class TreeItem:
+
+    def __init__(self, data, parentItem=None):
+        self.childItems = []
+        self.itemData = data
+        self.parentItem = parentItem
+
+    def appendChild(self, item):
+        self.childItems.append(item)
+
+    def child(self, row):
+        if row < 0 or row >= self.childCount():
+            return None
+        return self.childItems[row]
+
+    def childCount(self) -> int:
+        return len(self.childItems)
+
+    def columnCount(self) -> int:
+        return len(self.itemData)
+
+    def row(self) -> int:
+        if self.parentItem:
+            return self.parentItem.childItems.index(self)
+        return 0
+
+    def data(self, column):
+        if column < 0 or column > self.columnCount():
+            return None
+        return self.itemData[column]
+
+
+class TreeModel(QAbstractItemModel):
+    def __init__(self, data, parent=None):
+        super(TreeModel, self).__init__(parent)
+        rootItem = TreeItem(["test", "summary"])
+        self._setupModelData(rootItem)
+
+    def _setupModelData(self, rootItem):
+        for i in range(5):
+            rootItem.appendChild(TreeItem([f"{i}", f"{i*10}"]))
+
+    def data(self, index, role):
+        ...
+
+    def flags(self, index):
+        ...
+
+    def headerData(self, section, orientation, role=Qt.DisplayRole):
+        ...
+
+    def index(self, row, column, parent=QModelIndex()):
+        if not self.hasIndex(row, column, parent):
+            return QModelIndex()
+
+        parentItem = parent
+        if not parentItem.isValid():
+            parentItem = parent.index
+
+    def parent(self, index):
+        ...
+
+    def rowCount(self, parent=None):
+        ...
+
+    def columnCount(self, parent=None):
+        ...
+
+
 class EnsembleModel(QStandardItemModel):
     """Model that stores Ensembles.
 
@@ -65,13 +138,16 @@ class EnsembleModel(QStandardItemModel):
             catalog_item.setData(catalog_name, Qt.DisplayRole)
             catalog_item.setData(catalog, Qt.UserRole)
 
-            projections = getattr(catalog, "projections", None) or ["projection 1", "projection 2"]
-            for projection in projections:
-                projection_item = CheckableItem()
-                projection_name = getattr(projection, "name", "projection")
-                projection_item.setData(projection_name, Qt.DisplayRole)
-                projection_item.setData(projection, Qt.UserRole)
-                catalog_item.appendRow(projection_item)
+            try:
+                hints = project_nxXPCS(catalog)
+                for hint in hints:
+                    hint_item = CheckableItem()
+                    hint_name = hint.name
+                    hint_item.setData(hint_name, Qt.DisplayRole)
+                    hint_item.setData(hint, Qt.UserRole)
+                    catalog_item.appendRow(hint_item)
+            except AttributeError as e:
+                logMessage(e, level=WARNING)
 
             ensemble_item.appendRow(catalog_item)
 
