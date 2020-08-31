@@ -417,18 +417,33 @@ class SplitView(QWidget):
         splitter1.addWidget(topright)
         splitter1.setSizes([100, 200])
 
-        splitter2 = QSplitter(Qt.Vertical)
+        splitter2 = QSplitter(Qt.Horizontal)
         splitter2.addWidget(bottomleft)
         splitter2.addWidget(bottomright)
         splitter2.setSizes([100, 200])
 
-        hbox.addWidget(splitter1)
-        hbox.addWidget(splitter2)
+        # splitter1.splitterMoved.connect(self.moveSplitter)
+        # splitter2.splitterMoved.connect(self.moveSplitter)
+        #
+        # self._spltA = splitter1
+        # self._spltB = splitter2
+
+        outer_splitter = QSplitter(Qt.Vertical)
+        outer_splitter.addWidget(splitter1)
+        outer_splitter.addWidget(splitter2)
+        outer_splitter.setSizes([200, 400])
+
+        hbox.addWidget(outer_splitter)
         self.setLayout(hbox)
         # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
         self.setGeometry(300, 300, 300, 200)
         self.show()
 
+    def moveSplitter( self, index, pos ):
+        splt = self._spltA if self.sender() == self._spltB else self._spltB
+        splt.blockSignals(True)
+        splt.moveSplitter(index, pos)
+        splt.blockSignals(False)
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
