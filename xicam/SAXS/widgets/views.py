@@ -237,18 +237,19 @@ class StackedResultsWidget(QWidget):
         self.stream = stream
         self.field = field
 
-        self.tabview = TabView(catalogmodel, selectionmodel, widgetcls, stream, field)
-        self.splitview = SplitView()
+        self.tab_view = TabView(catalogmodel, selectionmodel, widgetcls, stream, field)
+        self.hor_view = SplitView(split_mode="horizontal")
+        self.vert_view = SplitView(split_mode="vertical")
+        self.three_view = SplitView(split_mode="threeview")
+        self.grid_view = SplitView(split_mode="gridview")
 
-        vert_split = splitview.VerticalSplitView()
         ### Create stacked widget
         self.stackedwidget = QStackedWidget(self)
-        self.stackedwidget.addWidget(tabview)
-        self.stackedwidget.addWidget(vert_split)
-        self.stackedwidget.addWidget(self.split_vert)
-        self.stackedwidget.addWidget(self.split_in3)
-        self.stackedwidget.addWidget(self.split_2x2)
-
+        self.stackedwidget.addWidget(self.tab_view)
+        self.stackedwidget.addWidget(self.hor_view)
+        self.stackedwidget.addWidget(self.vert_view)
+        self.stackedwidget.addWidget(self.three_view)
+        self.stackedwidget.addWidget(self.grid_view)
 
         ### Create Button Panel
         # TODO make button panel look nice
@@ -261,26 +262,22 @@ class StackedResultsWidget(QWidget):
         self.button_hor.setIcon(QIcon(path('icons/1x1hor.png')))
         self.button_vert = QPushButton()
         self.button_vert.setIcon(QIcon(path('icons/1x1vert.png')))
-        self.button_in3 = QPushButton()
-        self.button_in3.setIcon(QIcon(path('icons/2x1grid.png')))
-        self.button_2x2 = QPushButton()
-        self.button_2x2.setIcon(QIcon(path('icons/2x2grid.png')))
+        self.button_three = QPushButton()
+        self.button_three.setIcon(QIcon(path('icons/2x1grid.png')))
+        self.button_grid = QPushButton()
+        self.button_grid.setIcon(QIcon(path('icons/2x2grid.png')))
         ### Add Buttons to Panel
         self.buttonpanel.addWidget(self.button_tab)
         self.buttonpanel.addWidget(self.button_hor)
         self.buttonpanel.addWidget(self.button_vert)
-        self.buttonpanel.addWidget(self.button_in3)
-        self.buttonpanel.addWidget(self.button_2x2)
+        self.buttonpanel.addWidget(self.button_three)
+        self.buttonpanel.addWidget(self.button_grid)
         ### Connect Buttons to function
         self.button_tab.clicked.connect(self.display_tab)
-        # self.button_hor.clicked.connect(self.splitview.horizontal)
         self.button_hor.clicked.connect(self.display_hor)
-        # self.button_vert.clicked.connect(self.splitview.vertical)
-        # self.button_vert.clicked.connect(self.display_vert)
-        # self.button_in3.clicked.connect(self.splitview.threeview)
-        # self.button_in3.clicked.connect(self.display_in3)
-        # self.button_2x2.clicked.connect(self.splitview.fourview)
-        # self.button_2x2.clicked.connect(self.display_2x2)
+        self.button_vert.clicked.connect(self.display_vert)
+        self.button_three.clicked.connect(self.display_three)
+        self.button_grid.clicked.connect(self.display_grid)
 
         ### define outer layout & add stacked widget and button panel
         self.layout = QVBoxLayout()
@@ -295,58 +292,19 @@ class StackedResultsWidget(QWidget):
     def display_hor(self):
         self.stackedwidget.setCurrentIndex(1)
 
-    # def display_vert(self):
-    #     self.stackedwidget.setCurrentIndex(2)
-    #
-    # def display_in3(self):
-    #     self.stackedwidget.setCurrentIndex(3)
-    #
-    # def display_2x2(self):
-    #     self.stackedwidget.setCurrentIndex(4)
+    def display_vert(self):
+        self.stackedwidget.setCurrentIndex(2)
+
+    def display_three(self):
+        self.stackedwidget.setCurrentIndex(3)
+
+    def display_grid(self):
+        self.stackedwidget.setCurrentIndex(4)
 
 
 # TODO [] add data variable to different splitview classes to connect to data later
 #      [] access different splitviews in main SplitResultsView class
 #      [] make all buttons work
-
-class VerticalSplitView(QWidget):
-
-    def __init__(self):
-        super(VerticalSplitView, self).__init__()
-        self.initUI()
-
-    def initUI(self):
-        hbox = QHBoxLayout(self)
-
-        left = QFrame()
-        right = QFrame()
-        left.setFrameShape(QFrame.StyledPanel)
-        right.setFrameShape(QFrame.StyledPanel)
-
-        splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(left)
-        splitter.addWidget(right)
-        splitter.setSizes([100, 200])
-
-        hbox.addWidget(splitter)
-        self.setLayout(hbox)
-        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-
-        self.setGeometry(300, 300, 300, 200)
-        # self.show()
-
-
-
-
-
-def main():
-    app = QApplication(sys.argv)
-    ex = HorizontalSplitView()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()
 
 
 class SplitView(QWidget):
@@ -361,8 +319,8 @@ class SplitView(QWidget):
         widgetcls=None,
         stream=None,
         field=None,
-        view: str = 'threeview',
         bindings: List[tuple] = [],
+        split_mode: str = 'gridview',
         **kwargs,
     ):
         super(SplitView, self).__init__()
@@ -371,13 +329,19 @@ class SplitView(QWidget):
         self.widgetcls = widgetcls
         self.stream = stream
         self.field = field
+        self.split_mode = split_mode
 
-        # self.hor_view = HorizontalSplitView()
-        # self.vert_view = VerticalSplitView()
-        # self.three_view = ThreeSplitView()
+        if self.split_mode == 'horizontal':
+            self.horizontal_split()
+        if self.split_mode == 'vertical':
+            self.vertical_split()
+        if self.split_mode == 'threeview':
+            self.threeview_split()
+        if self.split_mode == 'gridview':
+            self.grid()
 
     def horizontal_split(self):
-        hbox = QHBoxLayout()
+        hbox = QHBoxLayout(self)
         top = QFrame()
         bottom = QFrame()
         top.setFrameShape(QFrame.StyledPanel)
@@ -389,12 +353,12 @@ class SplitView(QWidget):
         splitter.setSizes([100, 200])
 
         hbox.addWidget(splitter)
-        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-        hbox.setGeometry(300, 300, 300, 200)
-        return hbox
+        self.setLayout(hbox)
+        QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        self.setGeometry(300, 300, 300, 200)
 
     def vertical_split(self):
-        hbox = QHBoxLayout()
+        hbox = QHBoxLayout(self)
         left = QFrame()
         right = QFrame()
         left.setFrameShape(QFrame.StyledPanel)
@@ -406,9 +370,10 @@ class SplitView(QWidget):
         splitter.setSizes([100, 200])
 
         hbox.addWidget(splitter)
+        self.setLayout(hbox)
         # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-        hbox.setGeometry(300, 300, 300, 200)
-        return hbox
+        self.setGeometry(300, 300, 300, 200)
+
 
     def threeview_split(self):
         hbox = QHBoxLayout(self)
@@ -430,11 +395,40 @@ class SplitView(QWidget):
         splitter2.addWidget(bottom)
 
         hbox.addWidget(splitter2)
-
         self.setLayout(hbox)
         # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
         self.setGeometry(300, 300, 300, 200)
-        return hbox
+        self.show()
+
+    def grid(self):
+        hbox = QVBoxLayout(self)
+
+        topleft = QFrame()
+        topright = QFrame()
+        topleft.setFrameShape(QFrame.StyledPanel)
+        topright.setFrameShape(QFrame.StyledPanel)
+        bottomleft = QFrame()
+        bottomright = QFrame()
+        bottomleft.setFrameShape(QFrame.StyledPanel)
+        bottomright.setFrameShape(QFrame.StyledPanel)
+
+        splitter1 = QSplitter(Qt.Horizontal)
+        splitter1.addWidget(topleft)
+        splitter1.addWidget(topright)
+        splitter1.setSizes([100, 200])
+
+        splitter2 = QSplitter(Qt.Vertical)
+        splitter2.addWidget(bottomleft)
+        splitter2.addWidget(bottomright)
+        splitter2.setSizes([100, 200])
+
+        hbox.addWidget(splitter1)
+        hbox.addWidget(splitter2)
+        self.setLayout(hbox)
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        self.setGeometry(300, 300, 300, 200)
+        self.show()
+
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
@@ -474,6 +468,15 @@ class SplitView(QWidget):
     #      [ ] make nicer code blocks
     #      [ ] automatic update view when more data is selected
 
+
+def main():
+    app = QApplication(sys.argv)
+    ex = SplitView()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
 
 class DerivedDataWidgetTestClass(QWidget):
     """

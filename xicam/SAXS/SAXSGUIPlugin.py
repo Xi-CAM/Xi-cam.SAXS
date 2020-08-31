@@ -73,8 +73,8 @@ class SAXSPlugin(GUIPlugin):
                                      geometry=self.getAI)
         #TODO: add another version of TabView that can also show different fields from derived data not only multiply scans
         # splitview_args = dict(catalogmodel=self.catalogModel,
-                            selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
-                                                    stream='primary', field=field)
+        #                     selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
+        #                                             stream='primary', field=field)
         self.comparemultiview = StackedResultsWidget(self.catalogModel, widgetcls=SAXSMaskingViewer, \
                                                      selectionmodel=self.selectionmodel, \
                                                      stream='primary', field=field, \
