@@ -11,6 +11,7 @@ from qtpy.QtWidgets import QApplication, QAbstractItemView, QLineEdit, QListView
                            QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar, QDockWidget, QSplitter, \
                            QFrame, QTextEdit, QStyleFactory
 
+from xicam.gui.widgets.tabview import TabView
 from xicam.gui.static import path
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
 from xicam.gui.widgets.imageviewmixins import CatalogView
@@ -216,21 +217,34 @@ class StackedResultsWidget(QWidget):
     several pages one for tabview and others for different split views
     """
 
-    def __init__(self, tabview, splitview):
+    def __init__(
+        self,
+        catalogmodel: QStandardItemModel = None,
+        selectionmodel: QItemSelectionModel = None,
+        widgetcls=None,
+        stream=None,
+        field=None,
+        bindings: List[tuple] = [],
+        **kwargs,
+    ):
         super(StackedResultsWidget, self).__init__()
-
         #TODO:
         # [] implement TabView so that it shows not only different scans and but also different fields
-        self.tabview = tabview
-        self.catalogmodel = tabview.catalogmodel
-        self.selectionmodel = tabview.selectionmodel
+        # self.tabview = tabview
+        self.catalogmodel = catalogmodel
+        self.selectionmodel = selectionmodel
+        self.widgetcls = widgetcls
+        self.stream = stream
+        self.field = field
 
-        self.splitview = splitview
+        self.tabview = TabView(catalogmodel, selectionmodel, widgetcls, stream, field)
+        self.splitview = SplitView()
+
         vert_split = splitview.VerticalSplitView()
         ### Create stacked widget
         self.stackedwidget = QStackedWidget(self)
-        self.stackedwidget.addWidget(self.tabview)
-        self.stackedwidget.addWidget(self.splitview)
+        self.stackedwidget.addWidget(tabview)
+        self.stackedwidget.addWidget(vert_split)
         self.stackedwidget.addWidget(self.split_vert)
         self.stackedwidget.addWidget(self.split_in3)
         self.stackedwidget.addWidget(self.split_2x2)
@@ -322,66 +336,7 @@ class VerticalSplitView(QWidget):
         # self.show()
 
 
-class HorizontalSplitView(QWidget):
 
-    def __init__(self):
-        super(HorizontalSplitView, self).__init__()
-        self.initUI()
-
-    def initUI(self):
-        hbox = QHBoxLayout(self)
-
-        top = QFrame()
-        bottom = QFrame()
-        top.setFrameShape(QFrame.StyledPanel)
-        bottom.setFrameShape(QFrame.StyledPanel)
-
-        splitter = QSplitter(Qt.Vertical)
-        splitter.addWidget(top)
-        splitter.addWidget(bottom)
-        splitter.setSizes([100, 200])
-
-        hbox.addWidget(splitter)
-        self.setLayout(hbox)
-        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-
-        self.setGeometry(300, 300, 300, 200)
-        # self.show()
-
-
-class ThreeSplitView(QWidget):
-
-    def __init__(self):
-        super(ThreeSplitView, self).__init__()
-        self.initUI()
-
-    def initUI(self):
-        hbox = QHBoxLayout(self)
-
-        topleft = QFrame()
-        topright = QFrame()
-        topleft.setFrameShape(QFrame.StyledPanel)
-        topright.setFrameShape(QFrame.StyledPanel)
-        bottom = QFrame()
-        bottom.setFrameShape(QFrame.StyledPanel)
-
-        splitter1 = QSplitter(Qt.Horizontal)
-        splitter1.addWidget(topleft)
-        splitter1.addWidget(topright)
-        splitter1.setSizes([100, 200])
-
-        splitter2 = QSplitter(Qt.Vertical)
-        splitter2.addWidget(splitter1)
-        splitter2.addWidget(bottom)
-
-        hbox.addWidget(splitter2)
-
-        self.setLayout(hbox)
-        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-
-        self.setGeometry(300, 300, 300, 200)
-        # self.setWindowTitle('QSplitter demo')
-        # self.show()
 
 
 def main():
@@ -406,6 +361,7 @@ class SplitView(QWidget):
         widgetcls=None,
         stream=None,
         field=None,
+        view: str = 'threeview',
         bindings: List[tuple] = [],
         **kwargs,
     ):
@@ -416,14 +372,29 @@ class SplitView(QWidget):
         self.stream = stream
         self.field = field
 
-        self.hor_view = HorizontalSplitView()
-        self.vert_view = VerticalSplitView()
-        self.three_view = ThreeSplitView()
+        # self.hor_view = HorizontalSplitView()
+        # self.vert_view = VerticalSplitView()
+        # self.three_view = ThreeSplitView()
 
-    def VerticalSplitView():
-
+    def horizontal_split(self):
         hbox = QHBoxLayout()
+        top = QFrame()
+        bottom = QFrame()
+        top.setFrameShape(QFrame.StyledPanel)
+        bottom.setFrameShape(QFrame.StyledPanel)
 
+        splitter = QSplitter(Qt.Vertical)
+        splitter.addWidget(top)
+        splitter.addWidget(bottom)
+        splitter.setSizes([100, 200])
+
+        hbox.addWidget(splitter)
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        hbox.setGeometry(300, 300, 300, 200)
+        return hbox
+
+    def vertical_split(self):
+        hbox = QHBoxLayout()
         left = QFrame()
         right = QFrame()
         left.setFrameShape(QFrame.StyledPanel)
@@ -436,10 +407,34 @@ class SplitView(QWidget):
 
         hbox.addWidget(splitter)
         # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-
         hbox.setGeometry(300, 300, 300, 200)
         return hbox
-        # self.show()
+
+    def threeview_split(self):
+        hbox = QHBoxLayout(self)
+
+        topleft = QFrame()
+        topright = QFrame()
+        topleft.setFrameShape(QFrame.StyledPanel)
+        topright.setFrameShape(QFrame.StyledPanel)
+        bottom = QFrame()
+        bottom.setFrameShape(QFrame.StyledPanel)
+
+        splitter1 = QSplitter(Qt.Horizontal)
+        splitter1.addWidget(topleft)
+        splitter1.addWidget(topright)
+        splitter1.setSizes([100, 200])
+
+        splitter2 = QSplitter(Qt.Vertical)
+        splitter2.addWidget(splitter1)
+        splitter2.addWidget(bottom)
+
+        hbox.addWidget(splitter2)
+
+        self.setLayout(hbox)
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        self.setGeometry(300, 300, 300, 200)
+        return hbox
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
@@ -478,7 +473,6 @@ class SplitView(QWidget):
     #      [ ] get 1d plot results to show --> need dataset for testing
     #      [ ] make nicer code blocks
     #      [ ] automatic update view when more data is selected
-
 
 
 class DerivedDataWidgetTestClass(QWidget):
