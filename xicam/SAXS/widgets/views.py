@@ -261,7 +261,7 @@ class StackedResultsWidget(QWidget):
         # self.buttonpanel.addWidget(self.button_in3)
         # self.buttonpanel.addWidget(self.button_2x2)
         ### Connect Buttons to function
-        self.tab_button.clicked.connect(self.display_tab)
+        self.button_tab.clicked.connect(self.display_tab)
         # self.button_hor.clicked.connect(self.splitview.horizontal)
         self.button_hor.clicked.connect(self.display_hor)
         # self.button_vert.clicked.connect(self.splitview.vertical)
@@ -322,7 +322,7 @@ class VerticalSplitView(QWidget):
         # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
 
         self.setGeometry(300, 300, 300, 200)
-        self.show()
+        # self.show()
 
 
 class HorizontalSplitView(QWidget):
@@ -349,7 +349,7 @@ class HorizontalSplitView(QWidget):
         # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
 
         self.setGeometry(300, 300, 300, 200)
-        self.show()
+        # self.show()
 
 
 class ThreeSplitView(QWidget):
@@ -384,7 +384,7 @@ class ThreeSplitView(QWidget):
 
         self.setGeometry(300, 300, 300, 200)
         # self.setWindowTitle('QSplitter demo')
-        self.show()
+        # self.show()
 
 
 def main():
@@ -395,6 +395,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 class SplitView(QWidget):
     """
