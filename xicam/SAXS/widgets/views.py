@@ -334,14 +334,14 @@ class HorizontalSplitView(QWidget):
     def initUI(self):
         hbox = QHBoxLayout(self)
 
-        left = QFrame()
-        right = QFrame()
-        left.setFrameShape(QFrame.StyledPanel)
-        right.setFrameShape(QFrame.StyledPanel)
+        top = QFrame()
+        bottom = QFrame()
+        top.setFrameShape(QFrame.StyledPanel)
+        bottom.setFrameShape(QFrame.StyledPanel)
 
         splitter = QSplitter(Qt.Vertical)
-        splitter.addWidget(left)
-        splitter.addWidget(right)
+        splitter.addWidget(top)
+        splitter.addWidget(bottom)
         splitter.setSizes([100, 200])
 
         hbox.addWidget(splitter)
@@ -418,6 +418,9 @@ class SplitView(QWidget):
         self.stream = stream
         self.field = field
 
+        self.hor_view = HorizontalSplitView()
+        self.vert_view = VerticalSplitView()
+        self.three_view = ThreeSplitView()
 
 
     def update_view(self):
@@ -451,14 +454,13 @@ class SplitView(QWidget):
             widgets.append(widget2D)
         return widgets
 
-    # TODO [x] add note if to few dataset selected
-    #      [] label dataset in view
-    #      [] add widgetcls to all option --> automatic filling
-    #      [] scalable split widget sizes
-    #      [] get 1d plot results to show --> need dataset for testing
-    #      [] make nicer code blocks
-    #      [] automatic update view when more data is selected
-    #      [] show hint if too many datasets are selected for display
+    # TODO [ ] add note/hint if to few/many dataset selected
+    #      [ ] label dataset in view
+    #      [ ] add widgetcls to all option --> automatic filling
+    #      [ ] get 1d plot results to show --> need dataset for testing
+    #      [ ] make nicer code blocks
+    #      [ ] automatic update view when more data is selected
+
 
 
 class DerivedDataWidgetTestClass(QWidget):
