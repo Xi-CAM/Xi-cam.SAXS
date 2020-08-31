@@ -9,7 +9,7 @@ from qtpy.QtGui import QPen, QStandardItem, QStandardItemModel, QKeyEvent, QIcon
 from qtpy.QtWidgets import QApplication, QAbstractItemView, QLineEdit, QListView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
                            QWidget, QStackedWidget, QGridLayout, QPushButton, QStyle, QLabel, QGraphicsView, QScrollArea, \
                            QListWidget, QFormLayout, QRadioButton, QCheckBox, QActionGroup, QToolBar, QDockWidget, QSplitter, \
-                           QFrame, QTextEdit, QStyleFactory
+                           QFrame, QTextEdit, QStyleFactory, QMainWindow
 
 from xicam.gui.widgets.tabview import TabView
 from xicam.gui.static import path
@@ -314,7 +314,7 @@ class SplitView(QWidget):
         stream=None,
         field=None,
         bindings: List[tuple] = [],
-        split_mode: str = 'dockgrid',
+        split_mode: str = 'gridview',
         **kwargs,
     ):
         super(SplitView, self).__init__()
@@ -333,8 +333,7 @@ class SplitView(QWidget):
             self.threeview_split()
         if self.split_mode == 'gridview':
             self.grid()
-        if self.split_mode == 'dockgrid':
-            self.dockgrid()
+
 
     def horizontal_split(self):
         hbox = QHBoxLayout()
@@ -417,11 +416,12 @@ class SplitView(QWidget):
         splitter2.addWidget(bottomright)
         splitter2.setSizes([100, 200])
 
-        # splitter1.splitterMoved.connect(self.moveSplitter)
-        # splitter2.splitterMoved.connect(self.moveSplitter)
-        #
-        # self._spltA = splitter1
-        # self._spltB = splitter2
+        # connect splitter1 and splitter2 to move together
+        # TODO which version is desired? connect splitter or free moving?
+        splitter1.splitterMoved.connect(self.moveSplitter)
+        splitter2.splitterMoved.connect(self.moveSplitter)
+        self._spltA = splitter1
+        self._spltB = splitter2
 
         outer_splitter = QSplitter(Qt.Vertical)
         outer_splitter.addWidget(splitter1)
@@ -439,23 +439,6 @@ class SplitView(QWidget):
         splt.blockSignals(True)
         splt.moveSplitter(index, pos)
         splt.blockSignals(False)
-
-    def dockgrid(self):
-        layout = QGridLayout()
-
-        topleft = QDockWidget()
-        topright = QDockWidget()
-        bottomleft = QDockWidget()
-        bottomright = QDockWidget()
-
-        layout.addWidget(topleft)
-        layout.addWidget(topright)
-        layout.addWidget(bottomleft)
-        layout.addWidget(bottomright)
-
-        self.setLayout(layout)
-        self.show()
-
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
