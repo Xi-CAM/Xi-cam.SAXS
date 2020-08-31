@@ -226,11 +226,11 @@ class StackedResultsWidget(QWidget):
         self.selectionmodel = tabview.selectionmodel
 
         self.splitview = splitview
-
+        vert_split = splitview.VerticalSplitView()
         ### Create stacked widget
         self.stackedwidget = QStackedWidget(self)
         self.stackedwidget.addWidget(self.tabview)
-        self.stackedwidget.addWidget(self.split_hor)
+        self.stackedwidget.addWidget(self.splitview)
         self.stackedwidget.addWidget(self.split_vert)
         self.stackedwidget.addWidget(self.split_in3)
         self.stackedwidget.addWidget(self.split_2x2)
@@ -420,6 +420,26 @@ class SplitView(QWidget):
         self.vert_view = VerticalSplitView()
         self.three_view = ThreeSplitView()
 
+    def VerticalSplitView():
+
+        hbox = QHBoxLayout()
+
+        left = QFrame()
+        right = QFrame()
+        left.setFrameShape(QFrame.StyledPanel)
+        right.setFrameShape(QFrame.StyledPanel)
+
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.addWidget(left)
+        splitter.addWidget(right)
+        splitter.setSizes([100, 200])
+
+        hbox.addWidget(splitter)
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+
+        hbox.setGeometry(300, 300, 300, 200)
+        return hbox
+        # self.show()
 
     def update_view(self):
         available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
