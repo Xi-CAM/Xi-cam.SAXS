@@ -237,10 +237,10 @@ class StackedResultsWidget(QWidget):
         self.field = field
 
         self.tab_view = TabView(catalogmodel, selectionmodel, widgetcls, stream, field)
-        self.hor_view = SplitView(split_mode="horizontal")
-        self.vert_view = SplitView(split_mode="vertical")
-        self.three_view = SplitView(split_mode="threeview")
-        self.grid_view = SplitView(split_mode="gridview")
+        self.hor_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="horizontal")
+        self.vert_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="vertical")
+        self.three_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="threeview")
+        self.grid_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="gridview")
 
         ### Create stacked widget
         self.stackedwidget = QStackedWidget(self)
@@ -337,8 +337,14 @@ class SplitView(QWidget):
 
     def horizontal_split(self):
         hbox = QHBoxLayout()
-        top = QFrame()
-        bottom = QFrame()
+        try:
+            top = self.add_data()[0]
+        except:
+            top = QFrame()
+        try:
+            bottom = self.add_data()[1]
+        except:
+            bottom = QFrame()
         top.setFrameShape(QFrame.StyledPanel)
         bottom.setFrameShape(QFrame.StyledPanel)
 
@@ -486,6 +492,7 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 
 class DerivedDataWidgetTestClass(QWidget):
     """
