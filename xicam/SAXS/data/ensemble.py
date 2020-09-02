@@ -119,6 +119,19 @@ class TreeModel(QAbstractItemModel):
         ...
 
 
+# TODO: subclass from QAbstractItemModel, book-keep the list of ensembles
+# contains Ensembles, no QStandardItems
+# data(index, role):
+#   if index.parent().parent.isValid():
+#       index_type = 'Intent'
+#   elif index.parent().isValid():
+#       index_type = 'Run'
+#   else:
+#       index_type = 'Ensemble'
+
+#   if index.parent().isValid():
+#       if role == index.data(DisplayRole)
+#
 class EnsembleModel(QStandardItemModel):
     """Model that stores Ensembles.
 

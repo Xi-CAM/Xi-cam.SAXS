@@ -1,6 +1,6 @@
 from collections import OrderedDict
 
-from qtpy.QtCore import QModelIndex, QPoint, Qt
+from qtpy.QtCore import QModelIndex, QPoint, Qt, QItemSelection
 from qtpy.QtGui import QKeyEvent
 from qtpy.QtWidgets import (
     QAbstractItemView,
@@ -16,75 +16,56 @@ from qtpy.QtWidgets import (
 from xicam.core import msg
 from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
 
-from xicam.XPCS.hints import Hint, PlotHintCanvas, ImageHintCanvas
+from xicam.XPCS.hints import Intent, PlotIntentCanvas, ImageIntentCanvas
+
 
 class ResultsWidget(QWidget):
+    # TODO reorganize layout at the GUI plugin level
+    # (this should not contain the DataSelectorView)
     def __init__(self, model, parent=None):
         super(ResultsWidget, self).__init__(parent)
-
         self._model = model
-        self._derivedDataView = DataSelectorView()
-        self._derivedDataView.setModel(self._model)
         self._hintView = ResultsTabView()
         self._hintView.setModel(self._model)
-        self._derivedDataWidget = CollapsibleWidget(self._derivedDataView, "Results")
-        self._derivedDataWidget.addWidget(self._hintView)
-        self.setLayout(self._derivedDataWidget.layout())
-
-
-class DerivedDataWidgetTestClass(QWidget):
-    """
-    Widget for viewing derived data.
-
-    This widget contains two widgets: a collapsible one and a non-collapsible one.
-    The collapsible widget can be collapsed/uncollapsed by clicking a tool button.
-    The non-collapsible widget always remains visible in the widget.
-    """
-
-    def __init__(self, collapseView, staticView, parent=None):
-        """
-
-        Parameters
-        ----------
-        collapseView
-            View/widget that becomes collapsible
-        staticView
-            View/widget that does not collapse
-        parent
-            Parent Qt widget
-        """
-        super(DerivedDataWidgetTestClass, self).__init__(parent)
-
-        self.collapseWidget = CollapsibleWidget(collapseView, "Results")
-        self.staticView = staticView
-
-        self.collapseWidget.addWidget(staticView)
-        self.setLayout(self.collapseWidget.layout())
+        self._selector = DataSelectorView()
+        self._selector.setModel(self._model)
+        layout = QVBoxLayout()
+        layout.addWidget(self._hintView)
+        layout.addWidget(self._selector)
+        self.setLayout(layout)
 
 
 class ResultsTabView(QAbstractItemView):
     """
     View that is responsible for displaying Hints in a tab-based manner.
     """
-
     def __init__(self, parent=None):
         super(ResultsTabView, self).__init__(parent)
 
         self._tabWidget = QTabWidget()
         self._tabWidget.setParent(self)
+        # TODO: address categories (hard-coded? how to make dynamic?)
         self._categories = {
-            "raw": ImageHintCanvas,
-            "avg": ImageHintCanvas,
-            "g2": PlotHintCanvas,
-            "2-time": ImageHintCanvas
+            "raw": ImageIntentCanvas,
+            "avg": ImageIntentCanvas,
+            "g2": PlotIntentCanvas,
+            "2-time": ImageIntentCanvas
         }
+        # Add and initialize the default hint canvas for each category
         for category, canvas_type in self._categories.items():
             self._tabWidget.addTab(canvas_type(), category)
-        self._indexToTabMap = OrderedDict()
+        # self._indexToTabMap = OrderedDict()
 
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().addWidget(self._tabWidget)
+
+        self._plotdataitems = []
+
+    def selectionChanged(self, selected: QItemSelection, deselected: QItemSelection) -> None:
+        # TODO: try to use a shared selection model between the views (dataselectorview, resultsviews)
+        # currently the dataChanged slot is used, which checks if the checkstate has changed
+        print("selection changed.")
 
     def _findTab(self, tabName):
         """
@@ -131,7 +112,7 @@ class ResultsTabView(QAbstractItemView):
             # empty list indicates ALL roles have changed (see documentation)
             if Qt.CheckStateRole in roles or len(roles) == 0:
                 hint = topLeft.data(Qt.UserRole)
-                if isinstance(hint, Hint):
+                if isinstance(hint, Intent):
                     if topLeft.data(Qt.CheckStateRole) == Qt.Checked:
                         if hint.category not in [
                             self._tabWidget.tabText(index)
@@ -141,9 +122,9 @@ class ResultsTabView(QAbstractItemView):
                             self._tabWidget.addTab(canvas, hint.category)
                         else:
                             canvas = self._findTab(hint.category)
-                        canvas.render(hint)
+                        self._plotdataitems += canvas.render(hint)
                     else:
-                        hint.remove()
+                        print('remove')
             super(ResultsTabView, self).dataChanged(topLeft, bottomRight, roles)
 
     # try to use a selection model here instead of dataChanged
