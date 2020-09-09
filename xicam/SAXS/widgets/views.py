@@ -211,6 +211,15 @@ class ResultsWidget(QWidget):
         self.setLayout(self._derivedDataWidget.layout())
 
 
+_canvas_cache = {}
+
+
+def canvas_from_index(index:int)-> QWidget:
+    if index not in _canvas_cache:
+        _canvas_cache[index] = QLabel(f"Widget #{index}")
+    return _canvas_cache[index]
+
+
 class StackedResultsWidget(QWidget):
     """
     Outer Widget for viewing results in different ways using the QStackedWidget with
@@ -236,9 +245,11 @@ class StackedResultsWidget(QWidget):
         self.stream = stream
         self.field = field
 
+        self.the_widget_list = [QFrame(), QFrame(), QFrame(), QFrame()] #self.add_data()
+
         self.tab_view = TabView(catalogmodel, selectionmodel, widgetcls, stream, field)
-        self.hor_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="horizontal")
-        self.vert_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="vertical")
+        self.hor_view = SplitHorizontal(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls)
+        self.vert_view = SplitVertical(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, widgets=self.the_widget_list)
         self.three_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="threeview")
         self.grid_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="gridview")
 
@@ -289,7 +300,19 @@ class StackedResultsWidget(QWidget):
         self.stackedwidget.setCurrentIndex(0)
 
     def display_hor(self):
+        canvas1 = canvas_from_index(0)
+        canvas2 = canvas_from_index(1)
+
         self.stackedwidget.setCurrentIndex(1)
+        self.hor_view.setLeftWidget(canvas1)
+        self.hor_view.setRightWidget(canvas2)
+
+        cur_index = self.stackedwidget.currentIndex()
+        _widget = self.stackedwidget.widget(cur_index)
+        qframes = _widget.the_widget_list
+        self.stackedwidget.setCurrentIndex(1)
+        widget = self.stackedwidget.widget(1)
+        widget.the_widget_list = qframes
 
     def display_vert(self):
         self.stackedwidget.setCurrentIndex(2)
@@ -299,6 +322,15 @@ class StackedResultsWidget(QWidget):
 
     def display_grid(self):
         self.stackedwidget.setCurrentIndex(4)
+
+
+class LayoutWidget(QWidget):
+
+    def clear(self):
+        ...
+
+    def addWidget(self, widget):
+        ...
 
 
 class SplitView(QWidget):
@@ -325,6 +357,9 @@ class SplitView(QWidget):
         self.field = field
         self.split_mode = split_mode
 
+        self.layout = QHBoxLayout()
+
+
         if self.split_mode == 'horizontal':
             self.horizontal_split()
         if self.split_mode == 'vertical':
@@ -336,15 +371,7 @@ class SplitView(QWidget):
 
 
     def horizontal_split(self):
-        hbox = QHBoxLayout()
-        try:
-            top = self.add_data()[0]
-        except:
-            top = QFrame()
-        try:
-            bottom = self.add_data()[1]
-        except:
-            bottom = QFrame()
+
         top.setFrameShape(QFrame.StyledPanel)
         bottom.setFrameShape(QFrame.StyledPanel)
 
@@ -355,7 +382,7 @@ class SplitView(QWidget):
 
         hbox.addWidget(splitter)
         self.setLayout(hbox)
-        QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
         self.setGeometry(300, 300, 300, 200)
 
     def vertical_split(self):
@@ -482,6 +509,56 @@ class SplitView(QWidget):
     #      [ ] add widgetcls to all option --> automatic filling
     #      [ ] get 1d plot results to show --> need dataset for testing
     #      [ ] automatic update view when more data is selected
+
+class SplitHorizontal(SplitView):
+
+    def __init__(self, *args,**kwargs):
+        super().__init__(*args, **kwargs)
+
+        splitter = QSplitter(Qt.Vertical)
+        splitter.setSizes([100, 200])
+
+        for n, widget in enumerate(self.the_widget_list):
+            splitter.addWidget(widget)
+            if n >= 2:
+                break
+
+
+class SplitVertical(SplitView):
+
+    def __init__(self, *args, **kwargs):
+        super(SplitVertical, self).__init__(*args, **kwargs)
+
+
+        left.setFrameShape(QFrame.StyledPanel)
+        right.setFrameShape(QFrame.StyledPanel)
+
+        splitter = QSplitter(Qt.Horizontal)
+        splitter.setParent(self)
+        splitter.addWidget(left)
+        splitter.addWidget(right)
+        splitter.setSizes([100, 200])
+
+        hbox.addWidget(splitter)
+        self.setLayout(hbox)
+        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        self.setGeometry(300, 300, 300, 200)
+
+
+class SplitThreeView(SplitView):
+    def __init__(self, widget1, widget):
+        super(SplitThreeView, self).__init__()
+
+        self.widget = widget
+
+        splitter1 = QSplitter(Qt.Horizontal)
+        splitter1.addWidget(self.widget1)
+        splitter1.addWidget(self.widget2)
+        splitter1.setSizes([100, 200])
+
+        splitter2 = QSplitter(Qt.Vertical)
+        splitter2.addWidget(splitter1)
+        splitter2.addWidget(self.widget3)
 
 
 def main():
