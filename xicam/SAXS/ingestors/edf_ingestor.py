@@ -1,15 +1,7 @@
 import time
-
 import event_model
 import fabio
 
-
-def is_applicable(is_applicable_func):
-    "A decorator that monkey-patches the decorated function"
-    def decorator(func):
-        func.is_applicable = is_applicable_func
-        return func
-    return decorator
 
 def edf_ingestor(paths):
     # TODO -- metadata?
