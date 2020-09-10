@@ -75,11 +75,11 @@ class SAXSPlugin(GUIPlugin):
         # splitview_args = dict(catalogmodel=self.catalogModel,
         #                     selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
         #                                             stream='primary', field=field)
-        self.comparemultiview = StackedResultsWidget(self.catalogModel, widgetcls=SAXSMaskingViewer, \
-                                                     selectionmodel=self.selectionmodel, \
-                                                     stream='primary', field=field, \
+        self.comparemultiview = StackedResultsWidget(self.catalogModel, widgetcls=SAXSMaskingViewer,
+                                                     selectionmodel=self.selectionmodel,
+                                                     stream='primary', field=field,
                                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
-                                                               (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],\
+                                                               (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                                      geometry=self.getAI)
                                                      # splitview=SplitView(**splitview_args)
                                                      # hor_View=HorView(**splitview_args)

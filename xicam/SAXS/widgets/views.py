@@ -212,13 +212,18 @@ class ResultsWidget(QWidget):
 
 
 _canvas_cache = {}
-
-
 def canvas_from_index(index:int)-> QWidget:
     if index not in _canvas_cache:
         _canvas_cache[index] = QLabel(f"Widget #{index}")
     return _canvas_cache[index]
 
+# helper class
+# class LayoutFiller(QWidget):
+#
+#     def addWidget(self, widget):
+#         ...
+#
+#     def insertWidget
 
 class StackedResultsWidget(QWidget):
     """
@@ -247,13 +252,14 @@ class StackedResultsWidget(QWidget):
 
         self.the_widget_list = [QFrame(), QFrame(), QFrame(), QFrame()] #self.add_data()
 
+        # create object instances of the different layout/view widgets to be used on the different pages of the stacked widget
         self.tab_view = TabView(catalogmodel, selectionmodel, widgetcls, stream, field)
         self.hor_view = SplitHorizontal(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls)
-        self.vert_view = SplitVertical(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, widgets=self.the_widget_list)
-        self.three_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="threeview")
-        self.grid_view = SplitView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls, split_mode="gridview")
+        self.vert_view = SplitVertical(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls)
+        self.three_view = SplitThreeView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls)
+        self.grid_view = SplitGridView(catalogmodel=catalogmodel, selectionmodel=selectionmodel, widgetcls=widgetcls)
 
-        ### Create stacked widget
+        ### Create stacked widget and fill pages with different layout widgets
         self.stackedwidget = QStackedWidget(self)
         self.stackedwidget.addWidget(self.tab_view)
         self.stackedwidget.addWidget(self.hor_view)
@@ -288,7 +294,6 @@ class StackedResultsWidget(QWidget):
         self.button_vert.clicked.connect(self.display_vert)
         self.button_three.clicked.connect(self.display_three)
         self.button_grid.clicked.connect(self.display_grid)
-
         ### define outer layout & add stacked widget and button panel
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.stackedwidget)
@@ -300,37 +305,49 @@ class StackedResultsWidget(QWidget):
         self.stackedwidget.setCurrentIndex(0)
 
     def display_hor(self):
-        canvas1 = canvas_from_index(0)
-        canvas2 = canvas_from_index(1)
+        canvas0 = canvas_from_index(0)
+        canvas1 = canvas_from_index(1)
 
         self.stackedwidget.setCurrentIndex(1)
-        self.hor_view.setLeftWidget(canvas1)
-        self.hor_view.setRightWidget(canvas2)
+        self.hor_view.splitter.insertWidget(0,canvas0)
+        self.hor_view.splitter.insertWidget(1,canvas1)
 
-        cur_index = self.stackedwidget.currentIndex()
-        _widget = self.stackedwidget.widget(cur_index)
-        qframes = _widget.the_widget_list
-        self.stackedwidget.setCurrentIndex(1)
-        widget = self.stackedwidget.widget(1)
-        widget.the_widget_list = qframes
+        # cur_index = self.stackedwidget.currentIndex()
+        # _widget = self.stackedwidget.widget(cur_index)
+        # qframes = _widget.the_widget_list
+        # self.stackedwidget.setCurrentIndex(1)
+        # widget = self.stackedwidget.widget(1)
+        # widget.the_widget_list = qframes
 
     def display_vert(self):
+        canvas0 = canvas_from_index(0)
+        canvas1 = canvas_from_index(1)
+
         self.stackedwidget.setCurrentIndex(2)
+        self.hor_view.splitter.insertWidget(0,canvas0)
+        self.hor_view.splitter.insertWidget(1,canvas1)
 
     def display_three(self):
+        canvas0 = canvas_from_index(0)
+        canvas1 = canvas_from_index(1)
+        canvas2 = canvas_from_index(2)
+
         self.stackedwidget.setCurrentIndex(3)
+        self.three_view.top_splitter.insertWidget(0, canvas0)
+        self.three_view.top_splitter.insertWidget(1, canvas1)
+        self.three_view.outer_splitter.insertWidget(1, canvas2)
 
     def display_grid(self):
+        canvas0 = canvas_from_index(0)
+        canvas1 = canvas_from_index(1)
+        canvas2 = canvas_from_index(2)
+        canvas3 = canvas_from_index(3)
+
         self.stackedwidget.setCurrentIndex(4)
-
-
-class LayoutWidget(QWidget):
-
-    def clear(self):
-        ...
-
-    def addWidget(self, widget):
-        ...
+        self.grid_view.top_splitter.insertWidget(0, canvas0)
+        self.grid_view.top_splitter.insertWidget(1, canvas1)
+        self.grid_view.bottom_splitter.insertWidget(0, canvas2)
+        self.grid_view.bottom_splitter.insertWidget(1, canvas3)
 
 
 class SplitView(QWidget):
@@ -350,6 +367,7 @@ class SplitView(QWidget):
         **kwargs,
     ):
         super(SplitView, self).__init__()
+
         self.catalogmodel = catalogmodel
         self.selectionmodel = selectionmodel
         self.widgetcls = widgetcls
@@ -360,149 +378,143 @@ class SplitView(QWidget):
         self.layout = QHBoxLayout()
 
 
-        if self.split_mode == 'horizontal':
-            self.horizontal_split()
-        if self.split_mode == 'vertical':
-            self.vertical_split()
-        if self.split_mode == 'threeview':
-            self.threeview_split()
-        if self.split_mode == 'gridview':
-            self.grid()
-
-
-    def horizontal_split(self):
-
-        top.setFrameShape(QFrame.StyledPanel)
-        bottom.setFrameShape(QFrame.StyledPanel)
-
-        splitter = QSplitter(Qt.Vertical)
-        splitter.addWidget(top)
-        splitter.addWidget(bottom)
-        splitter.setSizes([100, 200])
-
-        hbox.addWidget(splitter)
-        self.setLayout(hbox)
-        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-        self.setGeometry(300, 300, 300, 200)
-
-    def vertical_split(self):
-        hbox = QHBoxLayout(self)
-        left = QFrame()
-        right = QFrame()
-        left.setFrameShape(QFrame.StyledPanel)
-        right.setFrameShape(QFrame.StyledPanel)
-
-        splitter = QSplitter(Qt.Horizontal)
-        splitter.addWidget(left)
-        splitter.addWidget(right)
-        splitter.setSizes([100, 200])
-
-        hbox.addWidget(splitter)
-        self.setLayout(hbox)
-        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-        self.setGeometry(300, 300, 300, 200)
-
-    def threeview_split(self):
-        hbox = QHBoxLayout(self)
-
-        topleft = QFrame()
-        topright = QFrame()
-        topleft.setFrameShape(QFrame.StyledPanel)
-        topright.setFrameShape(QFrame.StyledPanel)
-        bottom = QFrame()
-        bottom.setFrameShape(QFrame.StyledPanel)
-
-        splitter1 = QSplitter(Qt.Horizontal)
-        splitter1.addWidget(topleft)
-        splitter1.addWidget(topright)
-        splitter1.setSizes([100, 200])
-
-        splitter2 = QSplitter(Qt.Vertical)
-        splitter2.addWidget(splitter1)
-        splitter2.addWidget(bottom)
-
-        hbox.addWidget(splitter2)
-        self.setLayout(hbox)
-        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-        self.setGeometry(300, 300, 300, 200)
-        self.show()
-
-    def grid(self):
-        hbox = QVBoxLayout(self)
-
-        topleft = QFrame()
-        topright = QFrame()
-        topleft.setFrameShape(QFrame.StyledPanel)
-        topright.setFrameShape(QFrame.StyledPanel)
-        bottomleft = QFrame()
-        bottomright = QFrame()
-        bottomleft.setFrameShape(QFrame.StyledPanel)
-        bottomright.setFrameShape(QFrame.StyledPanel)
-
-        splitter1 = QSplitter(Qt.Horizontal)
-        splitter1.addWidget(topleft)
-        splitter1.addWidget(topright)
-        splitter1.setSizes([100, 200])
-
-        splitter2 = QSplitter(Qt.Horizontal)
-        splitter2.addWidget(bottomleft)
-        splitter2.addWidget(bottomright)
-        splitter2.setSizes([100, 200])
-
-        # connect splitter1 and splitter2 to move together
-        # TODO which version is desired? connect splitter or free moving?
-        splitter1.splitterMoved.connect(self.moveSplitter)
-        splitter2.splitterMoved.connect(self.moveSplitter)
-        self._spltA = splitter1
-        self._spltB = splitter2
-
-        outer_splitter = QSplitter(Qt.Vertical)
-        outer_splitter.addWidget(splitter1)
-        outer_splitter.addWidget(splitter2)
-        outer_splitter.setSizes([200, 400])
-
-        hbox.addWidget(outer_splitter)
-        self.setLayout(hbox)
-        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-        self.setGeometry(300, 300, 300, 200)
-        self.show()
-
-    def moveSplitter( self, index, pos ):
-        splt = self._spltA if self.sender() == self._spltB else self._spltB
-        splt.blockSignals(True)
-        splt.moveSplitter(index, pos)
-        splt.blockSignals(False)
-
-    def update_view(self):
-        available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
-        for i in range(self.catalogmodel.rowCount()):
-            if i > available_widgets - 1 :
-                return
-            itemdata = self.catalogmodel.item(i).data(Qt.UserRole)
-            # TODO: use projection from catalog data to figure this out
-            widget = QLabel(self.catalogmodel.item(i).data(Qt.DisplayRole)) # temporary
-
-    def add_static_data(self):
-        try:
-            catalog = self.catalogmodel.item(-1).data(Qt.UserRole)
-            widget2D = self.widgetcls(catalog=catalog, stream=self.stream, field=self.field)
-            return widget2D
-        except:
-            pass
-            # raise AttributeError
-            # print("No Catalog selected yet")
-
-    def add_data(self):
-        selected_indexes = [self.catalogmodel.item(i) for i in range(self.catalogmodel.rowCount())]
-        # TODO ensemblemodel will replace catalog or selectionmodel
-        widgets = []
-        for index in selected_indexes:
-            # data = catalog_run.primary.to_dask()['fccd_image']
-            catalog_run = index.data(Qt.UserRole)
-            catalog_label = index.data(Qt.DisplayRole)
-            widget2D = self.widgetcls(catalog=catalog_run, stream=self.stream, field=self.field)
-            widgets.append(widget2D)
-        return widgets
+    #     if self.split_mode == 'horizontal':
+    #         self.horizontal_split()
+    #     if self.split_mode == 'vertical':
+    #         self.vertical_split()
+    #     if self.split_mode == 'threeview':
+    #         self.threeview_split()
+    #     if self.split_mode == 'gridview':
+    #         self.grid()
+    #
+    #
+    # def horizontal_split(self):
+    #
+    #     top.setFrameShape(QFrame.StyledPanel)
+    #     bottom.setFrameShape(QFrame.StyledPanel)
+    #
+    #     splitter = QSplitter(Qt.Vertical)
+    #     splitter.addWidget(top)
+    #     splitter.addWidget(bottom)
+    #     splitter.setSizes([100, 200])
+    #
+    #     hbox.addWidget(splitter)
+    #     self.setLayout(hbox)
+    #     # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+    #     self.setGeometry(300, 300, 300, 200)
+    #
+    # def vertical_split(self):
+    #     hbox = QHBoxLayout(self)
+    #     left = QFrame()
+    #     right = QFrame()
+    #     left.setFrameShape(QFrame.StyledPanel)
+    #     right.setFrameShape(QFrame.StyledPanel)
+    #
+    #     splitter = QSplitter(Qt.Horizontal)
+    #     splitter.addWidget(left)
+    #     splitter.addWidget(right)
+    #     splitter.setSizes([100, 200])
+    #
+    #     hbox.addWidget(splitter)
+    #     self.setLayout(hbox)
+    #     # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+    #     self.setGeometry(300, 300, 300, 200)
+    #
+    # def threeview_split(self):
+    #     hbox = QHBoxLayout(self)
+    #
+    #     topleft = QFrame()
+    #     topright = QFrame()
+    #     topleft.setFrameShape(QFrame.StyledPanel)
+    #     topright.setFrameShape(QFrame.StyledPanel)
+    #     bottom = QFrame()
+    #     bottom.setFrameShape(QFrame.StyledPanel)
+    #
+    #     splitter1 = QSplitter(Qt.Horizontal)
+    #     splitter1.addWidget(topleft)
+    #     splitter1.addWidget(topright)
+    #     splitter1.setSizes([100, 200])
+    #
+    #     splitter2 = QSplitter(Qt.Vertical)
+    #     splitter2.addWidget(splitter1)
+    #     splitter2.addWidget(bottom)
+    #
+    #     hbox.addWidget(splitter2)
+    #     self.setLayout(hbox)
+    #     # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+    #     self.setGeometry(300, 300, 300, 200)
+    #     self.show()
+    #
+    # def grid(self):
+    #     hbox = QVBoxLayout(self)
+    #
+    #     topleft = QFrame()
+    #     topright = QFrame()
+    #     topleft.setFrameShape(QFrame.StyledPanel)
+    #     topright.setFrameShape(QFrame.StyledPanel)
+    #     bottomleft = QFrame()
+    #     bottomright = QFrame()
+    #     bottomleft.setFrameShape(QFrame.StyledPanel)
+    #     bottomright.setFrameShape(QFrame.StyledPanel)
+    #
+    #     splitter1 = QSplitter(Qt.Horizontal)
+    #     splitter1.addWidget(topleft)
+    #     splitter1.addWidget(topright)
+    #     splitter1.setSizes([100, 200])
+    #
+    #     splitter2 = QSplitter(Qt.Horizontal)
+    #     splitter2.addWidget(bottomleft)
+    #     splitter2.addWidget(bottomright)
+    #     splitter2.setSizes([100, 200])
+    #
+    #     # connect splitter1 and splitter2 to move together
+    #     # TODO which version is desired? connect splitter or free moving?
+    #     splitter1.splitterMoved.connect(self.moveSplitter)
+    #     splitter2.splitterMoved.connect(self.moveSplitter)
+    #     self._spltA = splitter1
+    #     self._spltB = splitter2
+    #
+    #     outer_splitter = QSplitter(Qt.Vertical)
+    #     outer_splitter.addWidget(splitter1)
+    #     outer_splitter.addWidget(splitter2)
+    #     outer_splitter.setSizes([200, 400])
+    #
+    #     hbox.addWidget(outer_splitter)
+    #     self.setLayout(hbox)
+    #     # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+    #     self.setGeometry(300, 300, 300, 200)
+    #     self.show()
+    #
+    # def update_view(self):
+    #     available_widgets = self.gridLayout.rowCount() * self.gridLayout.columnCount()
+    #     for i in range(self.catalogmodel.rowCount()):
+    #         if i > available_widgets - 1 :
+    #             return
+    #         itemdata = self.catalogmodel.item(i).data(Qt.UserRole)
+    #         # TODO: use projection from catalog data to figure this out
+    #         widget = QLabel(self.catalogmodel.item(i).data(Qt.DisplayRole)) # temporary
+    #
+    # def add_static_data(self):
+    #     try:
+    #         catalog = self.catalogmodel.item(-1).data(Qt.UserRole)
+    #         widget2D = self.widgetcls(catalog=catalog, stream=self.stream, field=self.field)
+    #         return widget2D
+    #     except:
+    #         pass
+    #         # raise AttributeError
+    #         # print("No Catalog selected yet")
+    #
+    # def add_data(self):
+    #     selected_indexes = [self.catalogmodel.item(i) for i in range(self.catalogmodel.rowCount())]
+    #     # TODO ensemblemodel will replace catalog or selectionmodel
+    #     widgets = []
+    #     for index in selected_indexes:
+    #         # data = catalog_run.primary.to_dask()['fccd_image']
+    #         catalog_run = index.data(Qt.UserRole)
+    #         catalog_label = index.data(Qt.DisplayRole)
+    #         widget2D = self.widgetcls(catalog=catalog_run, stream=self.stream, field=self.field)
+    #         widgets.append(widget2D)
+    #     return widgets
 
     # TODO [ ] add note/hint if to few/many dataset selected
     #      [ ] label dataset in view
@@ -511,59 +523,93 @@ class SplitView(QWidget):
     #      [ ] automatic update view when more data is selected
 
 class SplitHorizontal(SplitView):
-
+    """ Displays data in wide view, 2 on top of each other with a horizontal, movable divider bar"""
     def __init__(self, *args,**kwargs):
         super().__init__(*args, **kwargs)
 
-        splitter = QSplitter(Qt.Vertical)
-        splitter.setSizes([100, 200])
+        self.splitter = QSplitter(Qt.Vertical)
+        self.splitter.setSizes([100, 200])
 
-        for n, widget in enumerate(self.the_widget_list):
-            splitter.addWidget(widget)
-            if n >= 2:
-                break
+        self.layout.addWidget(self.splitter)
+        self.setLayout(self.layout)
+        QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        self.setGeometry(300, 300, 300, 200)
+        self.show()
 
 
 class SplitVertical(SplitView):
-
+    """ Displays data in vertical view, 2 next to each other with a vertical, movable divider bar"""
     def __init__(self, *args, **kwargs):
-        super(SplitVertical, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
+        self.splitter = QSplitter(Qt.Horizontal)
+        self.splitter.setSizes([100, 200])
 
-        left.setFrameShape(QFrame.StyledPanel)
-        right.setFrameShape(QFrame.StyledPanel)
-
-        splitter = QSplitter(Qt.Horizontal)
-        splitter.setParent(self)
-        splitter.addWidget(left)
-        splitter.addWidget(right)
-        splitter.setSizes([100, 200])
-
-        hbox.addWidget(splitter)
-        self.setLayout(hbox)
-        # QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        self.layout.addWidget(self.splitter)
+        self.setLayout(self.layout)
+        QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
         self.setGeometry(300, 300, 300, 200)
+        self.show()
 
 
 class SplitThreeView(SplitView):
-    def __init__(self, widget1, widget):
-        super(SplitThreeView, self).__init__()
+    """ Shows 3 data displays: 2 next to each other with a vertical, movable divider bar
+        and a third one below these in wide view with a horizontal, movable divider bar
+    """
+    def __init__(self, *args, **kwargs):
+        super(SplitThreeView, self).__init__(*args, **kwargs)
 
-        self.widget = widget
+        self.top_splitter = QSplitter(Qt.Horizontal)
+        self.top_splitter.setSizes([100, 200])
 
-        splitter1 = QSplitter(Qt.Horizontal)
-        splitter1.addWidget(self.widget1)
-        splitter1.addWidget(self.widget2)
-        splitter1.setSizes([100, 200])
+        self.outer_splitter = QSplitter(Qt.Vertical)
+        self.outer_splitter.insertWidget(0, self.top_splitter)
 
-        splitter2 = QSplitter(Qt.Vertical)
-        splitter2.addWidget(splitter1)
-        splitter2.addWidget(self.widget3)
+        self.layout.addWidget(self.outer_splitter)
+        self.setLayout(self.layout)
+        QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        self.setGeometry(300, 300, 300, 200)
+        self.show()
+
+
+class SplitGridView(SplitView):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.top_splitter = QSplitter(Qt.Horizontal)
+        self.top_splitter.setSizes([100, 200])
+
+        self.bottom_splitter = QSplitter(Qt.Horizontal)
+        self.bottom_splitter.setSizes([100, 200])
+
+        # connect splitter1 and splitter2 to move together
+        # TODO which version is desired? connect splitter or free moving?
+        # splitter1.splitterMoved.connect(self.moveSplitter)
+        # splitter2.splitterMoved.connect(self.moveSplitter)
+        # self._spltA = splitter1
+        # self._spltB = splitter2
+
+        self.outer_splitter = QSplitter(Qt.Vertical)
+        self.outer_splitter.insertWidget(0, self.top_splitter)
+        self.outer_splitter.insertWidget(1, self.bottom_splitter)
+        self.outer_splitter.setSizes([200, 400])
+
+        self.layout.addWidget(self.outer_splitter)
+        self.setLayout(self.layout)
+        QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
+        self.setGeometry(300, 300, 300, 200)
+        self.show()
+
+    def moveSplitter( self, index, pos):
+        splt = self._spltA if self.sender() == self._spltB else self._spltB
+        splt.blockSignals(True)
+        splt.moveSplitter(index, pos)
+        splt.blockSignals(False)
 
 
 def main():
     app = QApplication(sys.argv)
-    ex = SplitView()
+    ex = SplitGridView()
     sys.exit(app.exec_())
 
 
