@@ -214,7 +214,7 @@ class ResultsWidget(QWidget):
 _canvas_cache = {}
 def canvas_from_index(index:int)-> QWidget:
     if index not in _canvas_cache:
-        _canvas_cache[index] = QLabel(f"Widget #{index}")
+        _canvas_cache[index] = QGraphicsView()
     return _canvas_cache[index]
 
 # helper class
@@ -249,8 +249,6 @@ class StackedResultsWidget(QWidget):
         self.widgetcls = widgetcls
         self.stream = stream
         self.field = field
-
-        self.the_widget_list = [QFrame(), QFrame(), QFrame(), QFrame()] #self.add_data()
 
         # create object instances of the different layout/view widgets to be used on the different pages of the stacked widget
         self.tab_view = TabView(catalogmodel, selectionmodel, widgetcls, stream, field)
@@ -307,10 +305,9 @@ class StackedResultsWidget(QWidget):
     def display_hor(self):
         canvas0 = canvas_from_index(0)
         canvas1 = canvas_from_index(1)
-
+        self.hor_view.splitter.insertWidget(0, canvas0)
+        self.hor_view.splitter.insertWidget(1, canvas1)
         self.stackedwidget.setCurrentIndex(1)
-        self.hor_view.splitter.insertWidget(0,canvas0)
-        self.hor_view.splitter.insertWidget(1,canvas1)
 
         # cur_index = self.stackedwidget.currentIndex()
         # _widget = self.stackedwidget.widget(cur_index)
@@ -322,33 +319,29 @@ class StackedResultsWidget(QWidget):
     def display_vert(self):
         canvas0 = canvas_from_index(0)
         canvas1 = canvas_from_index(1)
-
+        self.vert_view.splitter.insertWidget(0, canvas0)
+        self.vert_view.splitter.insertWidget(1, canvas1)
         self.stackedwidget.setCurrentIndex(2)
-        self.hor_view.splitter.insertWidget(0,canvas0)
-        self.hor_view.splitter.insertWidget(1,canvas1)
 
     def display_three(self):
         canvas0 = canvas_from_index(0)
         canvas1 = canvas_from_index(1)
         canvas2 = canvas_from_index(2)
-
-        self.stackedwidget.setCurrentIndex(3)
         self.three_view.top_splitter.insertWidget(0, canvas0)
         self.three_view.top_splitter.insertWidget(1, canvas1)
         self.three_view.outer_splitter.insertWidget(1, canvas2)
+        self.stackedwidget.setCurrentIndex(3)
 
     def display_grid(self):
         canvas0 = canvas_from_index(0)
         canvas1 = canvas_from_index(1)
         canvas2 = canvas_from_index(2)
         canvas3 = canvas_from_index(3)
-
-        self.stackedwidget.setCurrentIndex(4)
         self.grid_view.top_splitter.insertWidget(0, canvas0)
         self.grid_view.top_splitter.insertWidget(1, canvas1)
         self.grid_view.bottom_splitter.insertWidget(0, canvas2)
         self.grid_view.bottom_splitter.insertWidget(1, canvas3)
-
+        self.stackedwidget.setCurrentIndex(4)
 
 class SplitView(QWidget):
     """
@@ -524,7 +517,7 @@ class SplitView(QWidget):
 
 class SplitHorizontal(SplitView):
     """ Displays data in wide view, 2 on top of each other with a horizontal, movable divider bar"""
-    def __init__(self, *args,**kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.splitter = QSplitter(Qt.Vertical)
@@ -584,10 +577,10 @@ class SplitGridView(SplitView):
 
         # connect splitter1 and splitter2 to move together
         # TODO which version is desired? connect splitter or free moving?
-        # splitter1.splitterMoved.connect(self.moveSplitter)
-        # splitter2.splitterMoved.connect(self.moveSplitter)
-        # self._spltA = splitter1
-        # self._spltB = splitter2
+        self.top_splitter.splitterMoved.connect(self.moveSplitter)
+        self.bottom_splitter.splitterMoved.connect(self.moveSplitter)
+        self._spltA = self.top_splitter
+        self._spltB = self.bottom_splitter
 
         self.outer_splitter = QSplitter(Qt.Vertical)
         self.outer_splitter.insertWidget(0, self.top_splitter)
@@ -609,7 +602,7 @@ class SplitGridView(SplitView):
 
 def main():
     app = QApplication(sys.argv)
-    ex = SplitGridView()
+    ex = StackedResultsWidget()
     sys.exit(app.exec_())
 
 
