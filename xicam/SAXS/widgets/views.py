@@ -217,6 +217,18 @@ def canvas_from_index(index:int)-> QWidget:
         _canvas_cache[index] = QGraphicsView()
     return _canvas_cache[index]
 
+
+# def add_static_data(self):
+#     try:
+#         catalog = self.catalogmodel.item(-1).data(Qt.UserRole)
+#         widget2D = self.widgetcls(catalog=catalog, stream=self.stream, field=self.field)
+#         return widget2D
+#     except:
+#         pass
+#         # raise AttributeError
+#         # print("No Catalog selected yet")
+
+
 # helper class
 # class LayoutFiller(QWidget):
 #
@@ -297,7 +309,7 @@ class StackedResultsWidget(QWidget):
         self.layout.addWidget(self.stackedwidget)
         self.layout.addLayout(self.buttonpanel)
         self.setLayout(self.layout)
-        # self.show()
+        self.show()
 
     def display_tab(self):
         self.stackedwidget.setCurrentIndex(0)
