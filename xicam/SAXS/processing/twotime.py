@@ -58,7 +58,7 @@ def two_time_correlation(data: np.ndarray,
 #     lag_steps = Output(description='the times at which the correlation was computed',
 #                        type=np.ndarray)
 
-#     hints = [ImageHint(g2)]
+#     intents = [ImageHint(g2)]
 
 #     def evaluate(self):
 #         # TODO -- make composite parameter item widget to allow default (all frames) or enter value
@@ -71,7 +71,7 @@ def two_time_correlation(data: np.ndarray,
 #         self.g2.value = corr.g2
 #         self.lag_steps.value = corr.lag_steps
 
-#         self.hints = [ImageHint(self.g2.value,
+#         self.intents = [ImageHint(self.g2.value,
 #                                 xlabel="&tau;<sub>1</sub>",
 #                                 ylabel="&tau;<sub>2</sub>",
 #                                 name="2-Time")]

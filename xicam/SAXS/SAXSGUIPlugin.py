@@ -17,12 +17,13 @@ from xicam.gui.widgets.tabview import TabView
 from .calibration.workflows import SimulateWorkflow
 from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
-from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
 from .widgets.views import ResultsWidget
 # TODO rename/move the data module
-from .data.ensemble import Ensemble, EnsembleModel
+from xicam.gui.workspace.models import CheckableItem
+from xicam.XPCS.models import EnsembleModel
+from xicam.core.workspace import Ensemble
 from .workflows.roi import ROIWorkflow
 
 
@@ -53,8 +54,8 @@ class SAXSPlugin(GUIPlugin):
 
         # ----------------------
 
-        # (catalog),  interpret the projections in the catalog and return list of hints
-        # filter (like projector does) to get the nxXPCS projection, and then give explicit hints based on the projection
+        # (catalog),  interpret the projections in the catalog and return list of intents
+        # filter (like projector does) to get the nxXPCS projection, and then give explicit intents based on the projection
 
         # Hint: whatever xicam thinks it needs to display things
 
@@ -144,6 +145,10 @@ class SAXSPlugin(GUIPlugin):
 
         # Setup correlation widgets
         self.correlationResults = ResultsWidget(self.ensembleModel)
+        # from xicam.XPCS.models import CanvasProxyModel
+        # proxy = CanvasProxyModel()
+        # proxy.setSourceModel(self.ensembleModel)
+        # self.correlationResults = ResultsWidget(proxy)
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
@@ -243,7 +248,7 @@ class SAXSPlugin(GUIPlugin):
         self.ensembleModel.add_ensemble(ensemble)
         # item = CheckableItem(displayName)
         # item.setData(displayName, Qt.DisplayRole)
-        # item.setData(ensemble, Qt.UserRole)
+        # item.setData(workspace, Qt.UserRole)
         # self.catalogModel.appendRow(item)
         # self.catalogModel.dataChanged.emit(item.index(), item.index())
 
@@ -360,7 +365,7 @@ class SAXSPlugin(GUIPlugin):
             data)
 
         def showReduce(*results):
-            # FIXME -- Better way to get the hints from the results
+            # FIXME -- Better way to get the intents from the results
             parentItem = CheckableItem("Scattering Reduction")
             for result in results:
                 hints = next(iter(result.items()))[-1].parent.hints

@@ -61,7 +61,7 @@ class AstropyQSpectraFit(OperationPlugin):
 #     fittedprofile = Output(
 #         description='The fitted profile from the evaluation of the resulting model over the input range.')
 #
-#     hints = [PlotHint(q, Iq), PlotHint(q, fittedprofile)]
+#     intents = [PlotHint(q, Iq), PlotHint(q, fittedprofile)]
 #
 #     modelvars = {}
 #

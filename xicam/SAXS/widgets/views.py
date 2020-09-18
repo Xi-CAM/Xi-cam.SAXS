@@ -1,22 +1,21 @@
-from collections import OrderedDict
-
 from qtpy.QtCore import QModelIndex, QPoint, Qt, QItemSelection
 from qtpy.QtGui import QKeyEvent
 from qtpy.QtWidgets import (
     QAbstractItemView,
     QAction,
-    QLabel,
     QMenu,
     QTabWidget,
     QTreeView,
     QVBoxLayout,
-    QWidget,
+    QWidget, QListView,
 )
 
 from xicam.core import msg
-from xicam.gui.widgets.collapsiblewidget import CollapsibleWidget
 
-from xicam.XPCS.hints import Intent, PlotIntentCanvas, ImageIntentCanvas
+from xicam.core.intents import Intent
+from xicam.gui.canvases import PlotIntentCanvas, ImageIntentCanvas
+
+from xicam.XPCS.models import XicamCanvasManager, CanvasProxyModel, EnsembleModel
 
 
 class ResultsWidget(QWidget):
@@ -25,16 +24,85 @@ class ResultsWidget(QWidget):
     def __init__(self, model, parent=None):
         super(ResultsWidget, self).__init__(parent)
         self._model = model
-        self._hintView = ResultsTabView()
-        self._hintView.setModel(self._model)
+        # self._hintView = ResultsTabView()
+        # self._canvasView = ResultsViewThing()
+        self._canvasView = ResultsViewThing()
+        # self._canvasView = QTreeView()
+        self._proxy = CanvasProxyModel()
+        self._proxy.setSourceModel(self._model)
+        self._canvasView.setModel(self._proxy)
+
+        self._model.dataChanged.connect(self._canvasView.dataChanged)
+        self._model.dataChanged.connect(lambda _: print("ensemble (source) model dataChanged"))
+
         self._selector = DataSelectorView()
         self._selector.setModel(self._model)
         layout = QVBoxLayout()
-        layout.addWidget(self._hintView)
+        layout.addWidget(self._canvasView)
         layout.addWidget(self._selector)
         self.setLayout(layout)
 
 
+
+class ResultsViewThing(QAbstractItemView):
+    def __init__(self, parent=None):
+        super(ResultsViewThing, self).__init__(parent)
+
+    # def setModel(self, model):
+    #     super(ResultsViewThing, self).setModel(model)
+    #     self.model().dataChanged.connect(self.dataChanged)
+
+    def selectionChanged(self, selected, unselected):
+        print("ResultsViewthing.selectionChanged")
+        print(self.model())
+
+    def dataChanged(self, topLeft, bottomRight, roles=None):
+        print("ResultsViewThing.dataChanged")
+        print(topLeft)
+        print(topLeft.data(Qt.DisplayRole))
+        data = self.model().data(topLeft, EnsembleModel.canvas_role)
+        # print(topLeft.data(self.model().sourceModel()))
+        intent = topLeft.data(EnsembleModel.object_role)
+        canvas = topLeft.data(EnsembleModel.canvas_role)
+        canvas.render(intent)
+        canvas.show()
+        # intent =
+        # canvas.render()
+
+    def horizontalOffset(self):
+        return 0
+
+    def indexAt(self, point: QPoint):
+        return QModelIndex()
+
+    def moveCursor(
+        self,
+        QAbstractItemView_CursorAction,
+        Union,
+        Qt_KeyboardModifiers=None,
+        Qt_KeyboardModifier=None,
+    ):
+        return QModelIndex()
+
+    def rowsInserted(self, index: QModelIndex, start, end):
+        return
+
+    def rowsAboutToBeRemoved(self, index: QModelIndex, start, end):
+        return
+
+    def scrollTo(self, QModelIndex, hint=None):
+        return
+
+    def verticalOffset(self):
+        return 0
+
+    def visualRect(self, QModelIndex):
+        from qtpy.QtCore import QRect
+
+        return QRect()
+
+
+# A CanvasView
 class ResultsTabView(QAbstractItemView):
     """
     View that is responsible for displaying Hints in a tab-based manner.
@@ -42,8 +110,10 @@ class ResultsTabView(QAbstractItemView):
     def __init__(self, parent=None):
         super(ResultsTabView, self).__init__(parent)
 
+        self._canvas_manager = XicamCanvasManager()
         self._tabWidget = QTabWidget()
         self._tabWidget.setParent(self)
+        # self._canvas_types = canvasmanager.canvas_types
         # TODO: address categories (hard-coded? how to make dynamic?)
         self._categories = {
             "raw": ImageIntentCanvas,
@@ -106,6 +176,7 @@ class ResultsTabView(QAbstractItemView):
             List of roles attached to the data state change.
 
         """
+        pass
         if roles is None:
             roles = []
         if self.model():
@@ -334,7 +405,9 @@ class DataSelectorView(QTreeView):
 
 if __name__ == "__main__":
     from qtpy.QtWidgets import QApplication, QMainWindow
-    from xicam.SAXS.data.ensemble import Ensemble, EnsembleModel
+    from xicam.gui.workspace import Ensemble
+    from xicam.XPCS.models import EnsembleModel, XicamCanvasManager
+
 
     class Catalog:
         def __init__(self, name):
