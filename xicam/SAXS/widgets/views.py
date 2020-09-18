@@ -211,11 +211,16 @@ class ResultsWidget(QWidget):
         self.setLayout(self._derivedDataWidget.layout())
 
 
+
+
+
 _canvas_cache = {}
 def canvas_from_index(index:int)-> QWidget:
     if index not in _canvas_cache:
         _canvas_cache[index] = QGraphicsView()
     return _canvas_cache[index]
+
+
 
 
 # def add_static_data(self):
@@ -314,11 +319,35 @@ class StackedResultsWidget(QWidget):
     def display_tab(self):
         self.stackedwidget.setCurrentIndex(0)
 
+
+    def get_data(self):
+        selected_indexes = [self.catalogmodel.item(i) for i in range(self.catalogmodel.rowCount())]
+        widgets = []
+        for index in selected_indexes:
+            # data = catalog_run.primary.to_dask()['fccd_image']
+            catalog_run = index.data(Qt.UserRole)
+            catalog_label = index.data(Qt.DisplayRole)
+            widget2D = self.widgetcls(catalog=catalog_run, stream=self.stream, field=self.field)
+            widgets.append(widget2D)
+        return widgets
+
+    _canvas_cache = {}
+
+    def canvas_from_index(index: int) -> QWidget:
+        if index not in _canvas_cache:
+            _canvas_cache[index] = QGraphicsView()
+        return _canvas_cache[index]
+
     def display_hor(self):
-        canvas0 = canvas_from_index(0)
-        canvas1 = canvas_from_index(1)
-        self.hor_view.splitter.insertWidget(0, canvas0)
-        self.hor_view.splitter.insertWidget(1, canvas1)
+        # canvas0 = canvas_from_index(0)
+        # canvas1 = canvas_from_index(1)
+        canvas0 = self.get_data()[0]
+        canvas1 = self.get_data()[1]
+        if self.hor_view.splitter.count() == 0:
+            self.hor_view.splitter.insertWidget(0, canvas0)
+            self.hor_view.splitter.insertWidget(1, canvas1)
+        elif self.hor_view.splitter.count() >= 2:
+            pass
         self.stackedwidget.setCurrentIndex(1)
 
         # cur_index = self.stackedwidget.currentIndex()
@@ -329,30 +358,48 @@ class StackedResultsWidget(QWidget):
         # widget.the_widget_list = qframes
 
     def display_vert(self):
-        canvas0 = canvas_from_index(0)
-        canvas1 = canvas_from_index(1)
-        self.vert_view.splitter.insertWidget(0, canvas0)
-        self.vert_view.splitter.insertWidget(1, canvas1)
+        # canvas0 = canvas_from_index(0)
+        # canvas1 = canvas_from_index(1)
+        canvas0 = self.get_data()[0]
+        canvas1 = self.get_data()[1]
+        if self.vert_view.splitter.count() == 0:
+            self.vert_view.splitter.insertWidget(0, canvas0)
+            self.vert_view.splitter.insertWidget(1, canvas1)
+        elif self.vert_view.splitter.count() >= 2:
+            pass
         self.stackedwidget.setCurrentIndex(2)
 
     def display_three(self):
-        canvas0 = canvas_from_index(0)
-        canvas1 = canvas_from_index(1)
-        canvas2 = canvas_from_index(2)
-        self.three_view.top_splitter.insertWidget(0, canvas0)
-        self.three_view.top_splitter.insertWidget(1, canvas1)
-        self.three_view.outer_splitter.insertWidget(1, canvas2)
+        # canvas0 = canvas_from_index(0)
+        # canvas1 = canvas_from_index(1)
+        # canvas2 = canvas_from_index(2)
+        canvas0 = self.get_data()[0]
+        canvas1 = self.get_data()[1]
+        canvas2 = self.get_data()[2]
+        if self.three_view.top_splitter.count() == 0:
+            self.three_view.top_splitter.insertWidget(0, canvas0)
+            self.three_view.top_splitter.insertWidget(1, canvas1)
+            self.three_view.outer_splitter.insertWidget(1, canvas2)
+        elif self.three_view.top_splitter.count() >= 2 and self.three_view.outer_splitter.count() >=2:
+            pass
         self.stackedwidget.setCurrentIndex(3)
 
     def display_grid(self):
-        canvas0 = canvas_from_index(0)
-        canvas1 = canvas_from_index(1)
-        canvas2 = canvas_from_index(2)
-        canvas3 = canvas_from_index(3)
-        self.grid_view.top_splitter.insertWidget(0, canvas0)
-        self.grid_view.top_splitter.insertWidget(1, canvas1)
-        self.grid_view.bottom_splitter.insertWidget(0, canvas2)
-        self.grid_view.bottom_splitter.insertWidget(1, canvas3)
+        # canvas0 = canvas_from_index(0)
+        # canvas1 = canvas_from_index(1)
+        # canvas2 = canvas_from_index(2)
+        # canvas3 = canvas_from_index(3)
+        canvas0 = self.get_data()[0]
+        canvas1 = self.get_data()[1]
+        canvas2 = self.get_data()[2]
+        canvas3 = self.get_data()[3]
+        if self.grid_view.top_splitter.count() == 0:
+            self.grid_view.top_splitter.insertWidget(0, canvas0)
+            self.grid_view.top_splitter.insertWidget(1, canvas1)
+            self.grid_view.bottom_splitter.insertWidget(0, canvas2)
+            self.grid_view.bottom_splitter.insertWidget(1, canvas3)
+        elif self.grid_view.top_splitter.count() >= 2 and self.grid_view.bottom_splitter.count() >=2:
+            pass
         self.stackedwidget.setCurrentIndex(4)
 
 class SplitView(QWidget):
@@ -589,10 +636,10 @@ class SplitGridView(SplitView):
 
         # connect splitter1 and splitter2 to move together
         # TODO which version is desired? connect splitter or free moving?
-        self.top_splitter.splitterMoved.connect(self.moveSplitter)
-        self.bottom_splitter.splitterMoved.connect(self.moveSplitter)
-        self._spltA = self.top_splitter
-        self._spltB = self.bottom_splitter
+        # self.top_splitter.splitterMoved.connect(self.moveSplitter)
+        # self.bottom_splitter.splitterMoved.connect(self.moveSplitter)
+        # self._spltA = self.top_splitter
+        # self._spltB = self.bottom_splitter
 
         self.outer_splitter = QSplitter(Qt.Vertical)
         self.outer_splitter.insertWidget(0, self.top_splitter)

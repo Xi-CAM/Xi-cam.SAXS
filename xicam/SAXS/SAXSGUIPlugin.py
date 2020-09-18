@@ -20,6 +20,7 @@ from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
+from xicam.gui.widgets.imageviewmixins import CatalogView
 from .widgets.views import CatalogModel, ResultsWidget, StackedResultsWidget
 from .workflows.roi import ROIWorkflow
 
@@ -65,7 +66,7 @@ class SAXSPlugin(GUIPlugin):
                                    bindings=[('sigTimeChangeFinished', self.indexChanged),
                                              (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                    geometry=self.getAI)
-        self.reducetabview = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
+        self.reducetabview = TabView(catalogmodel=self.catalogModel, widgetcls=SAXSReductionViewer,
                                      selectionmodel=self.selectionmodel,
                                      stream='primary', field=field,
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
@@ -75,7 +76,7 @@ class SAXSPlugin(GUIPlugin):
         # splitview_args = dict(catalogmodel=self.catalogModel,
         #                     selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
         #                                             stream='primary', field=field)
-        self.comparemultiview = StackedResultsWidget(self.catalogModel, widgetcls=SAXSMaskingViewer,
+        self.comparemultiview = StackedResultsWidget(catalogmodel=self.catalogModel, widgetcls=SAXSCalibrationViewer,
                                                      selectionmodel=self.selectionmodel,
                                                      stream='primary', field=field,
                                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
