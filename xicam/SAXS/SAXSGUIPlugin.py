@@ -22,8 +22,7 @@ from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
 from .widgets.views import ResultsWidget
 # TODO rename/move the data module
 from xicam.gui.workspace.models import CheckableItem
-from xicam.XPCS.models import EnsembleModel
-from xicam.core.workspace import Ensemble
+from xicam.XPCS.models import EnsembleModel, Ensemble
 from .workflows.roi import ROIWorkflow
 
 
@@ -38,8 +37,11 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
+        from qtpy.QtWidgets import QWidget
+        self.widget = QWidget()
+
 #<<<<<<< Updated upstream
-        self.ensembleModel = EnsembleModel()
+        self.ensembleModel = EnsembleModel(self.widget)
 #=======
         # MODEL with Ensembles
         # Ensemble
@@ -243,9 +245,76 @@ class SAXSPlugin(GUIPlugin):
         else:
             displayName = f"UID: {catalog.metadata['start']['uid']}"
 
+        class E:
+            def __init__(self):
+                self.catalogs = []
+                self.name = "E"
         ensemble = Ensemble()
         ensemble.append_catalog(catalog)
-        self.ensembleModel.add_ensemble(ensemble)
+        # self.ensembleModel.add_ensemble(ensemble)
+        from qtpy.QtCore import QModelIndex
+
+        from xicam.gui.models.treemodel import TreeItem, TreeModel
+        from qtpy.QtCore import QRect
+        from qtpy.QtWidgets import QTreeView, QWidget, QVBoxLayout, QAbstractItemView
+        from xicam.XPCS.models import CanvasProxyModel
+        self.widget = QWidget()
+        model = EnsembleModel()
+        model.add_ensemble(ensemble)
+
+        class ResultsView(QAbstractItemView):
+            def __init__(self, parent=None):
+                super(ResultsView, self).__init__(parent)
+
+            def dataChanged(self, topLeft, bottomRight, roles=None):
+                print("ResultsViewThing.dataChanged")
+                print(topLeft)
+                print(topLeft.data(Qt.DisplayRole))
+                #TODO properly handle range of indexes
+                if bottomRight.isValid():
+                    self.canvas = self.model().data(bottomRight, EnsembleModel.canvas_role)
+                    # print(topLeft.data(self.model().sourceModel()))
+                    intent = bottomRight.data(EnsembleModel.object_role)
+                    # canvas = bottomRight.data(EnsembleModel.canvas_role)
+                    self.canvas.render(intent)
+                    self.canvas.show()
+
+            def horizontalOffset(self):
+                return 0
+
+            def indexAt(self, point):
+                return QModelIndex()
+
+            def moveCursor(self, action, modifiers):
+                return QModelIndex()
+
+            def scrollTo(self, index, hint=None):
+                return
+
+            def setSelection(self, rect, flags):
+                return
+
+            def verticalOffset(self):
+                return 0
+
+            def visualRect(self, index):
+                return QRect()
+
+        results_view = ResultsView()
+        model.dataChanged.connect(results_view.dataChanged)
+        proxy = CanvasProxyModel()
+        proxy.setSourceModel(model)
+        results_view.setModel(proxy)
+        # model.rootItem.appendChild(item)
+        treeview = QTreeView()
+        treeview.setModel(model)
+        layout = QVBoxLayout()
+        layout.addWidget(results_view)
+        layout.addWidget(treeview)
+        self.widget.setLayout(layout)
+        self.widget.show()
+
+
         # item = CheckableItem(displayName)
         # item.setData(displayName, Qt.DisplayRole)
         # item.setData(workspace, Qt.UserRole)

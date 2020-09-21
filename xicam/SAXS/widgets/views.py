@@ -26,19 +26,23 @@ class ResultsWidget(QWidget):
         self._model = model
         # self._hintView = ResultsTabView()
         # self._canvasView = ResultsViewThing()
-        self._canvasView = ResultsViewThing()
         # self._canvasView = QTreeView()
-        self._proxy = CanvasProxyModel()
-        self._proxy.setSourceModel(self._model)
-        self._canvasView.setModel(self._proxy)
 
-        self._model.dataChanged.connect(self._canvasView.dataChanged)
-        self._model.dataChanged.connect(lambda _: print("ensemble (source) model dataChanged"))
+        # self._canvasView = ResultsViewThing()
+        # self._proxy = CanvasProxyModel()
+        # self._proxy.setSourceModel(self._model)
+        # self._canvasView.setModel(self._proxy)
 
-        self._selector = DataSelectorView()
+        # self._model.dataChanged.connect(self._canvasView.dataChanged)
+        # self._model.dataChanged.connect(lambda _: print("ensemble (source) model dataChanged"))
+
+        # self._selector = DataSelectorView()
+        self._selector = QTreeView()
         self._selector.setModel(self._model)
+
+        # self._model.dataChanged.connect(b)
         layout = QVBoxLayout()
-        layout.addWidget(self._canvasView)
+        # layout.addWidget(self._canvasView)
         layout.addWidget(self._selector)
         self.setLayout(layout)
 
@@ -60,10 +64,10 @@ class ResultsViewThing(QAbstractItemView):
         print("ResultsViewThing.dataChanged")
         print(topLeft)
         print(topLeft.data(Qt.DisplayRole))
-        data = self.model().data(topLeft, EnsembleModel.canvas_role)
+        data = self.model().data(bottomRight, EnsembleModel.canvas_role)
         # print(topLeft.data(self.model().sourceModel()))
-        intent = topLeft.data(EnsembleModel.object_role)
-        canvas = topLeft.data(EnsembleModel.canvas_role)
+        intent = bottomRight.data(EnsembleModel.object_role)
+        canvas = bottomRight.data(EnsembleModel.canvas_role)
         canvas.render(intent)
         canvas.show()
         # intent =
@@ -402,30 +406,3 @@ class DataSelectorView(QTreeView):
 
 
 
-
-if __name__ == "__main__":
-    from qtpy.QtWidgets import QApplication, QMainWindow
-    from xicam.gui.workspace import Ensemble
-    from xicam.XPCS.models import EnsembleModel, XicamCanvasManager
-
-
-    class Catalog:
-        def __init__(self, name):
-            self.name = name
-
-    app = QApplication([])
-
-    model = EnsembleModel()
-    catalog_names = [f"catalog {i}" for i in range(3)]
-    catalogs = [Catalog(name) for name in catalog_names]
-    ensemble = Ensemble()
-    view = DataSelectorView()
-    view.setModel(model)
-
-    ensemble.append_catalogs(*catalogs)
-    model.add_ensemble(ensemble)
-
-    window = QMainWindow()
-    window.setCentralWidget(view)
-    window.show()
-    app.exec_()
