@@ -262,52 +262,19 @@ class SAXSPlugin(GUIPlugin):
         model = EnsembleModel()
         model.add_ensemble(ensemble)
 
-        class ResultsView(QAbstractItemView):
-            def __init__(self, parent=None):
-                super(ResultsView, self).__init__(parent)
+        from xicam.SAXS.widgets.views import ResultsTabView
 
-            def dataChanged(self, topLeft, bottomRight, roles=None):
-                print("ResultsViewThing.dataChanged")
-                print(topLeft)
-                print(topLeft.data(Qt.DisplayRole))
-                #TODO properly handle range of indexes
-                if bottomRight.isValid():
-                    self.canvas = self.model().data(bottomRight, EnsembleModel.canvas_role)
-                    # print(topLeft.data(self.model().sourceModel()))
-                    intent = bottomRight.data(EnsembleModel.object_role)
-                    # canvas = bottomRight.data(EnsembleModel.canvas_role)
-                    self.canvas.render(intent)
-                    self.canvas.show()
-
-            def horizontalOffset(self):
-                return 0
-
-            def indexAt(self, point):
-                return QModelIndex()
-
-            def moveCursor(self, action, modifiers):
-                return QModelIndex()
-
-            def scrollTo(self, index, hint=None):
-                return
-
-            def setSelection(self, rect, flags):
-                return
-
-            def verticalOffset(self):
-                return 0
-
-            def visualRect(self, index):
-                return QRect()
-
-        results_view = ResultsView()
-        model.dataChanged.connect(results_view.dataChanged)
+        # results_view = ResultsView()
+        results_view = ResultsTabView()
+        # model.dataChanged.connect(results_view.dataChanged)
         proxy = CanvasProxyModel()
         proxy.setSourceModel(model)
         results_view.setModel(proxy)
         # model.rootItem.appendChild(item)
         treeview = QTreeView()
         treeview.setModel(model)
+        # Testing the header stuff...
+        model.setHeaderData(0, Qt.Horizontal, "Test", Qt.DisplayRole)
         layout = QVBoxLayout()
         layout.addWidget(results_view)
         layout.addWidget(treeview)

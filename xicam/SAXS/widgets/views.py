@@ -13,6 +13,7 @@ from qtpy.QtWidgets import (
 from xicam.core import msg
 
 from xicam.core.intents import Intent
+from xicam.plugins.intentcanvasplugin import IntentCanvas
 from xicam.gui.canvases import PlotIntentCanvas, ImageIntentCanvas
 
 from xicam.XPCS.models import XicamCanvasManager, CanvasProxyModel, EnsembleModel
@@ -37,12 +38,12 @@ class ResultsWidget(QWidget):
         # self._model.dataChanged.connect(lambda _: print("ensemble (source) model dataChanged"))
 
         # self._selector = DataSelectorView()
+        # TODO: use ResultsView (which has the tab and split view) here
         self._selector = QTreeView()
         self._selector.setModel(self._model)
 
         # self._model.dataChanged.connect(b)
         layout = QVBoxLayout()
-        # layout.addWidget(self._canvasView)
         layout.addWidget(self._selector)
         self.setLayout(layout)
 
@@ -118,17 +119,6 @@ class ResultsTabView(QAbstractItemView):
         self._tabWidget = QTabWidget()
         self._tabWidget.setParent(self)
         # self._canvas_types = canvasmanager.canvas_types
-        # TODO: address categories (hard-coded? how to make dynamic?)
-        self._categories = {
-            "raw": ImageIntentCanvas,
-            "avg": ImageIntentCanvas,
-            "g2": PlotIntentCanvas,
-            "2-time": ImageIntentCanvas
-        }
-        # Add and initialize the default hint canvas for each category
-        for category, canvas_type in self._categories.items():
-            self._tabWidget.addTab(canvas_type(), category)
-        # self._indexToTabMap = OrderedDict()
 
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
@@ -141,7 +131,7 @@ class ResultsTabView(QAbstractItemView):
         # currently the dataChanged slot is used, which checks if the checkstate has changed
         print("selection changed.")
 
-    def _findTab(self, tabName):
+    def _findTabByName(self, tabName: str):
         """
         Convenience function to find a tab by name (instead of by index as provide by Qt's API).
 
@@ -162,48 +152,48 @@ class ResultsTabView(QAbstractItemView):
                 return self._tabWidget.widget(i)
         raise IndexError
 
+    def _findTabByCanvas(self, canvas: IntentCanvas):
+        for i in range(self._tabWidget.count()):
+            if self._tabWidget.widget(i) is canvas:
+                return self._tabWidget.widget(i)
+
+    def render(self, intent, canvas):
+        # TODO : we don't need to do this find by canvas... we have it already
+        found_canvas = None
+        try:
+            found_canvas = self._findTabByCanvas(canvas)
+        except IndexError:
+            pass
+        if found_canvas:
+            found_canvas.render(intent)
+        else:
+            # TODO rely on canvas manager to get the name of the canvas
+            self._tabWidget.addTab(canvas, type(canvas).__name__)
+            canvas.render(intent)
+
+    def unrender(self, intent, canvas):
+        # TODO: how do we feed the return val back to the canvas manager?
+        canvas_removable = canvas.unrender(intent)
+        return canvas_removable
+
     def dataChanged(self, topLeft: QModelIndex, bottomRight: QModelIndex, roles=None):
         """
-        Re-implements the QAbstractItemView.dataChanged() slot.
-
-        When the data attached to the Qt.CheckStateRole has been changed,
-        this will either render a Hint or remove the Hint visualization.
-
-        Parameters
-        ----------
-        topLeft
-            For now, the only index we are concerned with,
-            which corresponds to the item's check state changing.
-        bottomRight
-            (Unused right now)
-        roles
-            List of roles attached to the data state change.
-
+        Re-implements the QAbstractItemView.dataChanged() slot
         """
-        pass
-        if roles is None:
-            roles = []
-        if self.model():
-            # empty list indicates ALL roles have changed (see documentation)
-            if Qt.CheckStateRole in roles or len(roles) == 0:
-                hint = topLeft.data(Qt.UserRole)
-                if isinstance(hint, Intent):
-                    if topLeft.data(Qt.CheckStateRole) == Qt.Checked:
-                        if hint.category not in [
-                            self._tabWidget.tabText(index)
-                            for index in range(self._tabWidget.count())
-                        ]:
-                            canvas = hint.canvas(hint)()
-                            self._tabWidget.addTab(canvas, hint.category)
-                        else:
-                            canvas = self._findTab(hint.category)
-                        self._plotdataitems += canvas.render(hint)
-                    else:
-                        print('remove')
-            super(ResultsTabView, self).dataChanged(topLeft, bottomRight, roles)
 
-    # try to use a selection model here instead of dataChanged
-    # take the diff of unselected, newselected: initialze canvases that are new, keep the old, dump the unselected
+        print("ResultsViewThing.dataChanged")
+
+        check_state = bottomRight.data(Qt.CheckStateRole)
+        canvas = self.model().data(bottomRight, EnsembleModel.canvas_role)
+        # canvas_ = bottomRight.data(EnsembleModel.canvas_role)
+        # intent = self.model().data(bottomRight, EnsembleModel.object_role)
+        intent = bottomRight.data(EnsembleModel.object_role)
+
+        if check_state == Qt.Unchecked:
+            self.unrender(intent, canvas)
+
+        else:
+            self.render(intent, canvas)
 
     def horizontalOffset(self):
         return 0
