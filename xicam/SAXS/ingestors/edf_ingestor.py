@@ -1,6 +1,9 @@
 import time
 import event_model
 import fabio
+import mimetypes
+
+mimetypes.add_type('application/x-edf', '.edf')
 
 
 def edf_ingestor(paths):
