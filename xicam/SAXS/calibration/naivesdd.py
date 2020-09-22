@@ -19,10 +19,18 @@ from scipy import signal
 @describe_input('npts', "Resolution in q of the azimuthal integration used for ring detection")
 @describe_output('azimuthal_integrator', "Azimuthal integrator with the SDD be modified in-place")
 @categories(('Scattering', 'Calibration'))
-def naive_sdd(data: np.ndarray, mask: np.ndarray, calibrant: calibrant.Calibrant,
-              azimuthal_integrator: AzimuthalIntegrator, npts: int = 2000) -> AzimuthalIntegrator:
+def naive_sdd(data: np.ndarray,
+              calibrant: calibrant.Calibrant,
+              azimuthal_integrator: AzimuthalIntegrator,
+              mask: np.ndarray=None,
+              npts: int = 2000) -> AzimuthalIntegrator:
+    kwargs = {}
+    if mask is not None:
+        kwargs['mask'] = mask
+
+
     # Un-calibrated azimuthal integration
-    r, radialprofile = azimuthal_integrator.integrate1d(data, npts, unit='r_mm', mask=mask)
+    r, radialprofile = azimuthal_integrator.integrate1d(np.asarray(data), npts, unit='r_mm', **kwargs)
 
     # find peaks
     peaks = np.array(find_peaks(np.arange(len(radialprofile)), radialprofile)).T

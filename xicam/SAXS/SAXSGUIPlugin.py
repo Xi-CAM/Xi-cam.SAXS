@@ -234,14 +234,13 @@ class SAXSPlugin(GUIPlugin):
         if data is None: return
         device = self.rawtoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
-        # ai.detector = detectors.Pilatus2M()
         calibrant = self.calibrationpanel.parameter['Calibrant Material']
 
         def setAI(result):
-            self.calibrationsettings.setAI(result['ai'].value, device)
+            self.calibrationsettings.setAI(result['azimuthal_integrator'], device)
             self.doMaskingWorkflow()
 
-        workflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=setAI, threadkey='calibrate')
+        workflow.execute(None, data=data, azimuthal_integrator=ai, calibrant=calibrant, callback_slot=setAI, threadkey='calibrate')
 
     @threads.method()
     def doSimulateWorkflow(self, *_):
@@ -260,9 +259,9 @@ class SAXSPlugin(GUIPlugin):
         outputwidget = self.calibrationtabview.currentWidget()
 
         def showSimulatedCalibrant(result=None):
-            outputwidget.setCalibrantImage(result['data'].value)
+            outputwidget.setCalibrantImage(result['data'])
 
-        self.simulateworkflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=showSimulatedCalibrant,
+        self.simulateworkflow.execute(None, data=data, azimuthal_integrator=ai, calibrant=calibrant, callback_slot=showSimulatedCalibrant,
                                       threadkey='simulate')
 
     @threads.method()
@@ -276,14 +275,14 @@ class SAXSPlugin(GUIPlugin):
 
             def showMask(result=None):
                 if result:
-                    outputwidget.setMaskImage(result['mask'].value)
+                    outputwidget.setMaskImage(result['mask'])
                 else:
                     outputwidget.setMaskImage(None)
                 self.doDisplayWorkflow()
                 self.doReduceWorkflow()
 
             if not workflow: workflow = self.maskingworkflow
-            workflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
+            workflow.execute(None, data=data, azimuthal_integrator=ai, callback_slot=showMask, threadkey='masking')
 
     # disabled
     @threads.method()
@@ -296,13 +295,13 @@ class SAXSPlugin(GUIPlugin):
         device = self.reducetoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
         if not ai: return
-        mask = self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None
+        mask = self.maskingworkflow.lastresult[0]['mask'] if self.maskingworkflow.lastresult else None
         outputwidget = currentwidget
 
         def showDisplay(*results):
             outputwidget.setResults(results)
 
-        self.displayworkflow.execute(None, data=data, ai=ai, mask=mask, callback_slot=showDisplay, threadkey='display')
+        self.displayworkflow.execute(None, data=data, azimuthal_integrator=ai, mask=mask, callback_slot=showDisplay, threadkey='display')
 
     @threads.method()
     def doReduceWorkflow(self):
@@ -327,7 +326,7 @@ class SAXSPlugin(GUIPlugin):
         ai = self.calibrationsettings.AI(device)
         if not ai: return
         ai = [ai] * len(data)
-        mask = [self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None] * len(
+        mask = [self.maskingworkflow.lastresult[0]['mask'] if self.maskingworkflow.lastresult else None] * len(
             data)
 
         def showReduce(*results):
@@ -341,7 +340,7 @@ class SAXSPlugin(GUIPlugin):
                     parentItem.appendRow(item)
             self.derivedDataModel.appendRow(parentItem)
 
-        self.reduceworkflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
+        self.reduceworkflow.execute_all(None, data=data, azimuthal_integrator=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
 
     def checkPolygonsSet(self, workflow: Workflow):
         """
@@ -360,7 +359,7 @@ class SAXSPlugin(GUIPlugin):
         pluginmaskclass = pluginmanager.get_plugin_by_name('Polygon Mask', 'ProcessingPlugin')
         for process in workflow.processes:
             if isinstance(process, pluginmaskclass):
-                if process.polygon.value is None:
+                if process.polygon is None:
                     self.startPolygonMasking(process)
                     return True
         return False
@@ -395,7 +394,7 @@ class SAXSPlugin(GUIPlugin):
 
     def finishMask(self, process, sender):
         viewer = self.masktabview.currentWidget()  # type: SAXSViewerPluginBase
-        process.polygon.value = np.array([list(handle['pos']) for handle in viewer.maskROI.handles])
+        process.polygon = np.array([list(handle['pos']) for handle in viewer.maskROI.handles])
         self.setEnabledOuterWidgets(True)
 
         # End drawing mode
