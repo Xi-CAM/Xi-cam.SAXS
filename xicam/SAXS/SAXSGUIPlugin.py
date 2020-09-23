@@ -6,6 +6,7 @@ from qtpy.QtCore import QItemSelectionModel, Qt
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import QDockWidget, QLabel
 from xarray import DataArray
+from xicam.XPCS.models import EnsembleModel, Ensemble
 
 from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
@@ -19,8 +20,7 @@ from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from xicam.gui.widgets.imageviewmixins import CatalogView
-from .widgets.views import CatalogModel, ResultsWidget, StackedResultsWidget
+from .widgets.views import StackedResultsWidget
 from .workflows.roi import ROIWorkflow
 
 
@@ -35,8 +35,8 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
-        self.derivedDataModel = CatalogModel()
-
+        self.derivedDataModel = None
+        self.ensembleModel = EnsembleModel()
         # Data model
         self.catalogModel = QStandardItemModel()
         self.selectionmodel = QItemSelectionModel(self.catalogModel)
@@ -122,14 +122,14 @@ class SAXSPlugin(GUIPlugin):
         # Setup reduction widgets
         self.displayeditor = WorkflowEditor(self.displayworkflow)
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
-        self.reduceplot = ResultsWidget(self.ensembleModel)
+        self.reduceplot = QLabel('...')
         self.reducetoolbar.sigDoWorkflow.connect(self.doReduceWorkflow)
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(self.catalogChanged)
 
         # Setup correlation widgets
-        self.correlationResults = ResultsWidget(self.ensembleModel)
+        self.correlationResults = QLabel('fix later')
         # from xicam.XPCS.models import CanvasProxyModel
         # proxy = CanvasProxyModel()
         # proxy.setSourceModel(self.ensembleModel)
@@ -371,15 +371,16 @@ class SAXSPlugin(GUIPlugin):
             data)
 
         def showReduce(*results):
-            # FIXME -- Better way to get the intents from the results
-            parentItem = CheckableItem("Scattering Reduction")
-            for result in results:
-                hints = next(iter(result.items()))[-1].parent.hints
-                for hint in hints:
-                    item = CheckableItem(hint.name)
-                    item.setData(hint, Qt.UserRole)
-                    parentItem.appendRow(item)
-            self.ensembleModel.appendRow(parentItem)
+            pass
+            # # FIXME -- Better way to get the intents from the results
+            # parentItem = CheckableItem("Scattering Reduction")
+            # for result in results:
+            #     hints = next(iter(result.items()))[-1].parent.hints
+            #     for hint in hints:
+            #         item = CheckableItem(hint.name)
+            #         item.setData(hint, Qt.UserRole)
+            #         parentItem.appendRow(item)
+            # self.ensembleModel.appendRow(parentItem)
 
         self.reduceworkflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
 
@@ -517,14 +518,15 @@ class SAXSPlugin(GUIPlugin):
                                                        # workflow_pickle=workflow_pickle))
 
     def updateDerivedDataModel(self, workflow, **kwargs):
-        # TODO: update to store "Ensembles"
-        # Ensemble contains Catalogs, contains data (g2, 2-time, etc.)
-        parentItem = CheckableItem(workflow.name)
-        for hint in workflow.hints:
-            item = CheckableItem(hint.name)
-            item.setData(hint, Qt.UserRole)
-            item.setCheckable(True)
-            parentItem.appendRow(item)
-        self.ensembleModel.appendRow(parentItem)
+        pass
+        # # TODO: update to store "Ensembles"
+        # # Ensemble contains Catalogs, contains data (g2, 2-time, etc.)
+        # parentItem = CheckableItem(workflow.name)
+        # for hint in workflow.hints:
+        #     item = CheckableItem(hint.name)
+        #     item.setData(hint, Qt.UserRole)
+        #     item.setCheckable(True)
+        #     parentItem.appendRow(item)
+        # self.ensembleModel.appendRow(parentItem)
 
 
