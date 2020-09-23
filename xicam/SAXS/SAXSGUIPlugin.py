@@ -21,7 +21,6 @@ from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTr
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
 from .widgets.views import ResultsWidget
 # TODO rename/move the data module
-from xicam.gui.workspace.models import CheckableItem
 from xicam.XPCS.models import EnsembleModel, Ensemble
 from .workflows.roi import ROIWorkflow
 
@@ -251,27 +250,20 @@ class SAXSPlugin(GUIPlugin):
                 self.name = "E"
         ensemble = Ensemble()
         ensemble.append_catalog(catalog)
-        # self.ensembleModel.add_ensemble(ensemble)
-        from qtpy.QtCore import QModelIndex
 
-        from xicam.gui.models.treemodel import TreeItem, TreeModel
-        from qtpy.QtCore import QRect
-        from qtpy.QtWidgets import QTreeView, QWidget, QVBoxLayout, QAbstractItemView
+        # TODO: temporary code -- this should live in the views module (after view/model updated with layoutChanged)
+        from qtpy.QtWidgets import QWidget, QVBoxLayout
+        from xicam.SAXS.widgets.views import DataSelectorView, ResultsTabView
         from xicam.XPCS.models import CanvasProxyModel
+
         self.widget = QWidget()
         model = EnsembleModel()
         model.add_ensemble(ensemble)
-
-        from xicam.SAXS.widgets.views import ResultsTabView
-
-        # results_view = ResultsView()
         results_view = ResultsTabView()
-        # model.dataChanged.connect(results_view.dataChanged)
         proxy = CanvasProxyModel()
         proxy.setSourceModel(model)
         results_view.setModel(proxy)
-        # model.rootItem.appendChild(item)
-        treeview = QTreeView()
+        treeview = DataSelectorView()
         treeview.setModel(model)
         # Testing the header stuff...
         model.setHeaderData(0, Qt.Horizontal, "Test", Qt.DisplayRole)
@@ -280,13 +272,7 @@ class SAXSPlugin(GUIPlugin):
         layout.addWidget(treeview)
         self.widget.setLayout(layout)
         self.widget.show()
-
-
-        # item = CheckableItem(displayName)
-        # item.setData(displayName, Qt.DisplayRole)
-        # item.setData(workspace, Qt.UserRole)
-        # self.catalogModel.appendRow(item)
-        # self.catalogModel.dataChanged.emit(item.index(), item.index())
+        # TODO end temp code
 
     def checkDataShape(self, data):
         """Checks the shape of the data and gets the first frame if able to."""
