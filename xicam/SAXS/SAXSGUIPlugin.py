@@ -19,9 +19,8 @@ from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import ResultsWidget
-# TODO rename/move the data module
-from xicam.XPCS.models import EnsembleModel, Ensemble
+from xicam.gui.widgets.imageviewmixins import CatalogView
+from .widgets.views import CatalogModel, ResultsWidget, StackedResultsWidget
 from .workflows.roi import ROIWorkflow
 
 
@@ -32,38 +31,11 @@ class SAXSPlugin(GUIPlugin):
     def __init__(self):
         # Late imports required due to plugin system
         from xicam.SAXS.calibration import CalibrationPanel
-        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer
+        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer, SAXSCompareViewer
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
-        from qtpy.QtWidgets import QWidget
-        self.widget = QWidget()
-
-#<<<<<<< Updated upstream
-        self.ensembleModel = EnsembleModel(self.widget)
-#=======
-        # MODEL with Ensembles
-        # Ensemble
-            # RunCatalogs
-                # Hints
-
-        # Hints --> easily swappable with whatever databroker hint system is used eventually
-        # a function call, extract_hints(catalog) -> [Hint]
-        # eg. extract_hints(catalog_with_g2_curves) -> [PlotHint]
-        # extract_hints needs to be context specific (e.g. nxXPCS) -> xpcs_extract_hints, uses assumed knowledge of the
-        # keys in nexus that can be displayed in some way
-
-        # ----------------------
-
-        # (catalog),  interpret the projections in the catalog and return list of intents
-        # filter (like projector does) to get the nxXPCS projection, and then give explicit intents based on the projection
-
-        # Hint: whatever xicam thinks it needs to display things
-
-        # TODO: [raw, raw_derived, internal_derived]
-        #self.derivedDataModel = DerivedDataModel()
-#>>>>>>> Stashed changes
-        self.catalogModel = QStandardItemModel()
+        self.derivedDataModel = CatalogModel()
 
         # Data model
         self.catalogModel = QStandardItemModel()
@@ -94,23 +66,24 @@ class SAXSPlugin(GUIPlugin):
                                    bindings=[('sigTimeChangeFinished', self.indexChanged),
                                              (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                    geometry=self.getAI)
-        self.reducetabview = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
+        self.reducetabview = TabView(catalogmodel=self.catalogModel, widgetcls=SAXSReductionViewer,
                                      selectionmodel=self.selectionmodel,
                                      stream='primary', field=field,
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
         #TODO: add another version of TabView that can also show different fields from derived data not only multiply scans
-        self.comparemultiview = StackedResultsWidget(tabview=TabView(self.catalogModel,
-                                                                      widgetcls=SAXSReductionViewer,
-                                                                      selectionmodel=self.selectionmodel,
-                                                                      stream='primary',
-                                                                      field=field,
-                                                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
-                                                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
-                                                                      geometry=self.getAI),
-                                                     splitview=ResultsSplitView(model=self.catalogModel, selectionmodel=self.selectionmodel,widgetcls=SAXSReductionViewer, stream='primary',
-                                                                                field=field))
+        # splitview_args = dict(catalogmodel=self.catalogModel,
+        #                     selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
+        #                                             stream='primary', field=field)
+        self.comparemultiview = StackedResultsWidget(catalogmodel=self.catalogModel, widgetcls=SAXSCalibrationViewer,
+                                                     selectionmodel=self.selectionmodel,
+                                                     stream='primary', field=field,
+                                                     bindings=[('sigTimeChangeFinished', self.indexChanged),
+                                                               (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
+                                                     geometry=self.getAI)
+                                                     # splitview=SplitView(**splitview_args)
+                                                     # hor_View=HorView(**splitview_args)
 
         # Setup correlation views
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
