@@ -263,7 +263,7 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
     def flags(self, index):
         if index.parent().isValid():  # if index is a hint
             return Qt.ItemIsUserCheckable | Qt.ItemIsSelectable | Qt.ItemIsEnabled
-        elif index.internalPointer().hints:  # if index is a process with hints
+        elif index.internalPointer().hints:  # if index is a process with intents
             return Qt.ItemIsEnabled
         else:
             return

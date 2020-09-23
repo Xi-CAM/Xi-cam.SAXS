@@ -17,11 +17,13 @@ from xicam.gui.widgets.tabview import TabView
 from .calibration.workflows import SimulateWorkflow
 from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
-from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import CatalogModel, ResultsWidget, StackedResultsWidget, ResultsSplitView
+from .widgets.views import ResultsWidget
+# TODO rename/move the data module
+from xicam.XPCS.models import EnsembleModel, Ensemble
 from .workflows.roi import ROIWorkflow
+
 
 
 class SAXSPlugin(GUIPlugin):
@@ -34,7 +36,33 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
-        self.derivedDataModel = CatalogModel()
+        from qtpy.QtWidgets import QWidget
+        self.widget = QWidget()
+
+#<<<<<<< Updated upstream
+        self.ensembleModel = EnsembleModel(self.widget)
+#=======
+        # MODEL with Ensembles
+        # Ensemble
+            # RunCatalogs
+                # Hints
+
+        # Hints --> easily swappable with whatever databroker hint system is used eventually
+        # a function call, extract_hints(catalog) -> [Hint]
+        # eg. extract_hints(catalog_with_g2_curves) -> [PlotHint]
+        # extract_hints needs to be context specific (e.g. nxXPCS) -> xpcs_extract_hints, uses assumed knowledge of the
+        # keys in nexus that can be displayed in some way
+
+        # ----------------------
+
+        # (catalog),  interpret the projections in the catalog and return list of intents
+        # filter (like projector does) to get the nxXPCS projection, and then give explicit intents based on the projection
+
+        # Hint: whatever xicam thinks it needs to display things
+
+        # TODO: [raw, raw_derived, internal_derived]
+        #self.derivedDataModel = DerivedDataModel()
+#>>>>>>> Stashed changes
         self.catalogModel = QStandardItemModel()
 
         # Data model
@@ -55,7 +83,7 @@ class SAXSPlugin(GUIPlugin):
         # Setup TabViews (central view widget for different stages
         # FIXME -- rework how fields propagate to displays (i.e. each image has its own detector, switching
         # between tabs updates the detector combobbox correctly)
-        field = "fccd_image"
+        field = 'fast_ccd'
         self.calibrationtabview = TabView(self.catalogModel, widgetcls=SAXSCalibrationViewer,
                                           stream='primary', field=field,
                                           selectionmodel=self.selectionmodel,
@@ -121,14 +149,18 @@ class SAXSPlugin(GUIPlugin):
         # Setup reduction widgets
         self.displayeditor = WorkflowEditor(self.displayworkflow)
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
-        self.reduceplot = ResultsWidget(self.derivedDataModel)
+        self.reduceplot = ResultsWidget(self.ensembleModel)
         self.reducetoolbar.sigDoWorkflow.connect(self.doReduceWorkflow)
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(self.catalogChanged)
 
         # Setup correlation widgets
-        self.correlationResults = ResultsWidget(self.derivedDataModel)
+        self.correlationResults = ResultsWidget(self.ensembleModel)
+        # from xicam.XPCS.models import CanvasProxyModel
+        # proxy = CanvasProxyModel()
+        # proxy.setSourceModel(self.ensembleModel)
+        # self.correlationResults = ResultsWidget(proxy)
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
@@ -223,11 +255,35 @@ class SAXSPlugin(GUIPlugin):
         else:
             displayName = f"UID: {catalog.metadata['start']['uid']}"
 
-        item = CheckableItem(displayName)
-        item.setData(displayName, Qt.DisplayRole)
-        item.setData(catalog, Qt.UserRole)
-        self.catalogModel.appendRow(item)
-        self.catalogModel.dataChanged.emit(item.index(), item.index())
+        class E:
+            def __init__(self):
+                self.catalogs = []
+                self.name = "E"
+        ensemble = Ensemble()
+        ensemble.append_catalog(catalog)
+
+        # TODO: temporary code -- this should live in the views module (after view/model updated with layoutChanged)
+        from qtpy.QtWidgets import QWidget, QVBoxLayout
+        from xicam.SAXS.widgets.views import DataSelectorView, ResultsTabView
+        from xicam.XPCS.models import CanvasProxyModel
+
+        self.widget = QWidget()
+        model = EnsembleModel()
+        model.add_ensemble(ensemble)
+        results_view = ResultsTabView()
+        proxy = CanvasProxyModel()
+        proxy.setSourceModel(model)
+        results_view.setModel(proxy)
+        treeview = DataSelectorView()
+        treeview.setModel(model)
+        # Testing the header stuff...
+        model.setHeaderData(0, Qt.Horizontal, "Test", Qt.DisplayRole)
+        layout = QVBoxLayout()
+        layout.addWidget(results_view)
+        layout.addWidget(treeview)
+        self.widget.setLayout(layout)
+        self.widget.show()
+        # TODO end temp code
 
     def checkDataShape(self, data):
         """Checks the shape of the data and gets the first frame if able to."""
@@ -342,7 +398,7 @@ class SAXSPlugin(GUIPlugin):
             data)
 
         def showReduce(*results):
-            # FIXME -- Better way to get the hints from the results
+            # FIXME -- Better way to get the intents from the results
             parentItem = CheckableItem("Scattering Reduction")
             for result in results:
                 hints = next(iter(result.items()))[-1].parent.hints
@@ -350,7 +406,7 @@ class SAXSPlugin(GUIPlugin):
                     item = CheckableItem(hint.name)
                     item.setData(hint, Qt.UserRole)
                     parentItem.appendRow(item)
-            self.derivedDataModel.appendRow(parentItem)
+            self.ensembleModel.appendRow(parentItem)
 
         self.reduceworkflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
 
@@ -496,6 +552,6 @@ class SAXSPlugin(GUIPlugin):
             item.setData(hint, Qt.UserRole)
             item.setCheckable(True)
             parentItem.appendRow(item)
-        self.derivedDataModel.appendRow(parentItem)
+        self.ensembleModel.appendRow(parentItem)
 
 

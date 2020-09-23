@@ -45,7 +45,7 @@ def fit_scattering_factor(g2: np.ndarray,
     #             'bottom': ['&tau;', 's']}
     # one_time_hint = PlotHint(self.lag_steps.value[1:], self.g2.value[1:], name="1-Time", labels=labels, xLog=True, style=Qt.SolidLine)
     # fit_hint = PlotHint(self.lag_steps.value[1:], self.fit_curve.value[1:], name="1-Time Fit", labels=labels, xLog=True, style=Qt.DashLine)
-    # self.hints = [CoPlotHint(one_time_hint, fit_hint, name="1-Time")]
+    # self.intents = [CoPlotHint(one_time_hint, fit_hint, name="1-Time")]
 
 
 class ScatteringModel(Fittable1DModel):
