@@ -20,9 +20,9 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @plot_hint("q_z", "I", name="Z Integration")
 def z_integrate(azimuthal_integrator: AzimuthalIntegrator,
                 data: np.ndarray,
-                mask: np.ndarray,
-                dark: np.ndarray,
-                flat: np.ndarray,
+                mask: np.ndarray = None,
+                dark: np.ndarray = None,
+                flat: np.ndarray = None,
                 normalization_factor: float = 1) -> Tuple[np.ndarray, np.ndarray]:
     if dark is None: dark = np.zeros_like(data)
     if flat is None: flat = np.ones_like(data)

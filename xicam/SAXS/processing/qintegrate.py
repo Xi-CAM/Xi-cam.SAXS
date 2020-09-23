@@ -9,7 +9,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @operation
 @display_name('q Integration')
 @output_names('q', 'I')
-@describe_input('integrator', 'A PyFAI.AzimuthalIntegrator object')
+@describe_input('azimuthal_integrator', 'A PyFAI.AzimuthalIntegrator object')
 @describe_input('data', '2d array representing intensity for each pixel')
 @describe_input('npt', 'Number of bins along q')
 @describe_input('polz_factor', 'Polarization factor for correction')
@@ -29,7 +29,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_output('I', 'Binned/pixel-split integrated intensity')
 @plot_hint("q", "I", name="q Integration")
 @categories(("Scattering", "Integration"))
-def q_integrate(integrator: AzimuthalIntegrator,
+def q_integrate(azimuthal_integrator: AzimuthalIntegrator,
                 data: np.ndarray,
                 npt: int = 1000,
                 polz_factor: float = 0,
@@ -41,7 +41,7 @@ def q_integrate(integrator: AzimuthalIntegrator,
                 flat: np.ndarray = None,
                 method: str = 'splitbbox',
                 normalization_factor: float = 1, ) -> Tuple[np.ndarray, np.ndarray]:
-    q, I = integrator.integrate1d(data=data,
+    q, I = azimuthal_integrator.integrate1d(data=data,
                                   npt=npt,
                                   radial_range=radial_range,
                                   azimuth_range=azimuth_range,

@@ -55,7 +55,7 @@ class SAXSPlugin(GUIPlugin):
         # Setup TabViews
         # FIXME -- rework how fields propagate to displays (i.e. each image has its own detector, switching
         # between tabs updates the detector combobbox correctly)
-        field = "fccd_image"
+        field = "pilatus1M"
         self.calibrationtabview = TabView(self.catalogModel, widgetcls=SAXSCalibrationViewer,
                                           stream='primary', field=field,
                                           selectionmodel=self.selectionmodel,
@@ -179,7 +179,7 @@ class SAXSPlugin(GUIPlugin):
                     "technique": "scattering",
                     "configuration": {
                         "geometry": "transmission",
-                        "detector_model": "fastccd",
+                        "detector_model": "pilatus1M",
                     },
                     "data_mapping": {
                         # "incoming_energy": [
@@ -188,11 +188,11 @@ class SAXSPlugin(GUIPlugin):
                         # ]
                         "data_image": [
                             "primary",
-                            "fccd_image"
+                            "pilatus1M"
                         ],
                         "dark_image": [
                             "dark",
-                            "fccd_image"
+                            "pilatus1M"
                         ]
                     },
                     "version": 0
@@ -305,7 +305,6 @@ class SAXSPlugin(GUIPlugin):
 
     @threads.method()
     def doReduceWorkflow(self):
-        return
         if not self.reducetabview.currentWidget(): return
         multimode = self.reducetoolbar.multiplot.isChecked()
         currentItem = self.catalogModel.itemFromIndex(self.selectionmodel.currentIndex())
@@ -329,18 +328,22 @@ class SAXSPlugin(GUIPlugin):
         mask = [self.maskingworkflow.lastresult[0]['mask'] if self.maskingworkflow.lastresult else None] * len(
             data)
 
-        def showReduce(*results):
+        def showReduce(workflow, *_):
             # FIXME -- Better way to get the hints from the results
             parentItem = CheckableItem("Scattering Reduction")
-            for result in results:
-                hints = next(iter(result.items()))[-1].parent.hints
-                for hint in hints:
-                    item = CheckableItem(hint.name)
-                    item.setData(hint, Qt.UserRole)
-                    parentItem.appendRow(item)
+            hints = workflow.hints
+            for hint in hints:
+                item = CheckableItem(hint.name)
+                item.setData(hint, Qt.UserRole)
+                parentItem.appendRow(item)
             self.derivedDataModel.appendRow(parentItem)
 
-        self.reduceworkflow.execute_all(None, data=data, azimuthal_integrator=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
+        self.reduceworkflow.execute_all(None,
+                                        data=data,
+                                        azimuthal_integrator=ai,
+                                        mask=mask,
+                                        callback_slot=partial(showReduce, self.reduceworkflow),
+                                        threadkey='reduce')
 
     def checkPolygonsSet(self, workflow: Workflow):
         """
@@ -356,13 +359,15 @@ class SAXSPlugin(GUIPlugin):
             True if unset polygonmask process is found
 
         """
-        pluginmaskclass = pluginmanager.get_plugin_by_name('Polygon Mask', 'ProcessingPlugin')
-        for process in workflow.processes:
-            if isinstance(process, pluginmaskclass):
-                if process.polygon is None:
-                    self.startPolygonMasking(process)
-                    return True
+        # FIXME: Restore polygon masking via Intents/Canavases
         return False
+        # pluginmaskclass = pluginmanager.get_plugin_by_name('Polygon Mask', 'ProcessingPlugin')
+        # for process in workflow.processes:
+        #     if isinstance(process, pluginmaskclass):
+        #         if process.polygon is None:
+        #             self.startPolygonMasking(process)
+        #             return True
+        # return False
 
     def startPolygonMasking(self, process):
         self.setEnabledOuterWidgets(False)
