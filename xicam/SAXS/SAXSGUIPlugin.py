@@ -20,7 +20,7 @@ from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import StackedResultsWidget
+from .widgets.views import StackedResultsWidget, DataSelectorView
 from .workflows.roi import ROIWorkflow
 
 
@@ -47,6 +47,9 @@ class SAXSPlugin(GUIPlugin):
         self.displayworkflow = DisplayWorkflow()
         self.reduceworkflow = ReduceWorkflow()
         self.roiworkflow = ROIWorkflow()
+
+        self.dataSelectorView = DataSelectorView()
+
 
         # Grab the calibration plugin
         self.calibrationsettings = pluginmanager.get_plugin_by_name('xicam.SAXS.calibration',
@@ -76,12 +79,7 @@ class SAXSPlugin(GUIPlugin):
         # splitview_args = dict(catalogmodel=self.catalogModel,
         #                     selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
         #                                             stream='primary', field=field)
-        self.comparemultiview = StackedResultsWidget(catalogmodel=self.catalogModel, widgetcls=SAXSCalibrationViewer,
-                                                     selectionmodel=self.selectionmodel,
-                                                     stream='primary', field=field,
-                                                     bindings=[('sigTimeChangeFinished', self.indexChanged),
-                                                               (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
-                                                     geometry=self.getAI)
+        self.comparemultiview = StackedResultsWidget(model=self.ensembleModel)
                                                      # splitview=SplitView(**splitview_args)
                                                      # hor_View=HorView(**splitview_args)
 
@@ -147,7 +145,7 @@ class SAXSPlugin(GUIPlugin):
                                 bottom=self.reduceplot, right=self.reduceeditor, righttop=self.displayeditor,
                                 top=self.reducetoolbar),
             'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar,
-                                 right=self.reduceeditor),
+                                 right=self.dataSelectorView),
             'Correlate': {
                 '2-Time Correlation': GUILayout(self.correlationView,
                                                 top=self.twoTimeToolBar,
@@ -243,7 +241,7 @@ class SAXSPlugin(GUIPlugin):
         self.widget = QWidget()
         model = EnsembleModel()
         model.add_ensemble(ensemble)
-        results_view = ResultsTabView()
+        results_view = StackedResultsWidget(self.ensembleModel)
         proxy = CanvasProxyModel()
         proxy.setSourceModel(model)
         results_view.setModel(proxy)
