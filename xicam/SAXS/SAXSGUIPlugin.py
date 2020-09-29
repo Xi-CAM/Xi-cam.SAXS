@@ -79,7 +79,7 @@ class SAXSPlugin(GUIPlugin):
         # splitview_args = dict(catalogmodel=self.catalogModel,
         #                     selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
         #                                             stream='primary', field=field)
-        self.comparemultiview = StackedResultsWidget(model=self.ensembleModel)
+        self.comparemultiview = QLabel("TEMP")#StackedResultsWidget(model=self.ensembleModel)
                                                      # splitview=SplitView(**splitview_args)
                                                      # hor_View=HorView(**splitview_args)
 
@@ -241,12 +241,14 @@ class SAXSPlugin(GUIPlugin):
         self.widget = QWidget()
         model = EnsembleModel()
         model.add_ensemble(ensemble)
-        results_view = StackedResultsWidget(self.ensembleModel)
-        proxy = CanvasProxyModel()
-        proxy.setSourceModel(model)
-        results_view.setModel(proxy)
         treeview = DataSelectorView()
         treeview.setModel(model)
+
+        proxy = CanvasProxyModel()
+        proxy.setSourceModel(model)
+        results_view = StackedResultsWidget(proxy)
+        # results_view.setModel(proxy)
+
         # Testing the header stuff...
         model.setHeaderData(0, Qt.Horizontal, "Test", Qt.DisplayRole)
         layout = QVBoxLayout()
