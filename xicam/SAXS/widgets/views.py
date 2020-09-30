@@ -1,7 +1,7 @@
 import sys
 
 from qtpy.QtCore import QModelIndex, QPoint, Qt, QItemSelectionModel, \
-                        QItemSelection
+    QItemSelection, QPersistentModelIndex
 from qtpy.QtGui import QStandardItemModel, QIcon
 from qtpy.QtWidgets import QApplication, QAbstractItemView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
                            QWidget, QStackedWidget,  QPushButton, QSplitter, QStyleFactory
@@ -29,7 +29,8 @@ class CanvasView(QAbstractItemView):
 
     def unrender(self, intent, canvas):
         # TODO: how do we feed the return val back to the canvas manager?
-        canvas_removable = canvas.unrender(intent)
+        print(f"UNRENDERING {intent} from {canvas}")
+        canvas.unrender(intent)
         # if canvas_removable:
         #     self.canvases.remove(canvas)
         #return canvas_removable
@@ -46,11 +47,12 @@ class CanvasView(QAbstractItemView):
         # intent = self.model().data(bottomRight, EnsembleModel.object_role)
         intent = bottomRight.data(EnsembleModel.object_role)
 
-        if check_state == Qt.Unchecked:
-            self.unrender(intent, canvas)
+        if canvas:
+            if check_state == Qt.Unchecked:
+                self.unrender(intent, canvas)
 
-        else:
-            self.render(intent, canvas)
+            else:
+                self.render(intent, canvas)
 
     def horizontalOffset(self):
         return 0
@@ -134,12 +136,12 @@ class ResultsTabView(CanvasView):
     #         if self._tabWidget.widget(i) is canvas:
     #             return self._tabWidget.widget(i)
 
-    def show_canvases(self):
+    def show_canvases(self, index):
         self._tabWidget.clear()
         for row in range(self.model().rowCount()):
-            canvas = self._canvas_manager.canvas_from_row(row, self.model())
+            canvas = self._canvas_manager.canvas_from_row(row, self.model(), QModelIndex())
             if canvas is not None:
-                self._tabWidget.addWidget(canvas)
+                self._tabWidget.addTab(canvas, "blah")
 
 #TODO:
     # [ ] commit changes
@@ -216,37 +218,39 @@ class StackedResultsWidget(QWidget):
         self.layout.addLayout(self.buttonpanel)
         self.setLayout(self.layout)
 
+        self.current_index = QPersistentModelIndex(QModelIndex())
+
     # def setModel(self, QAbstractItemModel): # real signature unknown; restored from __doc__
     #     """ setModel(self, QAbstractItemModel) """
     #     pass
 
-    def display(self, *args, **kwargs):
-        self._active_layout.show_canvases()
+    def display(self, highest_parent, lowest_index, roles):
+        print("display")
+        print(f"\t{highest_parent.data()}, {lowest_index.data()}, {roles}\n")
+        self.current_index = lowest_index
+        self._active_layout.show_canvases(lowest_index)
 
     def display_tab(self):
         self._active_layout = self.tab_view
         self.stackedwidget.setCurrentIndex(0)
-        self.display()
+        self._active_layout.show_canvases(self.current_index)
 
     def display_hor(self):
         self._active_layout = self.hor_view
         self.stackedwidget.setCurrentIndex(1)
-        self.display()
+        self._active_layout.show_canvases(self.current_index)
 
     def display_vert(self):
         self._active_layout = self.vert_view
         self.stackedwidget.setCurrentIndex(2)
-        self.display()
 
     def display_three(self):
         self._active_layout = self.three_view
         self.stackedwidget.setCurrentIndex(3)
-        self.display()
 
     def display_grid(self):
         self._active_layout = self.grid_view
         self.stackedwidget.setCurrentIndex(4)
-        self.display()
 
 class SplitView(CanvasView):
     """
@@ -281,12 +285,31 @@ class SplitHorizontal(SplitView):
         self.setGeometry(300, 300, 300, 200)
 
         self.max_canvases = 2
+    #
+    # def show_canvases(self, index):
+    #     self._tabWidget.clear()
+    #     for row in range(self.model().rowCount()):
+    #         canvas = self._canvas_manager.canvas_from_row(row, self.model().sourceModel(), index.parent())
+    #         if canvas is not None:
+    #             self._tabWidget.addTab(canvas, "blah")
 
-    def show_canvases(self):
+    def show_canvases(self, index):
+        # if valid canvases < self.max_canvases, don't fill (instead fill with a QLabel("Select another item to display here.")
+        # How do you control/know which ones are displayed when we have more than max number of intents selected?
+        print("horizontal show_canvases:")
+        print(f"\t0 {self.splitter.widget(0)}")
+        print(f"\t1 {self.splitter.widget(1)}")
         for i in range(self.max_canvases):
-            canvas = self._canvas_manager.canvas_from_row(i, self.model())
+            # TODO: debug the index and its siblings, are we mapping properly to source model?
+            # TODO: get rid of need for index passed in; we only need access to the proxy model and its (checked) items
+            # TODO: don't add the same canvas more than once (Qsplitter warning)
+            canvas = self._canvas_manager.canvas_from_row(i, self.model().sourceModel(), index.parent())
             if canvas is not None:
+                print(f"\treplacing widget {i} with canvas")
                 self.splitter.replaceWidget(i, canvas)
+            else:
+                print(f"\tcanvas is None")
+
 
 
 class SplitVertical(SplitView):
