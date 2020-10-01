@@ -4,7 +4,7 @@ from databroker.core import BlueskyRun
 import numpy as np
 from qtpy.QtCore import QItemSelectionModel, Qt
 from qtpy.QtGui import QStandardItemModel
-from qtpy.QtWidgets import QDockWidget, QLabel
+from qtpy.QtWidgets import QDockWidget, QLabel, QListView
 from xarray import DataArray
 from xicam.XPCS.models import EnsembleModel, Ensemble
 
@@ -236,7 +236,7 @@ class SAXSPlugin(GUIPlugin):
         # TODO: temporary code -- this should live in the views module (after view/model updated with layoutChanged)
         from qtpy.QtWidgets import QWidget, QVBoxLayout
         from xicam.SAXS.widgets.views import DataSelectorView, ResultsTabView
-        from xicam.XPCS.models import CanvasProxyModel
+        from xicam.XPCS.models import IntentsModel
 
         self.widget = QWidget()
         model = EnsembleModel()
@@ -244,9 +244,10 @@ class SAXSPlugin(GUIPlugin):
         treeview = DataSelectorView()
         treeview.setModel(model)
 
-        proxy = CanvasProxyModel()
+        proxy = IntentsModel()
         proxy.setSourceModel(model)
-        results_view = StackedResultsWidget(proxy)
+        results_view = QListView()
+        results_view.setModel(proxy)
         # results_view.setModel(proxy)
 
         # Testing the header stuff...
