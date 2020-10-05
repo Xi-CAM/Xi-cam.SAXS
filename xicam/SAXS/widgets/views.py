@@ -4,7 +4,7 @@ from qtpy.QtCore import QModelIndex, QPoint, Qt, QItemSelectionModel, \
     QItemSelection, QPersistentModelIndex
 from qtpy.QtGui import QStandardItemModel, QIcon
 from qtpy.QtWidgets import QApplication, QAbstractItemView, QTabWidget, QTreeView, QVBoxLayout, QHBoxLayout, \
-                           QWidget, QStackedWidget,  QPushButton, QSplitter, QStyleFactory
+                           QWidget, QStackedWidget,  QPushButton, QSplitter, QStyleFactory, QButtonGroup
 
 from xicam.gui.static import path
 from xicam.plugins.intentcanvasplugin import IntentCanvas
@@ -18,6 +18,7 @@ class CanvasView(QAbstractItemView):
     def __init__(self, parent=None):
         super(CanvasView, self).__init__(parent)
         self._canvas_manager = XicamCanvasManager()
+        self.icon = QIcon()
 
     def selectionChanged(self, selected: QItemSelection, deselected: QItemSelection) -> None:
         # TODO: try to use a shared selection model between the views (dataselectorview, resultsviews)
@@ -25,11 +26,12 @@ class CanvasView(QAbstractItemView):
         print("selection changed.")
 
     def render(self, intent, canvas):
+        print(f"RENDERING {intent.name} to {canvas}")
         item = canvas.render(intent)
 
     def unrender(self, intent, canvas):
         # TODO: how do we feed the return val back to the canvas manager?
-        print(f"UNRENDERING {intent} from {canvas}")
+        print(f"UNRENDERING {intent.name} from {canvas}")
         canvas.unrender(intent)
         # if canvas_removable:
         #     self.canvases.remove(canvas)
@@ -39,20 +41,23 @@ class CanvasView(QAbstractItemView):
         """
         Re-implements the QAbstractItemView.dataChanged() slot
         """
-        print("ResultsViewThing.dataChanged")
-        check_state = bottomRight.data(Qt.CheckStateRole)
-        # canvas = self.model().data(bottomRight, EnsembleModel.canvas_role)
-        canvas = self._canvas_manager.canvas_from_index(bottomRight)
-        # canvas_ = bottomRight.data(EnsembleModel.canvas_role)
-        # intent = self.model().data(bottomRight, EnsembleModel.object_role)
-        intent = bottomRight.data(EnsembleModel.object_role)
+        print(f"CanvasView.dataChanged({topLeft.data()}, {bottomRight.data()}, {roles}")
+        if Qt.CheckStateRole in roles:
+            check_state = bottomRight.data(Qt.CheckStateRole)
+            # canvas = self.model().data(bottomRight, EnsembleModel.canvas_role)
+            canvas = self._canvas_manager.canvas_from_index(bottomRight)
+            # canvas_ = bottomRight.data(EnsembleModel.canvas_role)
+            # intent = self.model().data(bottomRight, EnsembleModel.object_role)
+            intent = bottomRight.data(EnsembleModel.object_role)
 
-        if canvas:
-            if check_state == Qt.Unchecked:
-                self.unrender(intent, canvas)
+            if canvas:
+                if check_state == Qt.Unchecked:
+                    self.unrender(intent, canvas)
 
-            else:
-                self.render(intent, canvas)
+                else:
+                    self.render(intent, canvas)
+
+                self.show_canvases()
 
     def horizontalOffset(self):
         return 0
@@ -110,33 +115,9 @@ class ResultsTabView(CanvasView):
         self.layout().setContentsMargins(0, 0, 0, 0)
         self.layout().addWidget(self._tabWidget)
 
-    # def _findTabByName(self, tabName: str):
-    #     """
-    #     Convenience function to find a tab by name (instead of by index as provide by Qt's API).
-    #
-    #     Parameters
-    #     ----------
-    #     tabName
-    #         Name of the tab to attempt to find.
-    #
-    #     Returns
-    #     -------
-    #     QWidget
-    #         If found, returns the found widget with name ``tabName``.
-    #         Raises an IndexError if not found.
-    #
-    #     """
-    #     for i in range(self._tabWidget.count()):
-    #         if self._tabWidget.tabText(i) == tabName:
-    #             return self._tabWidget.widget(i)
-    #     raise IndexError
-    #
-    # def _findTabByCanvas(self, canvas: IntentCanvas):
-    #     for i in range(self._tabWidget.count()):
-    #         if self._tabWidget.widget(i) is canvas:
-    #             return self._tabWidget.widget(i)
+        self.icon = QIcon(path('icons/tabs.png'))
 
-    def show_canvases(self, index):
+    def show_canvases(self):
         self._tabWidget.clear()
         for row in range(self.model().rowCount()):
             canvas = self._canvas_manager.canvas_from_row(row, self.model(), QModelIndex())
@@ -160,97 +141,77 @@ class StackedResultsWidget(QWidget):
     ):
         super(StackedResultsWidget, self).__init__()
         self._model = model
-        self._model.dataChanged.connect(self.display)
 
-        # create object instances of the different layout/view widgets to be used on the different pages of the stacked widget
-        #self.tab_view = TabView(catalogmodel, selectionmodel, widgetcls, stream, field)
-        self.tab_view = ResultsTabView()
-        self.tab_view.setModel(self._model)
-        self.hor_view = SplitHorizontal()
-        self.hor_view.setModel(self._model)
-        self.vert_view = SplitVertical()
-        self.vert_view.setModel(self._model)
-        self.three_view = SplitThreeView()
-        self.three_view.setModel(self._model)
-        self.grid_view = SplitGridView()
-        self.grid_view.setModel(self._model)
+        self.views = [
+            ResultsTabView(),
+            SplitHorizontal(),
+            SplitVertical(),
+            SplitThreeView(),
+            SplitGridView()
+        ]
 
-        self._active_layout = self.tab_view
+        for view in self.views:
+            view.setModel(self._model)
+            view.model().dataChanged.disconnect()
 
-        ### Create stacked widget and fill pages with different layout widgets
+        ### Create stacked widget and fill pages with different views (different layouts)
         self.stackedwidget = QStackedWidget(self)
-        self.stackedwidget.addWidget(self.tab_view)
-        self.stackedwidget.addWidget(self.hor_view)
-        self.stackedwidget.addWidget(self.vert_view)
-        self.stackedwidget.addWidget(self.three_view)
-        self.stackedwidget.addWidget(self.grid_view)
-
-        ### Create Button Panel
-        # TODO make button panel look nice
+        # Create a visual layout section for the buttons that are used to switch the views
         self.buttonpanel = QHBoxLayout()
         self.buttonpanel.addStretch(10)
-        ### Create Buttons
-        self.button_tab = QPushButton()
-        self.button_tab.setIcon(QIcon(path('icons/tabs.png')))
-        self.button_hor = QPushButton()
-        self.button_hor.setIcon(QIcon(path('icons/1x1hor.png')))
-        self.button_vert = QPushButton()
-        self.button_vert.setIcon(QIcon(path('icons/1x1vert.png')))
-        self.button_three = QPushButton()
-        self.button_three.setIcon(QIcon(path('icons/2x1grid.png')))
-        self.button_grid = QPushButton()
-        self.button_grid.setIcon(QIcon(path('icons/2x2grid.png')))
-        ### Add Buttons to Panel
-        self.buttonpanel.addWidget(self.button_tab)
-        self.buttonpanel.addWidget(self.button_hor)
-        self.buttonpanel.addWidget(self.button_vert)
-        self.buttonpanel.addWidget(self.button_three)
-        self.buttonpanel.addWidget(self.button_grid)
-        ### Connect Buttons to function
-        self.button_tab.clicked.connect(self.display_tab)
-        self.button_hor.clicked.connect(self.display_hor)
-        self.button_vert.clicked.connect(self.display_vert)
-        self.button_three.clicked.connect(self.display_three)
-        self.button_grid.clicked.connect(self.display_grid)
-        ### define outer layout & add stacked widget and button panel
+        # Create a logical button grouping that will:
+        #   - show the currently selected view (button will be checked/pressed)
+        #   - allow for switching the buttons/views in a mutually exclusive manner (only one can be pressed at a time)
+        self.buttongroup = QButtonGroup()
+
+        def add_views():
+            for i in range(len(self.views)):
+                # Add the view to the stacked widget
+                self.stackedwidget.addWidget(self.views[i])
+                # Create a button, using the view's recommended display icon
+                button = QPushButton(self)
+                button.setCheckable(True)
+                button.setIcon(self.views[i].icon)
+                # Add the button to the logical button group
+                self.buttongroup.addButton(button, i)
+                # Add the button to the visual layout section
+                self.buttonpanel.addWidget(button)
+
+        add_views()
+
+        def setup_default_view():
+            # The first button added to the buttongroup will be the currently selected button (and therefore view)
+            self.buttongroup.button(0).setChecked(True)
+            self.views[0].model().dataChanged.connect(self.views[0].dataChanged)
+
+        setup_default_view()
+
+        # Whenever a button is switched, capture its id (corresponds to integer index in our case)
+        self.buttongroup.idToggled.connect(self.switch_view)
+        # Whenever the widget in the stack changes, display the current widget
+        self.stackedwidget.currentChanged.connect(self.display)
+
+        # define outer layout & add stacked widget and button panel
         self.layout = QVBoxLayout()
         self.layout.addWidget(self.stackedwidget)
         self.layout.addLayout(self.buttonpanel)
         self.setLayout(self.layout)
 
-        self.current_index = QPersistentModelIndex(QModelIndex())
+    def switch_view(self, id, toggled):
+        # when toggled==True, the the button is the new button that was switched to.
+        # when False, the button is the previous button
+        view = self.views[id]
+        model = view.model()
+        if not toggled:
+            print("TODO cleanup stuff for previous button/view?")
+            model.dataChanged.disconnect()
 
-    # def setModel(self, QAbstractItemModel): # real signature unknown; restored from __doc__
-    #     """ setModel(self, QAbstractItemModel) """
-    #     pass
+        model.dataChanged.connect(view.dataChanged)
+        self.stackedwidget.setCurrentIndex(id)
 
-    def display(self, highest_parent, lowest_index, roles):
-        print("display")
-        print(f"\t{highest_parent.data()}, {lowest_index.data()}, {roles}\n")
-        self.current_index = lowest_index
-        self._active_layout.show_canvases(lowest_index)
+    def display(self, id):
+        self.stackedwidget.widget(id).show_canvases()
 
-    def display_tab(self):
-        self._active_layout = self.tab_view
-        self.stackedwidget.setCurrentIndex(0)
-        self._active_layout.show_canvases(self.current_index)
-
-    def display_hor(self):
-        self._active_layout = self.hor_view
-        self.stackedwidget.setCurrentIndex(1)
-        self._active_layout.show_canvases(self.current_index)
-
-    def display_vert(self):
-        self._active_layout = self.vert_view
-        self.stackedwidget.setCurrentIndex(2)
-
-    def display_three(self):
-        self._active_layout = self.three_view
-        self.stackedwidget.setCurrentIndex(3)
-
-    def display_grid(self):
-        self._active_layout = self.grid_view
-        self.stackedwidget.setCurrentIndex(4)
 
 class SplitView(CanvasView):
     """
@@ -262,6 +223,8 @@ class SplitView(CanvasView):
         parent: QWidget = None
     ):
         super(SplitView, self).__init__(parent)
+        # self.outer_splitter = QSplitter()
+        # self.inner_splitter = QSplitter()
         self.layout = QHBoxLayout()
 
         self.max_canvases = 0
@@ -276,8 +239,6 @@ class SplitHorizontal(SplitView):
 
         self.splitter = QSplitter(Qt.Vertical)
         self.splitter.setSizes([100, 200])
-        self.splitter.addWidget(QWidget())
-        self.splitter.addWidget(QWidget())
 
         self.layout.addWidget(self.splitter)
         self.setLayout(self.layout)
@@ -285,31 +246,18 @@ class SplitHorizontal(SplitView):
         self.setGeometry(300, 300, 300, 200)
 
         self.max_canvases = 2
-    #
-    # def show_canvases(self, index):
-    #     self._tabWidget.clear()
-    #     for row in range(self.model().rowCount()):
-    #         canvas = self._canvas_manager.canvas_from_row(row, self.model().sourceModel(), index.parent())
-    #         if canvas is not None:
-    #             self._tabWidget.addTab(canvas, "blah")
 
-    def show_canvases(self, index):
-        # if valid canvases < self.max_canvases, don't fill (instead fill with a QLabel("Select another item to display here.")
-        # How do you control/know which ones are displayed when we have more than max number of intents selected?
-        print("horizontal show_canvases:")
-        print(f"\t0 {self.splitter.widget(0)}")
-        print(f"\t1 {self.splitter.widget(1)}")
+        self.icon = QIcon(path('icons/1x1hor.png'))
+
+    def show_canvases(self):
+        for i in range(self.splitter.count()):
+            widget = self.splitter.widget(i)
+            widget.setParent(None)
+
         for i in range(self.max_canvases):
-            # TODO: debug the index and its siblings, are we mapping properly to source model?
-            # TODO: get rid of need for index passed in; we only need access to the proxy model and its (checked) items
-            # TODO: don't add the same canvas more than once (Qsplitter warning)
-            canvas = self._canvas_manager.canvas_from_row(i, self.model().sourceModel(), index.parent())
+            canvas = self._canvas_manager.canvas_from_row(i, self.model())
             if canvas is not None:
-                print(f"\treplacing widget {i} with canvas")
-                self.splitter.replaceWidget(i, canvas)
-            else:
-                print(f"\tcanvas is None")
-
+                self.splitter.addWidget(canvas)
 
 
 class SplitVertical(SplitView):
@@ -327,11 +275,13 @@ class SplitVertical(SplitView):
 
         self.max_canvases = 2
 
-    def show_canvases(self):
-        for i in range(self.max_canvases):
-            canvas = self._canvas_manager.canvas_from_row(i, self.model())
-            if canvas is not None:
-                self.splitter.replaceWidget(i, canvas)
+        self.icon = QIcon(path('icons/1x1vert.png'))
+
+    # def show_canvases(self):
+    #     for i in range(self.max_canvases):
+    #         canvas = self._canvas_manager.canvas_from_row(i, self.model())
+    #         if canvas is not None:
+    #             self.splitter.replaceWidget(i, canvas)
 
 
 class SplitThreeView(SplitView):
@@ -354,14 +304,16 @@ class SplitThreeView(SplitView):
 
         self.max_canvases = 3
 
-    def show_canvases(self):
-        for i in range(self.max_canvases):
-            canvas = self._canvas_manager.canvas_from_row(i, self.model())
-            if canvas is not None:
-                if i < 2:
-                    self.top_splitter.replaceWidget(i, canvas)
-                else:
-                    self.outer_splitter.replaceWidget(1, canvas)
+        self.icon = QIcon(path('icons/2x1grid.png'))
+
+    # def show_canvases(self):
+    #     for i in range(self.max_canvases):
+    #         canvas = self._canvas_manager.canvas_from_row(i, self.model())
+    #         if canvas is not None:
+    #             if i < 2:
+    #                 self.top_splitter.replaceWidget(i, canvas)
+    #             else:
+    #                 self.outer_splitter.replaceWidget(1, canvas)
 
 
 class SplitGridView(SplitView):
@@ -393,20 +345,22 @@ class SplitGridView(SplitView):
 
         self.max_canvases = 4
 
+        self.icon = QIcon(path('icons/2x2grid.png'))
+
     def moveSplitter( self, index, pos):
         splt = self._spltA if self.sender() == self._spltB else self._spltB
         splt.blockSignals(True)
         splt.moveSplitter(index, pos)
         splt.blockSignals(False)
 
-    def show_canvases(self):
-        for i in range(self.max_canvases):
-            canvas = self._canvas_manager.canvas_from_row(i, self.model())
-            if canvas is not None:
-                if i < 2:
-                    self.top_splitter.replaceWidget(i, canvas)
-                else:
-                    self.bottom_splitter.replaceWidget(i-2, canvas)
+    # def show_canvases(self):
+    #     for i in range(self.max_canvases):
+    #         canvas = self._canvas_manager.canvas_from_row(i, self.model())
+    #         if canvas is not None:
+    #             if i < 2:
+    #                 self.top_splitter.replaceWidget(i, canvas)
+    #             else:
+    #                 self.bottom_splitter.replaceWidget(i-2, canvas)
 
 
 class DataSelectorView(QTreeView):

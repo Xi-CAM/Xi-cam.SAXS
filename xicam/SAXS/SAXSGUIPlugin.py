@@ -235,26 +235,32 @@ class SAXSPlugin(GUIPlugin):
 
         # TODO: temporary code -- this should live in the views module (after view/model updated with layoutChanged)
         from qtpy.QtWidgets import QWidget, QVBoxLayout
-        from xicam.SAXS.widgets.views import DataSelectorView, ResultsTabView
+        from xicam.SAXS.widgets.views import DataSelectorView
         from xicam.XPCS.models import IntentsModel
 
         self.widget = QWidget()
+        # Our "source" model
         model = EnsembleModel()
         model.add_ensemble(ensemble)
-        treeview = DataSelectorView()
-        treeview.setModel(model)
 
-        proxy = IntentsModel()
-        proxy.setSourceModel(model)
-        results_view = QListView()
-        results_view.setModel(proxy)
-        # results_view.setModel(proxy)
+        # Data selector view needs to see all the data ("source")
+        data_selector_view = DataSelectorView()
+        data_selector_view.setModel(model)
+
+        # Our results views' model (should only contain intents)
+        intents_model = IntentsModel()
+        intents_model.setSourceModel(model)
+
+        # Our results view widget container
+        results_view = StackedResultsWidget(intents_model)
+        # results_view = QListView()
+        # results_view.setModel(intents_model)
 
         # Testing the header stuff...
         model.setHeaderData(0, Qt.Horizontal, "Test", Qt.DisplayRole)
         layout = QVBoxLayout()
         layout.addWidget(results_view)
-        layout.addWidget(treeview)
+        layout.addWidget(data_selector_view)
         self.widget.setLayout(layout)
         self.widget.show()
         # TODO end temp code
