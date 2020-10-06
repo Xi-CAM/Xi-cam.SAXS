@@ -252,7 +252,8 @@ class SAXSPlugin(GUIPlugin):
         intents_model.setSourceModel(model)
 
         # Our results view widget container
-        results_view = StackedResultsWidget(intents_model)
+        results_view = StackedResultsWidget()
+        results_view.setModel(intents_model)
         # results_view = QListView()
         # results_view.setModel(intents_model)
 
