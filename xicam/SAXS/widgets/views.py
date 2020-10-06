@@ -260,28 +260,13 @@ class SplitHorizontal(SplitView):
                 self.splitter.addWidget(canvas)
 
 
-class SplitVertical(SplitView):
+class SplitVertical(SplitHorizontal):
     """ Displays data in vertical view, 2 next to each other with a vertical, movable divider bar"""
     def __init__(self, *args, **kwargs):
         super(SplitVertical, self).__init__(*args, **kwargs)
 
         self.splitter = QSplitter(Qt.Horizontal)
-        self.splitter.setSizes([100, 200])
-
-        self.layout.addWidget(self.splitter)
-        self.setLayout(self.layout)
-        QApplication.setStyle(QStyleFactory.create('Cleanlooks'))
-        self.setGeometry(300, 300, 300, 200)
-
-        self.max_canvases = 2
-
         self.icon = QIcon(path('icons/1x1vert.png'))
-
-    # def show_canvases(self):
-    #     for i in range(self.max_canvases):
-    #         canvas = self._canvas_manager.canvas_from_row(i, self.model())
-    #         if canvas is not None:
-    #             self.splitter.replaceWidget(i, canvas)
 
 
 class SplitThreeView(SplitView):
@@ -306,14 +291,17 @@ class SplitThreeView(SplitView):
 
         self.icon = QIcon(path('icons/2x1grid.png'))
 
-    # def show_canvases(self):
-    #     for i in range(self.max_canvases):
-    #         canvas = self._canvas_manager.canvas_from_row(i, self.model())
-    #         if canvas is not None:
-    #             if i < 2:
-    #                 self.top_splitter.replaceWidget(i, canvas)
-    #             else:
-    #                 self.outer_splitter.replaceWidget(1, canvas)
+    def show_canvases(self):
+        for splitter in [self.top_splitter, self.outer_splitter]:
+            for i in range(splitter.count()):
+                widget = splitter.widget(i)
+                if widget is not self.top_splitter:  # Don't prune the embedded splitter
+                    widget.setParent(None)
+
+        canvases = [self._canvas_manager.canvas_from_row(i, self.model()) for i in range(self.max_canvases)]
+        self.top_splitter.addWidget(canvases[0])
+        self.top_splitter.addWidget(canvases[1])
+        self.outer_splitter.addWidget(canvases[2])
 
 
 class SplitGridView(SplitView):
@@ -353,14 +341,17 @@ class SplitGridView(SplitView):
         splt.moveSplitter(index, pos)
         splt.blockSignals(False)
 
-    # def show_canvases(self):
-    #     for i in range(self.max_canvases):
-    #         canvas = self._canvas_manager.canvas_from_row(i, self.model())
-    #         if canvas is not None:
-    #             if i < 2:
-    #                 self.top_splitter.replaceWidget(i, canvas)
-    #             else:
-    #                 self.bottom_splitter.replaceWidget(i-2, canvas)
+    def show_canvases(self):
+        for splitter in [self.top_splitter, self.bottom_splitter]:
+            for i in range(splitter.count()):
+                widget = splitter.widget(i)
+                widget.setParent(None)
+
+        canvases = [self._canvas_manager.canvas_from_row(i, self.model()) for i in range(self.max_canvases)]
+        for canvas in canvases[:2]:
+            self.top_splitter.addWidget(canvas)
+        for canvas in canvases[2:]:
+            self.bottom_splitter.addWidget(canvas)
 
 
 class DataSelectorView(QTreeView):
