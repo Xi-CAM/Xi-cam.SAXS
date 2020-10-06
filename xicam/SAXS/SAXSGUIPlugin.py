@@ -20,7 +20,7 @@ from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import StackedResultsWidget, DataSelectorView
+from .widgets.views import StackedCanvasView, DataSelectorView
 from .workflows.roi import ROIWorkflow
 
 
@@ -79,7 +79,7 @@ class SAXSPlugin(GUIPlugin):
         # splitview_args = dict(catalogmodel=self.catalogModel,
         #                     selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
         #                                             stream='primary', field=field)
-        self.comparemultiview = QLabel("TEMP")#StackedResultsWidget(model=self.ensembleModel)
+        self.comparemultiview = QLabel("TEMP")#StackedCanvasView(model=self.ensembleModel)
                                                      # splitview=SplitView(**splitview_args)
                                                      # hor_View=HorView(**splitview_args)
 
@@ -252,7 +252,7 @@ class SAXSPlugin(GUIPlugin):
         intents_model.setSourceModel(model)
 
         # Our results view widget container
-        results_view = StackedResultsWidget()
+        results_view = StackedCanvasView()
         results_view.setModel(intents_model)
         # results_view = QListView()
         # results_view.setModel(intents_model)
