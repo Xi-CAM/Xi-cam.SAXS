@@ -192,7 +192,8 @@ class StackedCanvasView(CanvasView):
         # when False, the button is the previous button
         view = self.canvas_display_widgets[id]
         if not toggled:
-            print("CLEANUP code")
+            ...
+            # TODO: is there anything we need to do here (re: cleanup)?
 
         else:
             self.stackedwidget.setCurrentIndex(id)

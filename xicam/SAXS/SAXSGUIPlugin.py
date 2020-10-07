@@ -7,6 +7,7 @@ from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import QDockWidget, QLabel, QListView
 from xarray import DataArray
 from xicam.XPCS.models import EnsembleModel, Ensemble
+from xicam.XPCS.projectors.nexus import project_nxXPCS
 
 from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
@@ -241,7 +242,7 @@ class SAXSPlugin(GUIPlugin):
         self.widget = QWidget()
         # Our "source" model
         model = EnsembleModel()
-        model.add_ensemble(ensemble)
+        model.add_ensemble(ensemble, project_nxXPCS)
 
         # Data selector view needs to see all the data ("source")
         data_selector_view = DataSelectorView()
