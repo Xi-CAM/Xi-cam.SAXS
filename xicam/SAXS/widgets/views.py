@@ -226,7 +226,7 @@ class CanvasDisplayTabWidget(CanvasDisplayWidget):
         self._tabWidget.clear()
         for canvas in canvases:
             if canvas is not None:
-                self._tabWidget.addTab(canvas, canvas.name)
+                self._tabWidget.addTab(canvas, canvas.canvas_name)
 
 
 class SplitView(CanvasDisplayWidget):

@@ -6,7 +6,7 @@ from qtpy.QtCore import QItemSelectionModel, Qt
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import QDockWidget, QLabel, QListView
 from xarray import DataArray
-from xicam.XPCS.models import EnsembleModel, Ensemble
+from xicam.XPCS.models import EnsembleModel, Ensemble, IntentsModel
 from xicam.XPCS.projectors.nexus import project_nxXPCS
 
 from xicam.core import msg, threads
@@ -37,7 +37,7 @@ class SAXSPlugin(GUIPlugin):
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
         self.derivedDataModel = None
-        self.ensembleModel = EnsembleModel()
+
         # Data model
         self.catalogModel = QStandardItemModel()
         self.selectionmodel = QItemSelectionModel(self.catalogModel)
@@ -80,9 +80,7 @@ class SAXSPlugin(GUIPlugin):
         # splitview_args = dict(catalogmodel=self.catalogModel,
         #                     selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
         #                                             stream='primary', field=field)
-        self.comparemultiview = QLabel("TEMP")#StackedCanvasView(model=self.ensembleModel)
-                                                     # splitview=SplitView(**splitview_args)
-                                                     # hor_View=HorView(**splitview_args)
+        self.comparemultiview = QLabel("...")
 
         # Setup correlation views
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
@@ -134,6 +132,17 @@ class SAXSPlugin(GUIPlugin):
         # proxy.setSourceModel(self.ensembleModel)
         # self.correlationResults = ResultsWidget(proxy)
 
+        # NEW STUFF (TODO: CLEANUP)
+        self.ensembleModel = EnsembleModel()
+        self.intentsModel = IntentsModel()
+        self.intentsModel.setSourceModel(self.ensembleModel)
+
+        self.dataSelectorView = DataSelectorView()
+        self.dataSelectorView.setModel(self.ensembleModel)
+
+        self.canvasesView = StackedCanvasView()
+        self.canvasesView.setModel(self.intentsModel)
+
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
                                    right=self.calibrationsettings.widget,
@@ -148,12 +157,14 @@ class SAXSPlugin(GUIPlugin):
             'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar,
                                  right=self.dataSelectorView),
             'Correlate': {
-                '2-Time Correlation': GUILayout(self.correlationView,
+                '2-Time Correlation': GUILayout(self.canvasesView,
                                                 top=self.twoTimeToolBar,
+                                                righttop=self.dataSelectorView,
                                                 rightbottom=self.twoTimeProcessor,
                                                 bottom=self.correlationResults),
-                '1-Time Correlation': GUILayout(self.correlationView,
+                '1-Time Correlation': GUILayout(self.canvasesView,
                                                 top=self.oneTimeToolBar,
+                                                righttop=self.dataSelectorView,
                                                 rightbottom=self.oneTimeProcessor,
                                                 bottom=self.correlationResults)
             }
@@ -219,53 +230,9 @@ class SAXSPlugin(GUIPlugin):
     def appendCatalog(self, catalog: BlueskyRun, **kwargs):
         catalog.metadata.update(self.schema())
 
-        displayName = ""
-        if 'sample_name' in catalog.metadata['start']:
-            displayName = catalog.metadata['start']['sample_name']
-        elif 'scan_id' in catalog.metadata['start']:
-            displayName = f"Scan: {catalog.metadata['start']['scan_id']}"
-        else:
-            displayName = f"UID: {catalog.metadata['start']['uid']}"
-
-        class E:
-            def __init__(self):
-                self.catalogs = []
-                self.name = "E"
         ensemble = Ensemble()
         ensemble.append_catalog(catalog)
-
-        # TODO: temporary code -- this should live in the views module (after view/model updated with layoutChanged)
-        from qtpy.QtWidgets import QWidget, QVBoxLayout
-        from xicam.SAXS.widgets.views import DataSelectorView
-        from xicam.XPCS.models import IntentsModel
-
-        self.widget = QWidget()
-        # Our "source" model
-        model = EnsembleModel()
-        model.add_ensemble(ensemble, project_nxXPCS)
-
-        # Data selector view needs to see all the data ("source")
-        data_selector_view = DataSelectorView()
-        data_selector_view.setModel(model)
-
-        # Our results views' model (should only contain intents)
-        intents_model = IntentsModel()
-        intents_model.setSourceModel(model)
-
-        # Our results view widget container
-        results_view = StackedCanvasView()
-        results_view.setModel(intents_model)
-        # results_view = QListView()
-        # results_view.setModel(intents_model)
-
-        # Testing the header stuff...
-        model.setHeaderData(0, Qt.Horizontal, "Test", Qt.DisplayRole)
-        layout = QVBoxLayout()
-        layout.addWidget(results_view)
-        layout.addWidget(data_selector_view)
-        self.widget.setLayout(layout)
-        self.widget.show()
-        # TODO end temp code
+        self.ensembleModel.add_ensemble(ensemble, project_nxXPCS)
 
     def checkDataShape(self, data):
         """Checks the shape of the data and gets the first frame if able to."""
