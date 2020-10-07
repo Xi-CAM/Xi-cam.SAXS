@@ -16,6 +16,8 @@ class CanvasView(QAbstractItemView):
         self._canvas_manager = XicamCanvasManager()
         self.icon = icon
 
+        self._last_seen_intents = set()
+
     def render(self, intent, canvas):
         item = canvas.render(intent)
 
@@ -35,22 +37,34 @@ class CanvasView(QAbstractItemView):
         """
         # We only care about the check state changing here (whether to render or unrender)
         if Qt.CheckStateRole in roles:
-            check_state = bottomRight.data(Qt.CheckStateRole)
-            # canvas = self.model().data(bottomRight, EnsembleModel.canvas_role)
-            canvas = self._canvas_manager.canvas_from_index(bottomRight)
-            # canvas_ = bottomRight.data(EnsembleModel.canvas_role)
-            # intent = self.model().data(bottomRight, EnsembleModel.object_role)
-            intent = bottomRight.data(EnsembleModel.object_role)
 
-            if canvas:
-                if check_state == Qt.Unchecked:
+            intent_row_start = topLeft.row()
+            intent_row_stop = bottomRight.row()
+
+            new_intents = set()
+
+            if topLeft.isValid() and bottomRight.isValid():
+                for row in range(intent_row_start, intent_row_stop+1):
+                    intent_index = self.model().index(row, 0)
+                    intent = intent_index.internalPointer().data(EnsembleModel.object_role)
+                    canvas = self._canvas_manager.canvas_from_index(intent_index.internalPointer())
+
+                    new_intents.add((canvas, intent))
+
+            removed_intents = self._last_seen_intents - new_intents
+            added_intents = new_intents - self._last_seen_intents
+
+            for canvas, intent in removed_intents:
+                if canvas is not None:
                     self.unrender(intent, canvas)
 
-                else:
+            for canvas, intent in added_intents:
+                if canvas is not None:
                     self.render(intent, canvas)
 
-                # Now that we've rendered/unrender, need to defer
-                self.show_canvases()
+            self._last_seen_intents = new_intents
+
+            self.show_canvases()
 
     def horizontalOffset(self):
         return 0
