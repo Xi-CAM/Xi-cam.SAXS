@@ -49,9 +49,6 @@ class SAXSPlugin(GUIPlugin):
         self.reduceworkflow = ReduceWorkflow()
         self.roiworkflow = ROIWorkflow()
 
-        self.dataSelectorView = DataSelectorView()
-
-
         # Grab the calibration plugin
         self.calibrationsettings = pluginmanager.get_plugin_by_name('xicam.SAXS.calibration',
                                                                     'SettingsPlugin')
@@ -173,8 +170,8 @@ class SAXSPlugin(GUIPlugin):
         super(SAXSPlugin, self).__init__()
 
         # Start visualizations
-        self.displayworkflow.visualize(self.reduceplot, imageview=lambda: self.reducetabview.currentWidget(),
-                                       toolbar=self.reducetoolbar)
+        # self.displayworkflow.visualize(self.reduceplot, imageview=lambda: self.reducetabview.currentWidget(),
+        #                                toolbar=self.reducetoolbar)
 
     def getAI(self):
         """ Convenience method to get current field's AI """
