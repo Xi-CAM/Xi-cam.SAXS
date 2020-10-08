@@ -1,3 +1,4 @@
+import itertools
 import sys
 
 from qtpy.QtCore import QModelIndex, QPoint, Qt
@@ -267,16 +268,15 @@ class SplitHorizontal(SplitView):
         self.icon = QIcon(path('icons/1x1hor.png'))
 
     def clear_canvases(self):
-        for i in range(self.splitter.count()):
+        for i in reversed(range(self.splitter.count())):
             widget = self.splitter.widget(i)
             widget.setParent(None)
 
     def show_canvases(self, canvases):
-        for i in range(len(canvases)):
-            if i < self.max_canvases:
-                canvas = canvases[i]
-                if canvas is not None:
-                    self.splitter.addWidget(canvas)
+        for canvas in itertools.islice(canvases, self.max_canvases):
+            if canvas is not None:
+                self.splitter.addWidget(canvas)
+                canvas.setVisible(True)
 
 
 class SplitVertical(SplitHorizontal):
@@ -312,19 +312,20 @@ class SplitThreeView(SplitView):
 
     def clear_canvases(self):
         for splitter in [self.top_splitter, self.outer_splitter]:
-            for i in range(splitter.count()):
+            for i in reversed(range(splitter.count())):
                 widget = splitter.widget(i)
                 if widget is not self.top_splitter:  # Don't prune the embedded splitter
                     widget.setParent(None)
 
     def show_canvases(self, canvases):
-        for i in range(len(canvases)):
-            canvas = canvases[i]
+        for i, canvas in itertools.islice(enumerate(canvases), self.max_canvases):
             if canvas is not None and i < self.max_canvases:
                 if i < 2:
                     self.top_splitter.addWidget(canvas)
+
                 else:
                     self.outer_splitter.addWidget(canvas)
+                canvas.setVisible(True)
 
 
 class SplitGridView(SplitView):
@@ -366,14 +367,17 @@ class SplitGridView(SplitView):
 
     def show_canvases(self, canvases):
         for splitter in [self.top_splitter, self.bottom_splitter]:
-            for i in range(splitter.count()):
+            for i in reversed(range(splitter.count())):
                 widget = splitter.widget(i)
                 widget.setParent(None)
 
-        for canvas in canvases[:2]:
+        for canvas in itertools.islice(canvases, 2):
             self.top_splitter.addWidget(canvas)
-        for canvas in canvases[2:]:
+            canvas.setVisible(True)
+
+        for canvas in itertools.islice(canvases, 2):
             self.bottom_splitter.addWidget(canvas)
+            canvas.setVisible(True)
 
 
 class DataSelectorView(QTreeView):
