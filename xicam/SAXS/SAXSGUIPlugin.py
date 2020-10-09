@@ -123,7 +123,7 @@ class SAXSPlugin(GUIPlugin):
         self.reducetabview.currentChanged.connect(self.catalogChanged)
 
         # Setup correlation widgets
-        self.correlationResults = QLabel('fix later')
+        # self.correlationResults = QLabel('fix later')
         # from xicam.XPCS.models import CanvasProxyModel
         # proxy = CanvasProxyModel()
         # proxy.setSourceModel(self.ensembleModel)
@@ -157,13 +157,13 @@ class SAXSPlugin(GUIPlugin):
                 '2-Time Correlation': GUILayout(self.canvasesView,
                                                 top=self.twoTimeToolBar,
                                                 righttop=self.dataSelectorView,
-                                                rightbottom=self.twoTimeProcessor,
-                                                bottom=self.correlationResults),
+                                                rightbottom=self.twoTimeProcessor),
+                                                # bottom=self.correlationResults),
                 '1-Time Correlation': GUILayout(self.canvasesView,
                                                 top=self.oneTimeToolBar,
                                                 righttop=self.dataSelectorView,
-                                                rightbottom=self.oneTimeProcessor,
-                                                bottom=self.correlationResults)
+                                                rightbottom=self.oneTimeProcessor)
+                                                # bottom=self.correlationResults)
             }
         }
 
