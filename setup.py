@@ -143,7 +143,11 @@ setup(
         ],
         'xicam.plugins.SettingsPlugin': [
             'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'
-        ]},
+        ],
+        'xicam.plugins.IntentCanvasPlugin': [
+            'saxs_image_intent_canvas = xicam.SAXS.canvases:SAXSImageIntentCanvas'
+        ]
+    },
 
     ext_modules=[],
     include_package_data=True
