@@ -8,6 +8,7 @@ from qtpy.QtWidgets import QAbstractItemView, QApplication, QButtonGroup, QHBoxL
 
 from xicam.gui.static import path
 from xicam.XPCS.models import XicamCanvasManager, EnsembleModel
+from xicam.core import msg
 
 
 class CanvasView(QAbstractItemView):
@@ -48,9 +49,13 @@ class CanvasView(QAbstractItemView):
                 for row in range(intent_row_start, intent_row_stop+1):
                     intent_index = self.model().index(row, 0)
                     intent = intent_index.internalPointer().data(EnsembleModel.object_role)
-                    canvas = self._canvas_manager.canvas_from_index(intent_index.internalPointer())
-
-                    new_intents.add((canvas, intent))
+                    try:
+                        canvas = self._canvas_manager.canvas_from_index(intent_index.internalPointer())
+                    except Exception as ex:
+                        msg.logMessage(f'A error occurred displaying the intent named {intent.item_name}:', level=msg.ERROR)
+                        msg.logError(ex)
+                    else:
+                        new_intents.add((canvas, intent))
 
             removed_intents = self._last_seen_intents - new_intents
             added_intents = new_intents - self._last_seen_intents
