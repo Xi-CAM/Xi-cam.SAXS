@@ -1,9 +1,9 @@
 from xicam.gui.canvases import ImageIntentCanvas
-from xicam.gui.widgets.imageviewmixins import LogScaleIntensity, XArrayView, ImageViewHistogramOverflowFix, \
+from xicam.gui.widgets.imageviewmixins import LogScaleIntensity, ImageViewHistogramOverflowFix, \
     QCoordinates, Crosshair, BetterButtons, CenterMarker
 
 
-class SAXSImageIntentBlend(LogScaleIntensity, XArrayView, CenterMarker, BetterButtons, Crosshair, QCoordinates,
+class SAXSImageIntentBlend(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates,
                            ImageViewHistogramOverflowFix):
     ...
 
