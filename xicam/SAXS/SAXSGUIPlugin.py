@@ -16,13 +16,13 @@ from xicam.core.execution.workflow import Workflow
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.gui.widgets.tabview import TabView
+from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
 
 from .calibration.workflows import SimulateWorkflow
 from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import StackedCanvasView, DataSelectorView
 from .workflows.roi import ROIWorkflow
 
 
