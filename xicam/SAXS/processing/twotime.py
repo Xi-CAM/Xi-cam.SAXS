@@ -1,5 +1,6 @@
 from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible, \
-                        input_names, output_names, display_name, categories, image_hint
+                        input_names, output_names, display_name, categories, intent
+from xicam.core.intents import ImageIntent
 import numpy as np
 from skbeam.core.correlation import two_time_corr
 from typing import Tuple
@@ -19,8 +20,10 @@ from typing import Tuple
 @describe_output('tau', 'the times at which the correlation was computed')
 @visible('data', False)
 @visible('labels', False)
-@image_hint('g2', name='2-time Correlation', labels={"bottom": "&tau;<sub>1</sub>",
-                                                     "left": "&tau;<sub>2</sub>"})
+@intent(ImageIntent,
+        name='2-time Correlation',
+        labels={"bottom": "&tau;<sub>1</sub>", "left": "&tau;<sub>2</sub>"},
+        output_map={'y': 'g2'})
 def two_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,

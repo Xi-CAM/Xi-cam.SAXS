@@ -1,11 +1,9 @@
 import numpy as np
 import skbeam.core.correlation as corr
 from astropy.modeling import Fittable1DModel, Parameter, fitting
-from qtpy.QtCore import Qt
-
-from xicam.plugins.hints import CoPlotHint, PlotHint
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, plot_hint
+    categories, intent
+from xicam.core.intents import PlotIntent
 from typing import Union, Tuple
 
 
@@ -21,8 +19,11 @@ from typing import Union, Tuple
 @describe_output('relaxation_rate', 'Relaxation time associated with the samples dynamics')
 #TODO: check syntax plot_hint and add labels
 # @plot_hint('tau', 'g2', name='one-time correlation')
-@plot_hint('tau', 'fit_curve', group='1-time Correlation', name='g2 fit', labels={"bottom": "&tau;",
-                                                                                  "left": "g2"})
+@intent(PlotIntent,
+        match_key='1-time Correlation',
+        name='g2 fit',
+        labels={"bottom": "&tau;", "left": "g2"},
+        output_map={'x':'tau', 'y':'fit_curve'})
 @categories(('Scattering', 'Fitting'))
 def fit_scattering_factor(g2: np.ndarray,
                           tau: np.ndarray,

@@ -1,5 +1,5 @@
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, plot_hint
+    categories
 import numpy as np
 
 

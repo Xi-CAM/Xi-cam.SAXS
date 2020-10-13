@@ -4,8 +4,9 @@ from typing import Tuple
 
 import skbeam.core.correlation as corr
 
-from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible,\
-                        input_names, output_names, display_name, categories, plot_hint 
+from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible, \
+    input_names, output_names, display_name, categories, intent
+from xicam.core.intents import PlotIntent
 
 
 @operation
@@ -26,16 +27,18 @@ from xicam.plugins.operationplugin import operation, describe_input, describe_ou
 @describe_output('tau', 'array describing tau (lag steps)')
 @visible('data', False)
 @visible('labels', False)
-@plot_hint('tau', 'g2', group='1-time Correlation', name='g2', yLog=True, labels={"bottom": "&tau;",
-                                                                                  "left": "g2"})
+@intent(PlotIntent,
+        match_key='1-time Correlation',
+        name='g2',
+        yLog=True,
+        labels={"bottom": "&tau;", "left": "g2"},
+        output_map={'x': 'tau', 'y': 'g2'})
 def one_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,
                          num_levels: int = 8) -> Tuple[da.array, da.array]:
-    
     g2, tau = corr.multi_tau_auto_corr(num_levels, num_bufs,
                                        labels.astype(np.int),
                                        np.asarray(data))
     g2 = g2.squeeze()
     return g2, tau
-
