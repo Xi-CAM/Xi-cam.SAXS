@@ -16,6 +16,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
                                                                                              'left': 'q_z'})
 # TODO check categories
 @categories('Scattering', 'General Math, Transformation')
+#@categories(('Scattering', 'Transformations'))
 def q_conversion_saxs(integrator: AzimuthalIntegrator,
                       data: np.ndarray) -> np.ndarray:
     chi = integrator.chiArray()

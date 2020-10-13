@@ -104,7 +104,8 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'databroker.ingestors': [
-            'application/edf = xicam.SAXS.ingestors.ingestors:edf_ingestor',
+            'application/x-edf = xicam.SAXS.ingestors.edf_ingestor:edf_ingestor',
+            'application/x-hdf5 = xicam.SAXS.ingestors.nxcansas:ingest_nxcanSAS'
         ],
         'xicam.plugins.GUIPlugin': [
             'SAXS = xicam.SAXS.SAXSGUIPlugin:SAXSPlugin'

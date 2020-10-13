@@ -18,6 +18,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
         output_map={'x': 'q_x', 'y': 'q_y'},
         labels={'bottom': 'q_x', 'left': 'q_y'})
 @categories('Scattering', 'General Math, Transformation')
+#@categories(('Scattering', 'Transformations'))
 def q_conversion_gisaxs(integrator: AzimuthalIntegrator,
                         data: np.ndarray) -> np.ndarray:
     chi = integrator.chiArray()
