@@ -29,7 +29,7 @@ from typing import Union
 @describe_input('normalization_factor', 'Value of a normalization monitor')
 @describe_output('q2', 'Q squared bin center positions')
 @describe_output('ln_I', 'Logarithm of Binned/pixel-split integrated intensity')
-@intent(PlotIntent, name="Guinier plot", output_map={"q^2": "x", "ln_I": "y"}, labels={"bottom": "q^2",
+@intent(PlotIntent, name="Guinier plot", output_map={"x": "q^2", "y": "ln_I"}, labels={"bottom": "q^2",
                                                                                        "left": "ln_I"})
 @categories(("Scattering", "Integration"))
 def guinier_plot(integrator: AzimuthalIntegrator,

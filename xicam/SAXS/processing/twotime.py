@@ -20,8 +20,8 @@ from typing import Tuple
 @describe_output('tau', 'the times at which the correlation was computed')
 @visible('data', False)
 @visible('labels', False)
-@intent(SAXSImageIntent, name='2-time Correlation', output_map={'g2': 'image'}, labels={"bottom": "&tau;<sub>1</sub>",
-                                                                                        "left": "&tau;<sub>2</sub>"})
+@intent(ImageIntent, name='2-time Correlation', output_map={'image', 'g2'}, labels={"bottom": "&tau;<sub>1</sub>",
+                                                                                    "left": "&tau;<sub>2</sub>"})
 def two_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,

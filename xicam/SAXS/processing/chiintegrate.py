@@ -29,7 +29,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_input('normalization_factor', 'Value of a normalization monitor')
 @describe_output("chi", 'Q bin center positions')
 @describe_output("I", 'Binned/pixel-split integrated intensity')
-@intent(PlotIntent, name="Chi Integrate", output_map={"chi": "x", "I": "y"}, labels={"bottom": "chi", "left": "I"})
+@intent(PlotIntent, name="Chi Integrate", output_map={"x": "chi", "y": "I"}, labels={"bottom": "chi", "left": "I"})
 @categories(("Scattering", "Integration"))
 def chi_integrate(azimuthal_integrator: AzimuthalIntegrator,
                   data: np.ndarray,

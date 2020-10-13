@@ -15,7 +15,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_output('q_y', 'q_y array with dimension of data')
 @intent(PlotIntent,
         name='GISAXS q conversion',
-        output_map={'q_x': 'x', 'q_y': 'y'},
+        output_map={'x': 'q_x', 'y': 'q_y'},
         labels={'bottom': 'q_x', 'left': 'q_y'})
 @categories('Scattering', 'General Math, Transformation')
 def q_conversion_gisaxs(integrator: AzimuthalIntegrator,

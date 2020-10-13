@@ -18,7 +18,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_input('normalization_factor', 'Value of a normalization monitor')
 @describe_output('q_x', "q_x bin center positions")
 @categories(('Scattering', 'Integration'))
-@intent(PlotIntent, name='X Integration', output_map={'q_x': 'x', 'I': 'y'}, labels={'bottom': 'q_x', 'left': 'I'})
+@intent(PlotIntent, name='X Integration', output_map={'x': 'q_x', 'y': 'I'}, labels={'bottom': 'q_x', 'left': 'I'})
 @describe_output('I', 'Binned/pixel-split integrated intensity')
 def x_integrate(azimuthal_integrator: AzimuthalIntegrator,
                 data: np.ndarray,

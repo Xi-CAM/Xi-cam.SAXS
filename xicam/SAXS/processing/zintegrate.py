@@ -19,7 +19,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_output("q", 'q_z bin center positions')
 @describe_output("I", "Binned/pixel-split integrated intensity")
 @categories(("Scattering", "Integration"))
-@intent(PlotIntent, name="Z Integration", output_map={"q_z": "x", "I": "y"}, labels={"bottom": "q_z", "left": "I"})
+@intent(PlotIntent, name="Z Integration", output_map={'x': 'q_z', 'y': 'I'}, labels={"bottom": "q_z", "left": "I"})
 def z_integrate(azimuthal_integrator: AzimuthalIntegrator,
                 data: np.ndarray,
                 mask: np.ndarray,

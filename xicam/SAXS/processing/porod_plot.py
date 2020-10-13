@@ -28,7 +28,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_input('normalization_factor', 'Value of a normalization monitor')
 @describe_output('q', 'Q bin center positions')
 @describe_output('I_q4', 'Porod constant, i.e. Binned/pixel-split integrated intensity times qˆ4')
-@intent(PlotIntent, name="Porod plot", output_map={"q": "x", "I_qˆ4": "y"}, labels={"bottom": "q", "left": "I_qˆ4"})
+@intent(PlotIntent, name="Porod plot", output_map={"x": "q", "y": "I_qˆ4"}, labels={"bottom": "q", "left": "I_qˆ4"})
 @categories(("Scattering", "Integration"))
 def porod_plot(integrator: AzimuthalIntegrator,
                 data: np.ndarray,

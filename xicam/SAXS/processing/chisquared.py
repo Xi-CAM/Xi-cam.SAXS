@@ -10,7 +10,7 @@ import numpy as np
 @describe_input('dataA', 'Frame A image data')
 @describe_input('dataB', 'Frame B image data')
 @describe_output('chi_squared', 'Chi-squared difference between consecutive frames')
-@intent(SAXSImageIntent, name='Chi squared', output_map={'chi_squared': 'image'})
+@intent(SAXSImageIntent, name='Chi squared', output_map={'image': 'chi_squared'})
 @categories(('General', 'Mathematics'))
 def chi_squared(dataA: np.ndarray,
                 dataB: np.ndarray) -> np.ndarray:

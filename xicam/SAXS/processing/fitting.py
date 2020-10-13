@@ -23,7 +23,7 @@ from typing import Union, Tuple
         match_key='1-time Correlation',
         name='g2 fit',
         labels={"bottom": "&tau;", "left": "g2"},
-        output_map={'x':'tau', 'y':'fit_curve'})
+        output_map={'x': 'tau', 'y': 'fit_curve'})
 @categories(('Scattering', 'Fitting'))
 def fit_scattering_factor(g2: np.ndarray,
                           tau: np.ndarray,
