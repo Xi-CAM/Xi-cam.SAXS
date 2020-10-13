@@ -1,7 +1,6 @@
 import numpy as np
 import skbeam.core.correlation as corr
 from astropy.modeling import Fittable1DModel, Parameter, fitting
-from qtpy.QtCore import Qt
 from xicam.core.intents import PlotIntent
 
 from xicam.plugins.hints import CoPlotHint, PlotHint
@@ -21,10 +20,10 @@ from typing import Union, Tuple
 @describe_output('fit_curve', 'Fitted model of the g2 curve')
 @describe_output('relaxation_rate', 'Relaxation time associated with the samples dynamics')
 @intent(PlotIntent,
-        name="g2 fit",
-        output_map={"tau": "x", "fit_curve": "y"},
+        match_key='1-time Correlation',
+        name='g2 fit',
         labels={"bottom": "&tau;", "left": "g2"},
-        xLogMode=True)
+        output_map={'x':'tau', 'y':'fit_curve'})
 @categories(('Scattering', 'Fitting'))
 def fit_scattering_factor(g2: np.ndarray,
                           tau: np.ndarray,

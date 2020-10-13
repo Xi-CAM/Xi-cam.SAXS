@@ -2,7 +2,7 @@ from xicam.core.intents import PlotIntent
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories, intent
 import numpy as np
-from typing import Tuple, Union
+from typing import Tuple
 from pyFAI import units
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 from typing import Union

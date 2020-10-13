@@ -1,4 +1,4 @@
-from xicam.SAXS.intents import SAXSImageIntent
+from xicam.core.intents import ImageIntent
 from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible, \
     input_names, output_names, display_name, categories, intent
 import numpy as np

@@ -1,7 +1,5 @@
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories
-import skbeam.core.correlation as corr
-from scipy.signal import fftconvolve
 import numpy as np
 
 
