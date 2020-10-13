@@ -1,5 +1,6 @@
+from xicam.core.intents import PlotIntent
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-     categories, plot_hint
+    categories, intent
 import numpy as np
 from typing import Tuple, Union
 from pyFAI import units
@@ -28,7 +29,8 @@ from typing import Union
 @describe_input('normalization_factor', 'Value of a normalization monitor')
 @describe_output('q2', 'Q squared bin center positions')
 @describe_output('ln_I', 'Logarithm of Binned/pixel-split integrated intensity')
-@plot_hint("qˆ2", "ln_I", name="Guinier plot")
+@intent(PlotIntent, name="Guinier plot", output_map={"q^2": "x", "ln_I": "y"}, labels={"bottom": "q^2",
+                                                                                       "left": "ln_I"})
 @categories(("Scattering", "Integration"))
 def guinier_plot(integrator: AzimuthalIntegrator,
                 data: np.ndarray,

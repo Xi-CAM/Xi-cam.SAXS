@@ -1,5 +1,6 @@
+from xicam.core.intents import PlotIntent
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, plot_hint
+    categories, intent
 import numpy as np
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
@@ -11,6 +12,8 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_input('data', 'Frame image data')
 @describe_output('q_x', 'q_x array with dimension of data')
 @describe_output('q_y', 'q_y array with dimension of data')
+@intent(PlotIntent, name='SAXS q conversion', output_names={'q_x': 'x', 'q_z': 'y'}, labels={'bottom': 'q_x',
+                                                                                             'left': 'q_z'})
 # TODO check categories
 @categories('Scattering', 'General Math, Transformation')
 def q_conversion_saxs(integrator: AzimuthalIntegrator,

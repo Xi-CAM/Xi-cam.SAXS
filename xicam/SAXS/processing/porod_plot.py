@@ -1,5 +1,6 @@
+from xicam.core.intents import PlotIntent
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, plot_hint
+    categories, intent
 import numpy as np
 from typing import Tuple, Union
 from pyFAI import units
@@ -27,7 +28,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_input('normalization_factor', 'Value of a normalization monitor')
 @describe_output('q', 'Q bin center positions')
 @describe_output('I_q4', 'Porod constant, i.e. Binned/pixel-split integrated intensity times qˆ4')
-@plot_hint("q", "I_qˆ4", name="Porod plot")
+@intent(PlotIntent, name="Porod plot", output_map={"q": "x", "I_qˆ4": "y"}, labels={"bottom": "q", "left": "I_qˆ4"})
 @categories(("Scattering", "Integration"))
 def porod_plot(integrator: AzimuthalIntegrator,
                 data: np.ndarray,

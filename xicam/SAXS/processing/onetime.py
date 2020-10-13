@@ -3,9 +3,10 @@ from dask import array as da
 from typing import Tuple
 
 import skbeam.core.correlation as corr
+from xicam.core.intents import PlotIntent
 
-from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible,\
-                        input_names, output_names, display_name, categories, plot_hint 
+from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible, \
+    input_names, output_names, display_name, categories, intent
 
 
 @operation
@@ -26,8 +27,11 @@ from xicam.plugins.operationplugin import operation, describe_input, describe_ou
 @describe_output('tau', 'array describing tau (lag steps)')
 @visible('data', False)
 @visible('labels', False)
-@plot_hint('tau', 'g2', group='1-time Correlation', name='g2', yLog=True, labels={"bottom": "&tau;",
-                                                                                  "left": "g2"})
+@intent(PlotIntent,
+        name="g2 vs tau",
+        output_map={"g2": "x", "tau": "y"},
+        labels={"left": "g2", "bottom": "&tau;"},
+        xLogMode=True)
 def one_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,

@@ -1,9 +1,11 @@
+from xicam.core.intents import PlotIntent
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, plot_hint
+    categories, intent
 import numpy as np
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
+# TODO check categories
 @operation
 @display_name('GISAXS q conversion')
 @output_names('q_x', 'q_z')
@@ -11,7 +13,10 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_input('data', 'Frame image data')
 @describe_output('q_x', 'q_x array with dimension of data')
 @describe_output('q_y', 'q_y array with dimension of data')
-# TODO check categories
+@intent(PlotIntent,
+        name='GISAXS q conversion',
+        output_map={'q_x': 'x', 'q_y': 'y'},
+        labels={'bottom': 'q_x', 'left': 'q_y'})
 @categories('Scattering', 'General Math, Transformation')
 def q_conversion_gisaxs(integrator: AzimuthalIntegrator,
                         data: np.ndarray) -> np.ndarray:
