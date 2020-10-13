@@ -146,7 +146,10 @@ setup(
         ],
         'xicam.plugins.IntentCanvasPlugin': [
             'saxs_image_intent_canvas = xicam.SAXS.canvases:SAXSImageIntentCanvas'
-        ]
+        ],
+        "databroker.intents": [
+            "SAXSImageIntent = xicam.SAXS.intents:SAXSImageIntent",
+        ],
     },
 
     ext_modules=[],
