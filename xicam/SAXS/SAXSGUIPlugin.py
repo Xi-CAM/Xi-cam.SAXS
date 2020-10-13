@@ -6,7 +6,8 @@ from qtpy.QtCore import QItemSelectionModel, Qt
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import QDockWidget, QLabel, QListView
 from xarray import DataArray
-from xicam.XPCS.models import EnsembleModel, Ensemble, IntentsModel
+from xicam.core.workspace import Ensemble
+from xicam.gui.models import EnsembleModel, IntentsModel
 from xicam.XPCS.projectors.nexus import project_nxXPCS
 
 from xicam.core import msg, threads

@@ -7,7 +7,8 @@ from qtpy.QtWidgets import QAbstractItemView, QApplication, QButtonGroup, QHBoxL
                            QSplitter, QStackedWidget, QStyleFactory, QTabWidget, QTreeView, QVBoxLayout, QWidget
 
 from xicam.gui.static import path
-from xicam.XPCS.models import XicamCanvasManager, EnsembleModel
+from xicam.gui.canvasmanager import XicamCanvasManager
+from xicam.gui.models import EnsembleModel
 from xicam.core import msg
 
 
