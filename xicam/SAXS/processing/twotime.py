@@ -1,5 +1,6 @@
+from xicam.core.intents import ImageIntent
 from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible, \
-                        input_names, output_names, display_name, categories, image_hint
+    input_names, output_names, display_name, categories, intent
 import numpy as np
 from skbeam.core.correlation import two_time_corr
 from typing import Tuple
@@ -19,8 +20,8 @@ from typing import Tuple
 @describe_output('tau', 'the times at which the correlation was computed')
 @visible('data', False)
 @visible('labels', False)
-@image_hint('g2', name='2-time Correlation', labels={"bottom": "&tau;<sub>1</sub>",
-                                                     "left": "&tau;<sub>2</sub>"})
+@intent(ImageIntent, name='2-time Correlation', output_map={'image', 'g2'}, labels={"bottom": "&tau;<sub>1</sub>",
+                                                                                    "left": "&tau;<sub>2</sub>"})
 def two_time_correlation(data: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,
@@ -58,7 +59,7 @@ def two_time_correlation(data: np.ndarray,
 #     lag_steps = Output(description='the times at which the correlation was computed',
 #                        type=np.ndarray)
 
-#     hints = [ImageHint(g2)]
+#     intents = [ImageHint(g2)]
 
 #     def evaluate(self):
 #         # TODO -- make composite parameter item widget to allow default (all frames) or enter value
@@ -71,7 +72,7 @@ def two_time_correlation(data: np.ndarray,
 #         self.g2.value = corr.g2
 #         self.lag_steps.value = corr.lag_steps
 
-#         self.hints = [ImageHint(self.g2.value,
+#         self.intents = [ImageHint(self.g2.value,
 #                                 xlabel="&tau;<sub>1</sub>",
 #                                 ylabel="&tau;<sub>2</sub>",
 #                                 name="2-Time")]

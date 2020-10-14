@@ -1,7 +1,8 @@
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, plot_hint
+    categories
 import numpy as np
 import pyFAI
+# FIXME: where is this package installed from?
 import hipies
 
 
@@ -32,7 +33,7 @@ def image_remap(data: np.ndarray,
     centerX = np.unravel_index(x.abs().argmin(), x.shape)[1]
     centerY = np.unravel_index(y.abs().argmin(), y.shape)[0]
     pixel = [geometry.get_pixel1(), geometry.get_pixel2()]
-    center = [ centerX * pixel[0], centerY * pixel[1])
+    center = [centerX * pixel[0], centerY * pixel[1]]
     geometry.setFit2D(geometry._dist, center[0], center[1])
 
     return I, x, y, geometry

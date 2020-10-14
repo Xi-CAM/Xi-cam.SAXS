@@ -4,8 +4,11 @@ from databroker.core import BlueskyRun
 import numpy as np
 from qtpy.QtCore import QItemSelectionModel, Qt
 from qtpy.QtGui import QStandardItemModel
-from qtpy.QtWidgets import QDockWidget, QLabel
+from qtpy.QtWidgets import QDockWidget, QLabel, QListView
 from xarray import DataArray
+from xicam.core.workspace import Ensemble
+from xicam.gui.models import EnsembleModel, IntentsModel
+from xicam.XPCS.projectors.nexus import project_nxXPCS
 
 from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
@@ -13,15 +16,15 @@ from xicam.core.execution.workflow import Workflow
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.gui.widgets.tabview import TabView
+from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
 
 from .calibration.workflows import SimulateWorkflow
 from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
-from .widgets.items import CheckableItem
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import DerivedDataModel, DerivedDataWidget
 from .workflows.roi import ROIWorkflow
+
 
 
 class SAXSPlugin(GUIPlugin):
@@ -30,12 +33,11 @@ class SAXSPlugin(GUIPlugin):
     def __init__(self):
         # Late imports required due to plugin system
         from xicam.SAXS.calibration import CalibrationPanel
-        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer
+        from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer, SAXSCompareViewer
         from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
         from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
-        self.derivedDataModel = DerivedDataModel()
-        self.catalogModel = QStandardItemModel()
+        self.derivedDataModel = None
 
         # Data model
         self.catalogModel = QStandardItemModel()
@@ -52,9 +54,10 @@ class SAXSPlugin(GUIPlugin):
         self.calibrationsettings = pluginmanager.get_plugin_by_name('xicam.SAXS.calibration',
                                                                     'SettingsPlugin')
 
-        # Setup TabViews
+        # Setup TabViews (central view widget for different stages
         # FIXME -- rework how fields propagate to displays (i.e. each image has its own detector, switching
         # between tabs updates the detector combobbox correctly)
+        #field = 'fast_ccd'
         field = "pilatus1M"
         self.calibrationtabview = TabView(self.catalogModel, widgetcls=SAXSCalibrationViewer,
                                           stream='primary', field=field,
@@ -66,13 +69,17 @@ class SAXSPlugin(GUIPlugin):
                                    bindings=[('sigTimeChangeFinished', self.indexChanged),
                                              (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                    geometry=self.getAI)
-        self.reducetabview = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
+        self.reducetabview = TabView(catalogmodel=self.catalogModel, widgetcls=SAXSReductionViewer,
                                      selectionmodel=self.selectionmodel,
                                      stream='primary', field=field,
                                      bindings=[('sigTimeChangeFinished', self.indexChanged),
                                                (self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
                                      geometry=self.getAI)
-        self.comparemultiview = QLabel("COMING SOON!")  # SAXSMultiViewerPlugin(self.catalogModel, self.selectionmodel)
+        #TODO: add another version of TabView that can also show different fields from derived data not only multiply scans
+        # splitview_args = dict(catalogmodel=self.catalogModel,
+        #                     selectionmodel=self.selectionmodel, widgetcls=SAXSCompareViewer,
+        #                                             stream='primary', field=field)
+        self.comparemultiview = QLabel("...")
 
         # Setup correlation views
         self.correlationView = TabView(self.catalogModel, widgetcls=SAXSReductionViewer,
@@ -94,6 +101,7 @@ class SAXSPlugin(GUIPlugin):
         self.masktoolbar = SAXSToolbarMask(self.catalogModel, self.selectionmodel)
         self.reducetoolbar = SAXSToolbarReduce(self.catalogModel, self.selectionmodel,
                                                view=self.reducetabview.currentWidget, workflow=self.reduceworkflow)
+        # self.comparetoolbar = SAXSToolbarCompare()
         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
         self.reducetoolbar.sigDeviceChanged.connect(self.deviceChanged)
 
@@ -110,14 +118,29 @@ class SAXSPlugin(GUIPlugin):
         # Setup reduction widgets
         self.displayeditor = WorkflowEditor(self.displayworkflow)
         self.reduceeditor = WorkflowEditor(self.reduceworkflow)
-        self.reduceplot = DerivedDataWidget(self.derivedDataModel)
+        self.reduceplot = QLabel('...')
         self.reducetoolbar.sigDoWorkflow.connect(self.doReduceWorkflow)
         self.reduceeditor.sigWorkflowChanged.connect(self.doReduceWorkflow)
         self.displayeditor.sigWorkflowChanged.connect(self.doDisplayWorkflow)
         self.reducetabview.currentChanged.connect(self.catalogChanged)
 
         # Setup correlation widgets
-        self.correlationResults = DerivedDataWidget(self.derivedDataModel)
+        # self.correlationResults = QLabel('fix later')
+        # from xicam.XPCS.models import CanvasProxyModel
+        # proxy = CanvasProxyModel()
+        # proxy.setSourceModel(self.ensembleModel)
+        # self.correlationResults = ResultsWidget(proxy)
+
+        # NEW STUFF (TODO: CLEANUP)
+        self.ensembleModel = EnsembleModel()
+        self.intentsModel = IntentsModel()
+        self.intentsModel.setSourceModel(self.ensembleModel)
+
+        self.dataSelectorView = DataSelectorView()
+        self.dataSelectorView.setModel(self.ensembleModel)
+
+        self.canvasesView = StackedCanvasView()
+        self.canvasesView.setModel(self.intentsModel)
 
         self.stages = {
             'Calibrate': GUILayout(self.calibrationtabview,
@@ -127,28 +150,30 @@ class SAXSPlugin(GUIPlugin):
             'Mask': GUILayout(self.masktabview,
                               right=self.maskeditor,
                               top=self.masktoolbar),
-            'Reduce': GUILayout(self.reducetabview,
+            'Reduce': GUILayout(center=self.reducetabview,
                                 bottom=self.reduceplot, right=self.reduceeditor, righttop=self.displayeditor,
                                 top=self.reducetoolbar),
-            'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar, bottom=self.reduceplot,
-                                 right=self.reduceeditor),
+            'Compare': GUILayout(self.comparemultiview, top=self.reducetoolbar,
+                                 right=self.dataSelectorView),
             'Correlate': {
-                '2-Time Correlation': GUILayout(self.correlationView,
+                '2-Time Correlation': GUILayout(self.canvasesView,
                                                 top=self.twoTimeToolBar,
-                                                rightbottom=self.twoTimeProcessor,
-                                                bottom=self.correlationResults),
-                '1-Time Correlation': GUILayout(self.correlationView,
+                                                righttop=self.dataSelectorView,
+                                                rightbottom=self.twoTimeProcessor),
+                                                # bottom=self.correlationResults),
+                '1-Time Correlation': GUILayout(self.canvasesView,
                                                 top=self.oneTimeToolBar,
-                                                rightbottom=self.oneTimeProcessor,
-                                                bottom=self.correlationResults)
+                                                righttop=self.dataSelectorView,
+                                                rightbottom=self.oneTimeProcessor)
+                                                # bottom=self.correlationResults)
             }
         }
 
         super(SAXSPlugin, self).__init__()
 
         # Start visualizations
-        self.displayworkflow.visualize(self.reduceplot, imageview=lambda: self.reducetabview.currentWidget(),
-                                       toolbar=self.reducetoolbar)
+        # self.displayworkflow.visualize(self.reduceplot, imageview=lambda: self.reducetabview.currentWidget(),
+        #                                toolbar=self.reducetoolbar)
 
     def getAI(self):
         """ Convenience method to get current field's AI """
@@ -204,19 +229,9 @@ class SAXSPlugin(GUIPlugin):
     def appendCatalog(self, catalog: BlueskyRun, **kwargs):
         catalog.metadata.update(self.schema())
 
-        displayName = ""
-        if 'sample_name' in catalog.metadata['start']:
-            displayName = catalog.metadata['start']['sample_name']
-        elif 'scan_id' in catalog.metadata['start']:
-            displayName = f"Scan: {catalog.metadata['start']['scan_id']}"
-        else:
-            displayName = f"UID: {catalog.metadata['start']['uid']}"
-
-        item = CheckableItem(displayName)
-        item.setData(displayName, Qt.DisplayRole)
-        item.setData(catalog, Qt.UserRole)
-        self.catalogModel.appendRow(item)
-        self.catalogModel.dataChanged.emit(item.index(), item.index())
+        ensemble = Ensemble()
+        ensemble.append_catalog(catalog)
+        self.ensembleModel.add_ensemble(ensemble, project_nxXPCS)
 
     def checkDataShape(self, data):
         """Checks the shape of the data and gets the first frame if able to."""
@@ -328,15 +343,27 @@ class SAXSPlugin(GUIPlugin):
         mask = [self.maskingworkflow.lastresult[0]['mask'] if self.maskingworkflow.lastresult else None] * len(
             data)
 
-        def showReduce(workflow, *_):
+        def showReduce(*results):
+            pass
+            # # FIXME -- Better way to get the intents from the results
+            # parentItem = CheckableItem("Scattering Reduction")
+            # for result in results:
+            #     hints = next(iter(result.items()))[-1].parent.hints
+            #     for hint in hints:
+            #         item = CheckableItem(hint.name)
+            #         item.setData(hint, Qt.UserRole)
+            #         parentItem.appendRow(item)
+            # self.ensembleModel.appendRow(parentItem)
+        # FROM MASTER MERGE
+        #def showReduce(workflow, *_):
             # FIXME -- Better way to get the hints from the results
-            parentItem = CheckableItem("Scattering Reduction")
-            hints = workflow.hints
-            for hint in hints:
-                item = CheckableItem(hint.name)
-                item.setData(hint, Qt.UserRole)
-                parentItem.appendRow(item)
-            self.derivedDataModel.appendRow(parentItem)
+            #parentItem = CheckableItem("Scattering Reduction")
+            #hints = workflow.hints
+            #for hint in hints:
+                #item = CheckableItem(hint.name)
+                #item.setData(hint, Qt.UserRole)
+                #parentItem.appendRow(item)
+            #self.derivedDataModel.appendRow(parentItem)
 
         self.reduceworkflow.execute_all(None,
                                         data=data,
@@ -481,12 +508,15 @@ class SAXSPlugin(GUIPlugin):
                                                        # workflow_pickle=workflow_pickle))
 
     def updateDerivedDataModel(self, workflow, **kwargs):
-        parentItem = CheckableItem(workflow.name)
-        for hint in workflow.hints:
-            item = CheckableItem(hint.name)
-            item.setData(hint, Qt.UserRole)
-            item.setCheckable(True)
-            parentItem.appendRow(item)
-        self.derivedDataModel.appendRow(parentItem)
+        pass
+        # # TODO: update to store "Ensembles"
+        # # Ensemble contains Catalogs, contains data (g2, 2-time, etc.)
+        # parentItem = CheckableItem(workflow.name)
+        # for hint in workflow.hints:
+        #     item = CheckableItem(hint.name)
+        #     item.setData(hint, Qt.UserRole)
+        #     item.setCheckable(True)
+        #     parentItem.appendRow(item)
+        # self.ensembleModel.appendRow(parentItem)
 
 

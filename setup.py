@@ -104,8 +104,9 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'databroker.ingestors': [
-            'application/x-edf = xicam.SAXS.ingestors.edf_ingestor:edf_ingestor',
-            'application/x-hdf5 = xicam.SAXS.ingestors.nxcansas:ingest_nxcanSAS'
+            'application/x-edf = xicam.SAXS.ingestors.edf_ingestor:edf_ingestor'
+            # FIXME (below conflicts with ingest_nxXPCS and potentially other h5 ingestors)
+            #'application/x-hdf5 = xicam.SAXS.ingestors.nxcansas:ingest_nxcanSAS'
         ],
         'xicam.plugins.GUIPlugin': [
             'SAXS = xicam.SAXS.SAXSGUIPlugin:SAXSPlugin'
@@ -144,7 +145,14 @@ setup(
         ],
         'xicam.plugins.SettingsPlugin': [
             'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'
-        ]},
+        ],
+        'xicam.plugins.IntentCanvasPlugin': [
+            'saxs_image_intent_canvas = xicam.SAXS.canvases:SAXSImageIntentCanvas'
+        ],
+        "databroker.intents": [
+            "SAXSImageIntent = xicam.SAXS.intents:SAXSImageIntent",
+        ],
+    },
 
     ext_modules=[],
     include_package_data=True

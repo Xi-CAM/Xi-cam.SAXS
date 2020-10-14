@@ -1,11 +1,11 @@
 import numpy as np
 import skbeam.core.correlation as corr
 from astropy.modeling import Fittable1DModel, Parameter, fitting
-from qtpy.QtCore import Qt
+from xicam.core.intents import PlotIntent
 
 from xicam.plugins.hints import CoPlotHint, PlotHint
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, plot_hint
+    categories, intent
 from typing import Union, Tuple
 
 
@@ -19,10 +19,11 @@ from typing import Union, Tuple
 @describe_input('correlation_threshold', 'threshold defining which g2 values to fit')
 @describe_output('fit_curve', 'Fitted model of the g2 curve')
 @describe_output('relaxation_rate', 'Relaxation time associated with the samples dynamics')
-#TODO: check syntax plot_hint and add labels
-# @plot_hint('tau', 'g2', name='one-time correlation')
-@plot_hint('tau', 'fit_curve', group='1-time Correlation', name='g2 fit', labels={"bottom": "&tau;",
-                                                                                  "left": "g2"})
+@intent(PlotIntent,
+        match_key='1-time Correlation',
+        name='g2 fit',
+        labels={"bottom": "&tau;", "left": "g2"},
+        output_map={'x': 'tau', 'y': 'fit_curve'})
 @categories(('Scattering', 'Fitting'))
 def fit_scattering_factor(g2: np.ndarray,
                           tau: np.ndarray,
@@ -45,7 +46,7 @@ def fit_scattering_factor(g2: np.ndarray,
     #             'bottom': ['&tau;', 's']}
     # one_time_hint = PlotHint(self.lag_steps.value[1:], self.g2.value[1:], name="1-Time", labels=labels, xLog=True, style=Qt.SolidLine)
     # fit_hint = PlotHint(self.lag_steps.value[1:], self.fit_curve.value[1:], name="1-Time Fit", labels=labels, xLog=True, style=Qt.DashLine)
-    # self.hints = [CoPlotHint(one_time_hint, fit_hint, name="1-Time")]
+    # self.intents = [CoPlotHint(one_time_hint, fit_hint, name="1-Time")]
 
 
 class ScatteringModel(Fittable1DModel):

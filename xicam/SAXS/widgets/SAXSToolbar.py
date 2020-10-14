@@ -61,6 +61,7 @@ class FieldSelector(SAXSToolbarBase):
             self.detectorcombobox.clear()
             self.detectorcombobox.addItems(fields)
 
+
 class ModeSelector(SAXSToolbarBase):
     def __init__(self, *args, **kwargs):
         super(ModeSelector, self).__init__(*args, **kwargs)
@@ -72,6 +73,17 @@ class ModeSelector(SAXSToolbarBase):
         self.remeshaction = self.mkAction('icons/remesh.png', 'Wrap Ewald Sphere', checkable=True, group=self.modegroup)
         self.addAction(self.remeshaction)
         self.addSeparator()
+
+# TODO maybe toolbar is not the best solution here, instead having the buttonbox in the compare stage
+# class ResultsModeSelector(SAXSToolbarBase):
+#     def __init__(self, *args, **kwargs):
+#         super(ResultsModeSelector, self).__init__(*args, **kwargs)
+#         self.viewmodegroup = QActionGroup(self)
+#         self.tabmode = self.mkAction(iconpath='icons/tabs.png', text='Tab View', checkable=True, group=self.viewmodegroup, checked=True)
+#         self.addAction(self.tabmode)
+#         self.gridmode = self.mkAction(iconpath='icons/grid.png', text='Grid View', checkable=True, group=self.viewmodegroup)
+#         self.addAction(self.gridmode)
+#         self.addSeparator()
 
 
 class MultiPlot(SAXSToolbarBase):
@@ -206,6 +218,10 @@ class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector, FieldSelector):
         super(SAXSToolbarReduce, self).__init__(*args, **kwargs)
 
 
+# class  SAXSToolbarCompare(ResultsModeSelector):
+#     pass
+
+
 class CheckableWorkflowOutputModel(QAbstractItemModel):
     def __init__(self, workflow: Workflow, *args):
         super(CheckableWorkflowOutputModel, self).__init__(*args)
@@ -262,7 +278,7 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
     def flags(self, index):
         if index.parent().isValid():  # if index is a hint
             return Qt.ItemIsUserCheckable | Qt.ItemIsSelectable | Qt.ItemIsEnabled
-        elif index.internalPointer().hints:  # if index is a process with hints
+        elif index.internalPointer().hints:  # if index is a process with intents
             return Qt.ItemIsEnabled
         else:
             return

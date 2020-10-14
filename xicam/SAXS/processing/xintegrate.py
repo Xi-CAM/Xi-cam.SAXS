@@ -1,6 +1,8 @@
 from typing import Tuple
+
+from xicam.core.intents import PlotIntent
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, plot_hint
+    categories, intent
 import numpy as np
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
@@ -16,7 +18,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @describe_input('normalization_factor', 'Value of a normalization monitor')
 @describe_output('q_x', "q_x bin center positions")
 @categories(('Scattering', 'Integration'))
-@plot_hint('q_x', 'I', name='X Integration')
+@intent(PlotIntent, name='X Integration', output_map={'x': 'q_x', 'y': 'I'}, labels={'bottom': 'q_x', 'left': 'I'})
 @describe_output('I', 'Binned/pixel-split integrated intensity')
 def x_integrate(azimuthal_integrator: AzimuthalIntegrator,
                 data: np.ndarray,

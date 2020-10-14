@@ -1,7 +1,5 @@
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, plot_hint
-import skbeam.core.correlation as corr
-from scipy.signal import fftconvolve
+    categories
 import numpy as np
 
 
@@ -14,6 +12,7 @@ import numpy as np
                           'For example, if you have four ROIs, they must be labeled'
                           '1, 2, 3, 4. Background is labeled as 0')
 @describe_output('g2', 'Normalized correlation with shape = (len(lag_steps), num_rois)')
+# TODO: intent
 @categories('Scattering', 'Correlation')
 def fourier_correlation(data: np.ndarray,
                         labels: np.ndarray) -> np.ndarray:
