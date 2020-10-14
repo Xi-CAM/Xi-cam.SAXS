@@ -11,6 +11,7 @@ def is_applicable(is_applicable_func):
         return func
     return decorator
 
+
 def edf_ingestor(paths):
     # TODO -- metadata?
     # TODO -- use Datum and Resources
