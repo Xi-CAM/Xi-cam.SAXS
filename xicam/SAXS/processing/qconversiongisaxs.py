@@ -5,7 +5,6 @@ import numpy as np
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 
 
-# TODO check categories
 @operation
 @display_name('GISAXS q conversion')
 @output_names('q_x', 'q_z')
