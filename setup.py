@@ -105,6 +105,8 @@ setup(
     entry_points={
         'databroker.ingestors': [
             'application/x-edf = xicam.SAXS.ingestors.edf:edf_ingestor',
+            # FIXME (below conflicts with ingest_nxXPCS and potentially other h5 ingestors)
+            #'application/x-hdf5 = xicam.SAXS.ingestors.nxcansas:ingest_nxcanSAS'
         ],
         'xicam.plugins.GUIPlugin': [
             'SAXS = xicam.SAXS.SAXSGUIPlugin:SAXSPlugin'
