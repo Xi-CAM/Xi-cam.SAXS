@@ -15,7 +15,7 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @intent(PlotIntent, name='SAXS q conversion', output_names={'q_x': 'x', 'q_z': 'y'}, labels={'bottom': 'q_x',
                                                                                              'left': 'q_z'})
 # TODO check categories
-@categories('Scattering', 'General Math, Transformation')
+@categories(('Scattering', 'Transformations'))
 def q_conversion_saxs(integrator: AzimuthalIntegrator,
                       data: np.ndarray) -> np.ndarray:
     chi = integrator.chiArray()

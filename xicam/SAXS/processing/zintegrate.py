@@ -22,9 +22,9 @@ from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 @intent(PlotIntent, name="Z Integration", output_map={'x': 'q_z', 'y': 'I'}, labels={"bottom": "q_z", "left": "I"})
 def z_integrate(azimuthal_integrator: AzimuthalIntegrator,
                 data: np.ndarray,
-                mask: np.ndarray,
-                dark: np.ndarray,
-                flat: np.ndarray,
+                mask: np.ndarray = None,
+                dark: np.ndarray = None,
+                flat: np.ndarray = None,
                 normalization_factor: float = 1) -> Tuple[np.ndarray, np.ndarray]:
     if dark is None: dark = np.zeros_like(data)
     if flat is None: flat = np.ones_like(data)
