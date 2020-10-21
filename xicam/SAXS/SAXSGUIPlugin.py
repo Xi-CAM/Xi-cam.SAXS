@@ -6,7 +6,8 @@ from qtpy.QtCore import QItemSelectionModel, Qt
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import QDockWidget, QLabel, QListView
 from xarray import DataArray
-from xicam.XPCS.models import EnsembleModel, Ensemble, IntentsModel
+from xicam.core.workspace import Ensemble
+from xicam.gui.models import EnsembleModel, IntentsModel
 from xicam.XPCS.projectors.nexus import project_nxXPCS
 
 from xicam.core import msg, threads
@@ -15,13 +16,13 @@ from xicam.core.execution.workflow import Workflow
 from xicam.plugins import GUIPlugin, GUILayout, manager as pluginmanager
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.gui.widgets.tabview import TabView
+from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
 
 from .calibration.workflows import SimulateWorkflow
 from .masking.workflows import MaskingWorkflow
 from .processing.workflows import ReduceWorkflow, DisplayWorkflow
 from .widgets.parametertrees import CorrelationParameterTree, OneTimeParameterTree, TwoTimeParameterTree
 from .widgets.SAXSViewerPlugin import SAXSViewerPluginBase
-from .widgets.views import StackedCanvasView, DataSelectorView
 from .workflows.roi import ROIWorkflow
 
 
@@ -56,7 +57,8 @@ class SAXSPlugin(GUIPlugin):
         # Setup TabViews (central view widget for different stages
         # FIXME -- rework how fields propagate to displays (i.e. each image has its own detector, switching
         # between tabs updates the detector combobbox correctly)
-        field = 'fast_ccd'
+        #field = 'fast_ccd'
+        field = "pilatus1M"
         self.calibrationtabview = TabView(self.catalogModel, widgetcls=SAXSCalibrationViewer,
                                           stream='primary', field=field,
                                           selectionmodel=self.selectionmodel,
@@ -202,7 +204,7 @@ class SAXSPlugin(GUIPlugin):
                     "technique": "scattering",
                     "configuration": {
                         "geometry": "transmission",
-                        "detector_model": "fastccd",
+                        "detector_model": "pilatus1M",
                     },
                     "data_mapping": {
                         # "incoming_energy": [
@@ -211,11 +213,11 @@ class SAXSPlugin(GUIPlugin):
                         # ]
                         "data_image": [
                             "primary",
-                            "fccd_image"
+                            "pilatus1M"
                         ],
                         "dark_image": [
                             "dark",
-                            "fccd_image"
+                            "pilatus1M"
                         ]
                     },
                     "version": 0
@@ -247,14 +249,13 @@ class SAXSPlugin(GUIPlugin):
         if data is None: return
         device = self.rawtoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
-        # ai.detector = detectors.Pilatus2M()
         calibrant = self.calibrationpanel.parameter['Calibrant Material']
 
         def setAI(result):
-            self.calibrationsettings.setAI(result['ai'].value, device)
+            self.calibrationsettings.setAI(result['azimuthal_integrator'], device)
             self.doMaskingWorkflow()
 
-        workflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=setAI, threadkey='calibrate')
+        workflow.execute(None, data=data, azimuthal_integrator=ai, calibrant=calibrant, callback_slot=setAI, threadkey='calibrate')
 
     @threads.method()
     def doSimulateWorkflow(self, *_):
@@ -273,9 +274,9 @@ class SAXSPlugin(GUIPlugin):
         outputwidget = self.calibrationtabview.currentWidget()
 
         def showSimulatedCalibrant(result=None):
-            outputwidget.setCalibrantImage(result['data'].value)
+            outputwidget.setCalibrantImage(result['data'])
 
-        self.simulateworkflow.execute(None, data=data, ai=ai, calibrant=calibrant, callback_slot=showSimulatedCalibrant,
+        self.simulateworkflow.execute(None, data=data, azimuthal_integrator=ai, calibrant=calibrant, callback_slot=showSimulatedCalibrant,
                                       threadkey='simulate')
 
     @threads.method()
@@ -289,14 +290,14 @@ class SAXSPlugin(GUIPlugin):
 
             def showMask(result=None):
                 if result:
-                    outputwidget.setMaskImage(result['mask'].value)
+                    outputwidget.setMaskImage(result['mask'])
                 else:
                     outputwidget.setMaskImage(None)
                 self.doDisplayWorkflow()
                 self.doReduceWorkflow()
 
             if not workflow: workflow = self.maskingworkflow
-            workflow.execute(None, data=data, ai=ai, callback_slot=showMask, threadkey='masking')
+            workflow.execute(None, data=data, azimuthal_integrator=ai, callback_slot=showMask, threadkey='masking')
 
     # disabled
     @threads.method()
@@ -309,17 +310,16 @@ class SAXSPlugin(GUIPlugin):
         device = self.reducetoolbar.detectorcombobox.currentText()
         ai = self.calibrationsettings.AI(device)
         if not ai: return
-        mask = self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None
+        mask = self.maskingworkflow.lastresult[0]['mask'] if self.maskingworkflow.lastresult else None
         outputwidget = currentwidget
 
         def showDisplay(*results):
             outputwidget.setResults(results)
 
-        self.displayworkflow.execute(None, data=data, ai=ai, mask=mask, callback_slot=showDisplay, threadkey='display')
+        self.displayworkflow.execute(None, data=data, azimuthal_integrator=ai, mask=mask, callback_slot=showDisplay, threadkey='display')
 
     @threads.method()
     def doReduceWorkflow(self):
-        return
         if not self.reducetabview.currentWidget(): return
         multimode = self.reducetoolbar.multiplot.isChecked()
         currentItem = self.catalogModel.itemFromIndex(self.selectionmodel.currentIndex())
@@ -340,7 +340,7 @@ class SAXSPlugin(GUIPlugin):
         ai = self.calibrationsettings.AI(device)
         if not ai: return
         ai = [ai] * len(data)
-        mask = [self.maskingworkflow.lastresult[0]['mask'].value if self.maskingworkflow.lastresult else None] * len(
+        mask = [self.maskingworkflow.lastresult[0]['mask'] if self.maskingworkflow.lastresult else None] * len(
             data)
 
         def showReduce(*results):
@@ -354,8 +354,23 @@ class SAXSPlugin(GUIPlugin):
             #         item.setData(hint, Qt.UserRole)
             #         parentItem.appendRow(item)
             # self.ensembleModel.appendRow(parentItem)
+        # FROM MASTER MERGE
+        #def showReduce(workflow, *_):
+            # FIXME -- Better way to get the hints from the results
+            #parentItem = CheckableItem("Scattering Reduction")
+            #hints = workflow.hints
+            #for hint in hints:
+                #item = CheckableItem(hint.name)
+                #item.setData(hint, Qt.UserRole)
+                #parentItem.appendRow(item)
+            #self.derivedDataModel.appendRow(parentItem)
 
-        self.reduceworkflow.execute_all(None, data=data, ai=ai, mask=mask, callback_slot=showReduce, threadkey='reduce')
+        self.reduceworkflow.execute_all(None,
+                                        data=data,
+                                        azimuthal_integrator=ai,
+                                        mask=mask,
+                                        callback_slot=partial(showReduce, self.reduceworkflow),
+                                        threadkey='reduce')
 
     def checkPolygonsSet(self, workflow: Workflow):
         """
@@ -371,13 +386,15 @@ class SAXSPlugin(GUIPlugin):
             True if unset polygonmask process is found
 
         """
-        pluginmaskclass = pluginmanager.get_plugin_by_name('Polygon Mask', 'ProcessingPlugin')
-        for process in workflow.processes:
-            if isinstance(process, pluginmaskclass):
-                if process.polygon.value is None:
-                    self.startPolygonMasking(process)
-                    return True
+        # FIXME: Restore polygon masking via Intents/Canavases
         return False
+        # pluginmaskclass = pluginmanager.get_plugin_by_name('Polygon Mask', 'ProcessingPlugin')
+        # for process in workflow.processes:
+        #     if isinstance(process, pluginmaskclass):
+        #         if process.polygon is None:
+        #             self.startPolygonMasking(process)
+        #             return True
+        # return False
 
     def startPolygonMasking(self, process):
         self.setEnabledOuterWidgets(False)
@@ -409,7 +426,7 @@ class SAXSPlugin(GUIPlugin):
 
     def finishMask(self, process, sender):
         viewer = self.masktabview.currentWidget()  # type: SAXSViewerPluginBase
-        process.polygon.value = np.array([list(handle['pos']) for handle in viewer.maskROI.handles])
+        process.polygon = np.array([list(handle['pos']) for handle in viewer.maskROI.handles])
         self.setEnabledOuterWidgets(True)
 
         # End drawing mode
