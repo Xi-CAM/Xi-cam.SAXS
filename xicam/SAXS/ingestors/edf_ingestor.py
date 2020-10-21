@@ -1,6 +1,10 @@
 import time
 import event_model
 import fabio
+import mimetypes
+
+mimetypes.add_type('application/x-edf', '.edf')
+
 
 
 def edf_ingestor(paths):
@@ -11,7 +15,7 @@ def edf_ingestor(paths):
     yield "start", run_bundle.start_doc
 
     with fabio.open(paths[0]) as first_frame:
-        field = "pilatus2M"
+        field = "pilatus1M"
         source = "Beamline 7.3.3"
         shape = list(first_frame.data.shape)
         frame_data_keys = {field: {"source": source, "dtype": "number", "shape": shape}}
