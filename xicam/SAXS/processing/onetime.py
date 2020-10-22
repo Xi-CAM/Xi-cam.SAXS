@@ -17,9 +17,9 @@ from xicam.plugins.operationplugin import operation, describe_input, describe_ou
                 Each ROI is represented by sequential integers starting at one.  For \
                 example, if you have four ROIs, they must be labeled 1, 2, 3, 4. \
                 Background is labeled as 0')
-@describe_input('num_bufs', 'Integer number of buffers. Must be even maximum \
+@describe_input('number_of_buffers', 'Integer number of buffers (must be even). Maximum \
                  lag step to compute in each generation of downsampling.')
-@describe_input('num_levels', 'Integer number defining how many generations of \
+@describe_input('number_of_levels', 'Integer number defining how many generations of \
                  downsampling to perform, i.e., the depth of the binomial tree \
                  of averaged frames')
 @output_names('g2', 'tau')

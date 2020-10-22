@@ -18,7 +18,7 @@ import numpy as np
 def correct_fastccd_image(images: np.ndarray,
                           flats: np.ndarray = None,
                           darks: np.ndarray = None,
-                          gains: np.ndarray = (1, 4, 8)) -> np.ndarray:
+                          gains: tuple = (1, 4, 8)) -> np.ndarray:
     
     def calc_correction(array, flats, bkg, gain_map=(1, 4, 8)):
         # 16-bit unsigned
