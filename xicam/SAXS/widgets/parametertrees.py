@@ -63,8 +63,8 @@ class CorrelationParameterTree(ParameterTree):
         # Based on current workflow (listParameter value), re-populate the tree.
         self.workflow = self._workflows.get(self.listParameter.value().name, self.listParameter.value()())
         self._workflows[self.workflow.name] = self.workflow
-        for process in self.workflow.processes:
-            self.param.addChild(process.parameter)
+        for operation in self.workflow.operations:
+            self.param.addChild(Parameter(name=operation.name, type='group', children=operation.as_parameter()))
 
 
 class OneTimeParameterTree(CorrelationParameterTree):

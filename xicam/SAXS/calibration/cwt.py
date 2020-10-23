@@ -1,27 +1,18 @@
-import numpy as np
 from camsaxs import cwt2d
-from xicam.plugins import ProcessingPlugin, Input, Output
+from typing import Tuple
+import numpy as np
+from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
+    categories
 
 
-class RickerWave(ProcessingPlugin):
-
-    # inputs
-    data = Input(description='Calibrant frame image data',
-                 type=np.ndarray)
-    mask = Input(description='Array with 1 for masked pixels, and 0 for valid pixels',
-                 type=np.ndarray)
-    domain = Input(
-        description='Search domain in pixels: [r_min, r_max]', type=list)
-    scale = Input(description='Approxmate intensity along the ring',
-                  type=float, default=1)
-    width = Input(
-        description='Approximate width of the AgB ring in pixels', type=float, default=5)
-
-    # output
-    center = Output(
-        description='Approximated position of the direct beam center', type=np.ndarray)
-
-    def evaluate(self):
-        self.center.value,_ = cwt2d(self.data.value, domain=self.domain.value,
-                                  scale=self.scale.value,
-                                  width=self.width.value)
+@operation
+@output_names('center')
+@display_name("Ricker Wavelet Calibration")
+@describe_input("data", 'Calibrant frame image data')
+@describe_input("domain", 'Search domain in pixels: (r_min, r_max)')
+@describe_input("width", 'Approximate width of the calibrant ring in pixels')
+@describe_output("center", "The position in pixels of the approximated beam center")
+@categories(("Scattering", "Calibration"))
+def ricker_wavelet(data: np.ndarray, domain: Tuple[float], width: float = 5) -> Tuple[float]:
+    center, _ = cwt2d(data, domain=domain, width=width)
+    return center

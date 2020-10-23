@@ -8,13 +8,15 @@ Usage: pip install -e .
 from os import path
 from setuptools import find_namespace_packages, setup
 
-
 here = path.abspath(path.dirname(__file__))
 # get the dependencies and installs
 with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     all_reqs = f.read().split('\n')
 
-install_requires = [x.strip() for x in all_reqs]# if 'git+' not in x]
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
+install_requires = [x.strip() for x in all_reqs]  # if 'git+' not in x]
 
 setup(
     name='xicam.SAXS',
@@ -22,11 +24,12 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.0',
+    version='0.2.0',
 
-    description='The CAMERA platform for synchrotron data management, visualization, and reduction. The xicam.gui '
-                'package contains all gui code of the Xi-cam platform, as part of the xicam namespace package. For the '
-                'backend components, see "xicam.core".',
+    description="SAXS GUI Interface",
+
+    long_description=long_description,
+    long_description_content_type="text/markdown",
 
     # The project's main homepage.
     url='https://github.com/ronpandolfi/Xi-cam',
@@ -91,7 +94,7 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    package_data={'xicam.SAXS': ['*.yapsy-plugin', '*.yml']},
+    package_data={'xicam.SAXS': []},
 
     # Although 'package_data' is the preferred approach, in some case you may
     # need to place data files outside of your packages. See:
@@ -103,18 +106,57 @@ setup(
     # To provide executable scripts, use entry points in preference to the
     # "scripts" keyword. Entry points provide cross-platform support and allow
     # pip to create the appropriate form of executable for the target platform.
-    entry_points={'databroker.ingestors': [
-                      'application/edf = xicam.SAXS.formats.ingestors:edf_ingestor',
-                  ],
-                  'xicam.plugins.GUIPlugin': [
-                      'SAXS = xicam.SAXS.SAXSGUIPlugin:SAXSPlugin'
-                  ],
-                  'xicam.plugins.ProcessingPlugin': [
-                      'CorrectFastCCDImage = xicam.SAXS.processing.correction:CorrectFastCCDImage'
-                  ],
-                  'xicam.plugins.SettingsPlugin': [
-                      'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'
-                  ]},
+    entry_points={
+        'databroker.ingestors': [
+            'application/x-edf = xicam.SAXS.ingestors.edf_ingestor:edf_ingestor'
+            # FIXME (below conflicts with ingest_nxXPCS and potentially other h5 ingestors)
+            #'application/x-hdf5 = xicam.SAXS.ingestors.nxcansas:ingest_nxcanSAS'
+        ],
+        'xicam.plugins.GUIPlugin': [
+            'SAXS = xicam.SAXS.SAXSGUIPlugin:SAXSPlugin'
+        ],
+        'xicam.plugins.ProcessingPlugin': [
+            'CorrectFastCCDImage = xicam.SAXS.processing.correction:correct_fastccd_image',
+        ],
+        'xicam.plugins.OperationPlugin': [
+            "fourier_autocorrelation = xicam.SAXS.calibration.fourierautocorrelation:fourier_autocorrelation",
+            "naive_sdd = xicam.SAXS.calibration.naivesdd:naive_sdd",
+            "array_transpose = xicam.SAXS.processing.arraytranspose:array_transpose",
+            "ricker_wavelet = xicam.SAXS.calibration.cwt:ricker_wavelet",
+            "simulate_calibrant = xicam.SAXS.calibration.simulatecalibrant:simulate_calibrant",
+            "cake_integrate = xicam.SAXS.processing.cakeintegrate:cake_integration",
+            "chi_integrate = xicam.SAXS.processing.chiintegrate:chi_integrate",
+            "array_rotate = xicam.SAXS.processing.arrayrotate:array_rotate",
+            "one_time_correlation = xicam.SAXS.processing.onetime:one_time_correlation",
+            "two_time_correlation = xicam.SAXS.processing.twotime:two_time_correlation",
+            "fit_scattering_factor = xicam.SAXS.processing.fitting:fit_scattering_factor",
+            "correct_fastccd_image = xicam.SAXS.processing.correction:correct_fastccd_image",
+            "chi_squared = xicam.SAXS.processing.chisquared:chi_squared",
+            "astropyfit = xicam.SAXS.processing.astropyfit:AstropyQSpectraFit",
+            "q_integrate = xicam.SAXS.processing.qintegrate:q_integrate",
+            "fourier_correlation = xicam.SAXS.processing.fourierautocorrelator:fourier_correlation",
+            "inpaint = xicam.SAXS.processing.inpaint:inpaint",
+            "q_conversion_gisaxs = xicam.SAXS.processing.qconversiongisaxs:q_conversion_gisaxs",
+            "q_conversion_saxs = xicam.SAXS.processing.qconversionsaxs:q_conversion_saxs",
+            "x_integrate = xicam.SAXS.processing.xintegrate:x_integrate",
+            "z_integrate = xicam.SAXS.processing.zintegrate:z_integrate",
+            "porod_plot = xicam.SAXS.processing.porod_plot:porod_plot",
+            "guinier_plot = xicam.SAXS.processing.guinier_plot:guinier_plot",
+            "detector_mask = xicam.SAXS.masking.detector:detector_mask_plugin"
+        ],
+        'xicam.plugins.Fittable1DModelPlugin': [
+            'Gaussian1D = xicam.SAXS.models.gaussian1d:Gaussian1D'
+        ],
+        'xicam.plugins.SettingsPlugin': [
+            'xicam.SAXS.calibration = xicam.SAXS.calibration:DeviceProfiles'
+        ],
+        'xicam.plugins.IntentCanvasPlugin': [
+            'saxs_image_intent_canvas = xicam.SAXS.canvases:SAXSImageIntentCanvas'
+        ],
+        "databroker.intents": [
+            "SAXSImageIntent = xicam.SAXS.intents:SAXSImageIntent",
+        ],
+    },
 
     ext_modules=[],
     include_package_data=True

@@ -1,0 +1,10 @@
+def test_onetime(self):
+    # catalog.upsert(start, stop, doc_gen, [], {})
+    data = np.random.random((100, 10, 10))
+    labels = np.ones(data.shape[1:])
+    print(data.shape)
+    print(labels.shape)
+    op = onetime.one_time_correlation()
+    workflow = Workflow(operations=(op,))
+    result = workflow.execute_synchronous(data=data, labels=labels)
+    print(result)

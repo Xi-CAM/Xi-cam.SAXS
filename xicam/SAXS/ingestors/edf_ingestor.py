@@ -1,15 +1,11 @@
 import time
-
 import event_model
 import fabio
+import mimetypes
+
+mimetypes.add_type('application/x-edf', '.edf')
 
 
-def is_applicable(is_applicable_func):
-    "A decorator that monkey-patches the decorated function"
-    def decorator(func):
-        func.is_applicable = is_applicable_func
-        return func
-    return decorator
 
 def edf_ingestor(paths):
     # TODO -- metadata?
@@ -19,7 +15,7 @@ def edf_ingestor(paths):
     yield "start", run_bundle.start_doc
 
     with fabio.open(paths[0]) as first_frame:
-        field = "pilatus2M"
+        field = "pilatus1M"
         source = "Beamline 7.3.3"
         shape = list(first_frame.data.shape)
         frame_data_keys = {field: {"source": source, "dtype": "number", "shape": shape}}

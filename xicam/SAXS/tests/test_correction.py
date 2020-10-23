@@ -1,8 +1,11 @@
+import inspect
 import pytest
 
 import numpy as np
 
-from xicam.SAXS.processing.correction import CorrectFastCCDImage
+from xicam.core.execution.daskexecutor import DaskExecutor
+from xicam.core.execution.workflow import Workflow
+from xicam.SAXS.processing.correction import correct_fastccd_image
 
 # Try to compare against the csxtools implementation...
 # Differences:
@@ -26,31 +29,46 @@ TEST_CSX_TOOLS = CSX_TOOLS and True
 # TODO: test endianess
 # TODO: test non-uint16 inputs?
 
+# Used for testing purposes
+executor = DaskExecutor()
 
 @pytest.fixture
-def op() -> CorrectFastCCDImage:
-    op = CorrectFastCCDImage()
-    op.images.value = np.arange(24, dtype=np.uint16).reshape((4, 3, 2))
+def op() -> correct_fastccd_image:
+    op = correct_fastccd_image()
+    op.filled_values['images'] = np.arange(24, dtype=np.uint16).reshape((4, 3, 2))
     return op
 
 @pytest.fixture
 def old():
     if TEST_CSX_TOOLS:
         op = CSXCorrectImage()
-        op.bitmasked_images.value = np.arange(24, dtype=np.uint16).reshape((4, 3, 2))
+        op.filled_values['bitmasked_images'] = np.arange(24, dtype=np.uint16).reshape((4, 3, 2))
         return op
     else:
         return None
+
+def get_default(operation, param_name: str):
+    # TODO: extend operation api with ability to do this
+    parameters = inspect.signature(operation._func).parameters
+    param = parameters.get(param_name, None)
+    if param:
+        return param.default
+    return None
 
 
 class TestCorrectImage:
 
     def test_default(self, op, old):
-        op.evaluate()
-        assert np.array_equal(op.corrected_images.value, op.images.value * op.gains.value[0])
+        w = Workflow(operations=[op])
+        result = w.execute_synchronous(executor=executor)
+        corrected_images = result[0]['corrected_images']
+        gains = get_default(op, 'gains')
+        assert np.array_equal(corrected_images, op.filled_values['images'] * gains[0])
         if TEST_CSX_TOOLS:
-            old.evaluate()
-            assert np.array_equal(old.corrected_images.value, op.corrected_images.value)
+            w.clear_operations()
+            w.add_operation(old)
+            result = w.execute_synchronous(executor=executor)
+            assert np.array_equal(result[0]['corrected_images'], corrected_images)
 
     def test_simple_darks(self, op, old):
         op.darks.value = np.ones(shape=(1, *op.images.value.shape[1:]))  # darks of 1's

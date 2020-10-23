@@ -5,7 +5,7 @@ from qtpy.QtGui import *
 from xicam.plugins.widgetplugin import QWidgetPlugin
 from xicam.gui.static import path
 from xicam.core.execution.workflow import Workflow
-from xicam.plugins import ProcessingPlugin, Output
+from xicam.plugins import OperationPlugin
 from xicam.gui.widgets.menuview import MenuView
 from xicam.gui.widgets.ROI import ArcROI, LineROI, BetterPolyLineROI, RectROI, SegmentedRectROI
 from xicam.plugins import Hint
@@ -61,6 +61,7 @@ class FieldSelector(SAXSToolbarBase):
             self.detectorcombobox.clear()
             self.detectorcombobox.addItems(fields)
 
+
 class ModeSelector(SAXSToolbarBase):
     def __init__(self, *args, **kwargs):
         super(ModeSelector, self).__init__(*args, **kwargs)
@@ -72,6 +73,17 @@ class ModeSelector(SAXSToolbarBase):
         self.remeshaction = self.mkAction('icons/remesh.png', 'Wrap Ewald Sphere', checkable=True, group=self.modegroup)
         self.addAction(self.remeshaction)
         self.addSeparator()
+
+# TODO maybe toolbar is not the best solution here, instead having the buttonbox in the compare stage
+# class ResultsModeSelector(SAXSToolbarBase):
+#     def __init__(self, *args, **kwargs):
+#         super(ResultsModeSelector, self).__init__(*args, **kwargs)
+#         self.viewmodegroup = QActionGroup(self)
+#         self.tabmode = self.mkAction(iconpath='icons/tabs.png', text='Tab View', checkable=True, group=self.viewmodegroup, checked=True)
+#         self.addAction(self.tabmode)
+#         self.gridmode = self.mkAction(iconpath='icons/grid.png', text='Grid View', checkable=True, group=self.viewmodegroup)
+#         self.addAction(self.gridmode)
+#         self.addSeparator()
 
 
 class MultiPlot(SAXSToolbarBase):
@@ -154,10 +166,10 @@ class ROIs(SAXSToolbarBase):
         view = self._get_view()
         if view:
             view.getView().addItem(roi)
-            self.workflow.insertProcess(self.index, roi.process, autoconnectall=True)
+            self.workflow.insert_operation(self.index, roi.process)
             # Remove the roi process from the workflow when the roi is removed
             # TODO -- should this be in BetterROI?
-            roi.sigRemoveRequested.connect(lambda roi: self.workflow.removeProcess(roi.process))
+            roi.sigRemoveRequested.connect(lambda roi: self.workflow.remove_operation(roi.process))
         else:
             msg.notifyMessage("Please open an image before creating an ROI.", level=msg.WARNING)
 
@@ -206,6 +218,10 @@ class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector, FieldSelector):
         super(SAXSToolbarReduce, self).__init__(*args, **kwargs)
 
 
+# class  SAXSToolbarCompare(ResultsModeSelector):
+#     pass
+
+
 class CheckableWorkflowOutputModel(QAbstractItemModel):
     def __init__(self, workflow: Workflow, *args):
         super(CheckableWorkflowOutputModel, self).__init__(*args)
@@ -214,12 +230,12 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
 
     def index(self, row, column, parent=None):
         if parent is None or not parent.isValid():
-            if row > len(self.workflow.processes) - 1: return QModelIndex()
-            return self.createIndex(row, column, self.workflow.processes[row])
+            if row > len(self.workflow.operations) - 1: return QModelIndex()
+            return self.createIndex(row, column, self.workflow.operations[row])
 
         parentNode = parent.internalPointer()
 
-        if isinstance(parentNode, ProcessingPlugin):
+        if isinstance(parentNode, OperationPlugin):
             return self.createIndex(row, column, parentNode.hints[row])
         return QModelIndex()
 
@@ -227,21 +243,21 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
         if not index.isValid():
             return QModelIndex()
         node = index.internalPointer()
-        if isinstance(node, ProcessingPlugin):
+        if isinstance(node, OperationPlugin):
             return QModelIndex()
         if isinstance(node, Hint):
-            if node.parent not in self.workflow.processes: return QModelIndex()
-            return self.createIndex(self.workflow.processes.index(node.parent), 0, node.parent)
+            if node.parent not in self.workflow.operations: return QModelIndex()
+            return self.createIndex(self.workflow.operations.index(node.parent), 0, node.parent)
 
         return QModelIndex()
 
     def rowCount(self, parent=None, *args, **kwargs):
 
         if parent is None or not parent.isValid():
-            return len(self.workflow.processes)
+            return len(self.workflow.operations)
 
         node = parent.internalPointer()
-        if isinstance(node, ProcessingPlugin):
+        if isinstance(node, OperationPlugin):
             return len(node.hints)
 
         return 0
@@ -262,7 +278,7 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
     def flags(self, index):
         if index.parent().isValid():  # if index is a hint
             return Qt.ItemIsUserCheckable | Qt.ItemIsSelectable | Qt.ItemIsEnabled
-        elif index.internalPointer().hints:  # if index is a process with hints
+        elif index.internalPointer().hints:  # if index is a process with intents
             return Qt.ItemIsEnabled
         else:
             return
