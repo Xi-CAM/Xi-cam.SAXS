@@ -42,25 +42,26 @@ def correct_fastccd_image(images: np.ndarray,
 
     # TODO: is this pulling from the correct dark? we need of mapping of gain index to dark array?
 
-    if images.value.ndim not in [2, 3]:
-        raise ValueError(f"\"images\" expects a 2- or 3-dimensional image array; shape = \"{images.value.shape}\"")
+    if images.ndim not in [2, 3]:
+        raise ValueError(f"\"images\" expects a 2- or 3-dimensional image array; shape = \"{images.shape}\"")
 
-    flats = flats.value
+    flats = flats
     if flats is None:
         flats = 1
     elif flats.ndim != 2:
-        raise ValueError(f"\"flats\" should be 2-dimensional; shape = \"{flats.value.shape}\"")
+        raise ValueError(f"\"flats\" should be 2-dimensional; shape = \"{flats.shape}\"")
 
-    darks = darks.value
+    darks = darks
     if darks is None:
         darks = 0
     elif darks.ndim != 3:
-        raise ValueError(f"\"darks\" should be 3-dimensional; shape = \"{darks.value.shape}\"")
+        raise ValueError(f"\"darks\" should be 3-dimensional; shape = \"{darks.shape}\"")
     else:
         darks = np.sum(darks, axis=0) / darks.shape[0]
 
-    corrected_images.value = correct(np.asarray(images.value, dtype=np.uint16),
-                                     np.asarray(flats, dtype=np.float32),
-                                     np.asarray(darks, dtype=np.float32),
-                                     gains)
+    corrected_images = correct(np.asarray(images, dtype=np.uint16),
+                               np.asarray(flats, dtype=np.float32),
+                               np.asarray(darks, dtype=np.float32),
+                               gains)
+    return corrected_images
 
