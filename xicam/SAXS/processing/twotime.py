@@ -8,8 +8,8 @@ from typing import Tuple
 
 @operation
 @display_name('1-time Correlation')
-@input_names('data', 'labels', 'number_of_buffers', 'number_of_levels')
-@describe_input('data', 'dimensions are: (rr, cc), iterable of 2D arrays')
+@input_names('images', 'labels', 'number_of_buffers', 'number_of_levels')
+@describe_input('images', 'dimensions are: (rr, cc), iterable of 2D arrays')
 @describe_input('labels', 'labeled array of the same shape as the image stack;'
                           'each ROI is represented by a distinct label (i.e., integer)')
 @describe_input('num_bufs', 'maximum lag step to compute in each generation of downsampling (must be even)')
@@ -18,18 +18,18 @@ from typing import Tuple
 @output_names('g2', 'tau')
 @describe_output('g2', 'the normalized correlation shape is (num_rois, len(lag_steps), len(lag_steps))')
 @describe_output('tau', 'the times at which the correlation was computed')
-@visible('data', False)
+@visible('images', False)
 @visible('labels', False)
 @intent(ImageIntent, name='2-time Correlation', output_map={'image', 'g2'}, labels={"bottom": "&tau;<sub>1</sub>",
                                                                                     "left": "&tau;<sub>2</sub>"})
-def two_time_correlation(data: np.ndarray,
+def two_time_correlation(images: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,
                          num_levels: int = 8) -> Tuple[np.ndarray, np.ndarray]:
     #TODO -- make composite parameter item widget to allow default (all frames) or enter value
-    num_frames = len(data)
+    num_frames = len(images)
     corr = two_time_corr(labels.astype(np.int),
-                         np.asarray(data),
+                         np.asarray(images),
                          num_frames,
                          num_bufs,
                          num_levels)

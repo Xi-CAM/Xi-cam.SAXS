@@ -69,7 +69,7 @@ class TwoTime(XPCSWorkflow):
         super(TwoTime, self).__init__()
         twotime = two_time_correlation()
         self.add_operation(twotime)
-        self.add_link(self.correct_image, twotime, 'corrected_images', 'data')
+        self.add_link(self.correct_image, twotime, 'images', 'images')
 
     @staticmethod
     def document(**kwargs):
@@ -142,7 +142,7 @@ class OneTime(XPCSWorkflow):
         fitting = fit_scattering_factor()
         self.add_operation(fitting)
         # Manually set up connections
-        self.add_link(self.correct_image, onetime, "corrected_images", "data")
+        self.add_link(self.correct_image, onetime, "images", "images")
         self.add_link(onetime, fitting, "g2", "g2")
         self.add_link(onetime, fitting, "tau", "tau")
 
