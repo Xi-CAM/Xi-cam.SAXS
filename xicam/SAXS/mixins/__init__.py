@@ -15,20 +15,19 @@ from xicam.gui.models import IntentsModel, EnsembleModel
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
 
-from xicam.SAXS.calibration.workflows import SimulateWorkflow
-from xicam.SAXS.masking.workflows import MaskingWorkflow
-from xicam.SAXS.processing.workflows import DisplayWorkflow, ReduceWorkflow
-from xicam.SAXS.widgets.parametertrees import CorrelationParameterTree, TwoTimeParameterTree, OneTimeParameterTree
-from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPluginBase, QDockWidget, QLabel
-from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
-from xicam.SAXS.workflows.roi import ROIWorkflow
-from xicam.SAXS.workflows.xpcs import OneTime, TwoTime
+from ..calibration.workflows import SimulateWorkflow
+from ..masking.workflows import MaskingWorkflow
+from ..processing.workflows import DisplayWorkflow, ReduceWorkflow
+from ..widgets.parametertrees import CorrelationParameterTree, TwoTimeParameterTree, OneTimeParameterTree
+from ..widgets.SAXSViewerPlugin import SAXSViewerPluginBase, QDockWidget, QLabel
+from ..workflows.roi import ROIWorkflow
+from ..workflows.xpcs import OneTime, TwoTime
 
 # need to be late imports?
-from xicam.SAXS.calibration import CalibrationPanel
-from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer, SAXSCompareViewer
-from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
-from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
+from ..calibration import CalibrationPanel
+from ..widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer, SAXSCompareViewer
+from ..widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce
+from ..widgets.XPCSToolbar import XPCSToolBar
 
 
 # FIXME: the old way used TabWidget.currentWidget with XPCSToolBar...
@@ -299,6 +298,8 @@ class BaseSAXSGUIPlugin(GUIPlugin):
 
 
 class CorrelationGUIPlugin(BaseSAXSGUIPlugin):
+    name = 'XPCS'
+
     def __init__(self):
         super(CorrelationGUIPlugin, self).__init__()
 
