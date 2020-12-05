@@ -27,4 +27,4 @@ class SAXSPlugin(CorrelationGUIPlugin):
         # catalog.metadata.update(self.schema())
         ensemble = Ensemble()
         ensemble.append_catalog(catalog)
-        self.ensembleModel.add_ensemble(ensemble, project_all)
+        self.ensemble_model.add_ensemble(ensemble, project_all)
