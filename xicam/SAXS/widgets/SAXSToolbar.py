@@ -213,7 +213,7 @@ class SAXSToolbarMask(FieldSelector):
     pass
 
 
-class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector, FieldSelector):
+class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector):
     def __init__(self, *args, **kwargs):
         super(SAXSToolbarReduce, self).__init__(*args, **kwargs)
 

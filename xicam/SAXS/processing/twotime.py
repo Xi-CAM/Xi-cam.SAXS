@@ -7,7 +7,7 @@ from typing import Tuple
 
 
 @operation
-@display_name('1-time Correlation')
+@display_name('2-time Correlation')
 @input_names('images', 'labels', 'number_of_buffers', 'number_of_levels')
 @describe_input('images', 'dimensions are: (rr, cc), iterable of 2D arrays')
 @describe_input('labels', 'labeled array of the same shape as the image stack;'

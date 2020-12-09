@@ -39,7 +39,10 @@ from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 # # SAXS GUI Plugin mixin can use shared components
 # class SAXSGUIPlugin(CorrelationGUIPlugin, SAXSReductionGUIPlugin)
 
-class BaseSAXSGUIPlugin(GUIPlugin):
+from xicam.gui.plugins.ensembleguiplugin import EnsembleGUIPlugin
+
+
+class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
     # Re-implement abstract methods
     @property
     def exposedvars(self) -> Dict:
@@ -51,6 +54,7 @@ class BaseSAXSGUIPlugin(GUIPlugin):
     def __init__(self):
         super(BaseSAXSGUIPlugin, self).__init__()
 
+<<<<<<< Updated upstream
         self.ensemble_model = EnsembleModel()
         self.intents_model = IntentsModel()
         self.intents_model.setSourceModel(self.ensemble_model)
@@ -70,6 +74,28 @@ class BaseSAXSGUIPlugin(GUIPlugin):
         self.ensemble_view.setModel(self.ensemble_model)
         self.canvases_view = StackedCanvasView()
         self.canvases_view.setModel(self.intents_model)
+        # self.ensemble_model = EnsembleModel()
+        # self.intents_model = IntentsModel()
+        # self.intents_model.setSourceModel(self.ensemble_model)
+        #
+        # self.maskingworkflow = MaskingWorkflow()
+        # self.simulateworkflow = SimulateWorkflow()
+        # self.displayworkflow = DisplayWorkflow()
+        # self.reduceworkflow = ReduceWorkflow()
+        #
+        # self.toolbar = SAXSToolbarBase()
+        # # FIXME: should workflow editor always require a workflow?
+        # self.workflow_editor = WorkflowEditor(Workflow())
+        #
+        # self.field = "pilatus1M"
+        #
+        # self.ensemble_view = DataSelectorView()
+        # self.ensemble_view.setModel(self.ensemble_model)
+        # def blah(c, p):
+        #     print(f"\nselection changed:\n\tcurrent: {c.data(Qt.DisplayRole)}\n\tprevious: {p.data(Qt.DisplayRole)}")
+        # self.ensemble_view.selectionModel().currentChanged.connect(blah)
+        # self.canvases_view = StackedCanvasView()
+        # self.canvases_view.setModel(self.intents_model)
         
         # super(BaseSAXSGUIPlugin, self).__init__()
 
@@ -404,6 +430,33 @@ class BaseSAXSGUIPlugin(GUIPlugin):
 #                                          rightbottom=self.calibrationpanel,
 #                                          top=self.toolbar), }
 #         self.stages.update(**stages)
+class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
+    name = "Calibrate"
+
+    def __init__(self):
+        super(CalibrateGUIPlugin, self).__init__()
+
+        self.calibrationsettings = pluginmanager.get_plugin_by_name('xicam.SAXS.calibration',
+                                                                    'SettingsPlugin')
+
+        self.calibration_view = self.canvases_view
+
+        self.calibration_view = TabView(self.catalogModel, widgetcls=SAXSCalibrationViewer,
+                                        stream='primary', field=self.field,
+                                        selectionmodel=self.selectionmodel,
+                                        bindings=[(self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
+                                        geometry=self.getAI)
+
+        self.calibrationsettings.setModels(self.catalogModel, self.calibration_view.selectionmodel)
+        self.calibrationpanel = CalibrationPanel(self.catalogModel, self.calibration_view.selectionmodel)
+        self.calibrationpanel.sigDoCalibrateWorkflow.connect(self.doCalibrateWorkflow)
+        self.calibrationsettings.sigGeometryChanged.connect(self.doSimulateWorkflow)
+
+        stages = {'Calibrate': GUILayout(self.calibration_view,
+                                         right=self.calibrationsettings.widget,
+                                         rightbottom=self.calibrationpanel,
+                                         top=self.toolbar), }
+        self.stages.update(**stages)
 #
 #     @threads.method()
 #     def doCalibrateWorkflow(self, workflow: Workflow):
@@ -448,17 +501,18 @@ class BaseSAXSGUIPlugin(GUIPlugin):
 #                                       threadkey='simulate')
 #
 #
-# class CompareGUIPlugin(BaseSAXSGUIPlugin):
-#     name = "Compare"
-#
-#     def __init__(self):
-#         super(CompareGUIPlugin, self).__init__()
-#
-#         self.comparemultiview = QLabel("...")
-#
-#         stages = {'Compare': GUILayout(self.comparemultiview, top=self.toolbar,
-#                              right=QLabel('dataselectorview'))}
-#         self.stages.update(**stages)
+class CompareGUIPlugin(BaseSAXSGUIPlugin):
+    name = "Compare"
+
+    def __init__(self):
+        super(CompareGUIPlugin, self).__init__()
+
+        self.comparemultiview = QLabel("...")
+
+        stages = {'Compare': GUILayout(self.comparemultiview,
+                                       top=self.toolbar,
+                                       right=self.ensemble_view)}
+        self.stages.update(**stages)
 #
 #
 # class MaskGUIPlugin(BaseSAXSGUIPlugin):
@@ -490,6 +544,12 @@ class BaseSAXSGUIPlugin(GUIPlugin):
 #
 #         self.toolbar = SAXSToolbarReduce(self.catalogModel, self.selectionmodel,
 #                                                view=self.reducetabview.currentWidget, workflow=self.reduceworkflow)
+#
+#         self.toolbar = SAXSToolbarReduce(view=self.)
+#
+#
+#         self.toolbar = SAXSToolbarReduce(self.catalogModel, self.selectionmodel,
+#                                          view=self.reducetabview.currentWidget, workflow=self.reduceworkflow)
 #         # self.comparetoolbar = SAXSToolbarCompare()
 #         self.reducetabview.kwargs['toolbar'] = self.reducetoolbar
 #         self.reducetoolbar.sigDeviceChanged.connect(self.deviceChanged)
@@ -646,17 +706,4 @@ class CorrelationStage(BaseSAXSGUIPlugin):
                                    rightbottom=twotime_workflow_editor,
                                    top=self.toolbar)
         self.stages["Correlation"]["2-Time"] = twotime_layout
-
-
-
-
-# class OneTimeCorrelationStage(BaseSAXSGUIPlugin):
-#     name = "1-Time Correlation"
-#     def __init__(self):
-#         super(OneTimeCorrelationStage, self).__init__()
-
-        # onetime_workflow = OneTime()
-        # onetime_editor = WorkflowEditor(onetime_workflow)
-        # onetime_editor.sigRunWorkflow.connect(self.do_thing)
-        # onetime_editor.sigRunWorkflow.disconnect(onetime_editor.run_workflow)
 
