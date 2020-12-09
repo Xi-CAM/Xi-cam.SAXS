@@ -3,7 +3,6 @@ import skbeam.core.correlation as corr
 from astropy.modeling import Fittable1DModel, Parameter, fitting
 from xicam.core.intents import PlotIntent
 
-from xicam.plugins.hints import CoPlotHint, PlotHint
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories, intent
 from typing import Union, Tuple

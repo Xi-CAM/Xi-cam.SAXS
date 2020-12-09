@@ -8,7 +8,6 @@ from xicam.core.execution.workflow import Workflow
 from xicam.plugins import OperationPlugin
 from xicam.gui.widgets.menuview import MenuView
 from xicam.gui.widgets.ROI import ArcROI, LineROI, BetterPolyLineROI, RectROI, SegmentedRectROI
-from xicam.plugins import Hint
 from xicam.core import msg
 from functools import partial
 import pyqtgraph as pg
@@ -245,9 +244,10 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
         node = index.internalPointer()
         if isinstance(node, OperationPlugin):
             return QModelIndex()
-        if isinstance(node, Hint):
-            if node.parent not in self.workflow.operations: return QModelIndex()
-            return self.createIndex(self.workflow.operations.index(node.parent), 0, node.parent)
+        #FIXME
+        # if isinstance(node, Hint):
+        #     if node.parent not in self.workflow.operations: return QModelIndex()
+        #     return self.createIndex(self.workflow.operations.index(node.parent), 0, node.parent)
 
         return QModelIndex()
 
@@ -268,8 +268,9 @@ class CheckableWorkflowOutputModel(QAbstractItemModel):
     def data(self, index: QModelIndex, role):
         if role == Qt.DisplayRole:
             return index.internalPointer().name
-        elif role == Qt.CheckStateRole and isinstance(index.internalPointer(), Hint):
-            return index.internalPointer().checked
+        #FIXME
+        # elif role == Qt.CheckStateRole and isinstance(index.internalPointer(), Hint):
+        #     return index.internalPointer().checked
 
     def setData(self, index: QModelIndex, value, role=Qt.EditRole):
         if role == Qt.CheckStateRole:

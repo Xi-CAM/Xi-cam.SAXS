@@ -43,6 +43,7 @@ from xicam.gui.plugins.ensembleguiplugin import EnsembleGUIPlugin
 
 
 class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
+    name="SAXS"
     # Re-implement abstract methods
     @property
     def exposedvars(self) -> Dict:
@@ -54,7 +55,6 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
     def __init__(self):
         super(BaseSAXSGUIPlugin, self).__init__()
 
-<<<<<<< Updated upstream
         self.ensemble_model = EnsembleModel()
         self.intents_model = IntentsModel()
         self.intents_model.setSourceModel(self.ensemble_model)
@@ -688,6 +688,7 @@ class CompareGUIPlugin(BaseSAXSGUIPlugin):
 #                                                # workflow_pickle=workflow_pickle))
 
 class CorrelationStage(BaseSAXSGUIPlugin):
+    name = "Correlation"
     # TODO: This doesn't really need to be two separate stages...
     def __init__(self):
         super(CorrelationStage, self).__init__()
