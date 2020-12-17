@@ -13,6 +13,9 @@ here = path.abspath(path.dirname(__file__))
 with open(path.join(here, 'requirements.txt'), encoding='utf-8') as f:
     all_reqs = f.read().split('\n')
 
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
 install_requires = [x.strip() for x in all_reqs]  # if 'git+' not in x]
 
 setup(
@@ -21,11 +24,12 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.1.0',
+    version='0.2.0',
 
-    description='The CAMERA platform for synchrotron data management, visualization, and reduction. The xicam.gui '
-                'package contains all gui code of the Xi-cam platform, as part of the xicam namespace package. For the '
-                'backend components, see "xicam.core".',
+    description="SAXS GUI Interface",
+
+    long_description=long_description,
+    long_description_content_type="text/markdown",
 
     # The project's main homepage.
     url='https://github.com/ronpandolfi/Xi-cam',
