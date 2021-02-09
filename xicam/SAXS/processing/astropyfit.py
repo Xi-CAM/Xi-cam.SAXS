@@ -1,4 +1,4 @@
-from xicam.plugins import OperationPlugin, PlotHint
+from xicam.plugins import OperationPlugin
 import numpy as np
 from astropy.modeling import fitting
 from astropy.modeling import Fittable1DModel

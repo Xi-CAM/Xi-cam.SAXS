@@ -8,7 +8,6 @@ from xicam.core.execution.workflow import Workflow
 from xicam.plugins import OperationPlugin
 from xicam.gui.widgets.menuview import MenuView
 from xicam.gui.widgets.ROI import ArcROI, LineROI, BetterPolyLineROI, RectROI, SegmentedRectROI
-from xicam.plugins import Hint
 from xicam.core import msg
 from functools import partial
 import pyqtgraph as pg
@@ -213,7 +212,7 @@ class SAXSToolbarMask(FieldSelector):
     pass
 
 
-class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector, FieldSelector):
+class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector):
     def __init__(self, *args, **kwargs):
         super(SAXSToolbarReduce, self).__init__(*args, **kwargs)
 
@@ -221,70 +220,3 @@ class SAXSToolbarReduce(MultiPlot, ROIs, ModeSelector, FieldSelector):
 # class  SAXSToolbarCompare(ResultsModeSelector):
 #     pass
 
-
-class CheckableWorkflowOutputModel(QAbstractItemModel):
-    def __init__(self, workflow: Workflow, *args):
-        super(CheckableWorkflowOutputModel, self).__init__(*args)
-        self.workflow = workflow
-        self.workflow.attach(partial(self.modelReset.emit))
-
-    def index(self, row, column, parent=None):
-        if parent is None or not parent.isValid():
-            if row > len(self.workflow.operations) - 1: return QModelIndex()
-            return self.createIndex(row, column, self.workflow.operations[row])
-
-        parentNode = parent.internalPointer()
-
-        if isinstance(parentNode, OperationPlugin):
-            return self.createIndex(row, column, parentNode.hints[row])
-        return QModelIndex()
-
-    def parent(self, index):
-        if not index.isValid():
-            return QModelIndex()
-        node = index.internalPointer()
-        if isinstance(node, OperationPlugin):
-            return QModelIndex()
-        if isinstance(node, Hint):
-            if node.parent not in self.workflow.operations: return QModelIndex()
-            return self.createIndex(self.workflow.operations.index(node.parent), 0, node.parent)
-
-        return QModelIndex()
-
-    def rowCount(self, parent=None, *args, **kwargs):
-
-        if parent is None or not parent.isValid():
-            return len(self.workflow.operations)
-
-        node = parent.internalPointer()
-        if isinstance(node, OperationPlugin):
-            return len(node.hints)
-
-        return 0
-
-    def columnCount(self, parent=None, *args, **kwargs):
-        return 1
-
-    def data(self, index: QModelIndex, role):
-        if role == Qt.DisplayRole:
-            return index.internalPointer().name
-        elif role == Qt.CheckStateRole and isinstance(index.internalPointer(), Hint):
-            return index.internalPointer().checked
-
-    def setData(self, index: QModelIndex, value, role=Qt.EditRole):
-        if role == Qt.CheckStateRole:
-            index.internalPointer().checked = value
-
-    def flags(self, index):
-        if index.parent().isValid():  # if index is a hint
-            return Qt.ItemIsUserCheckable | Qt.ItemIsSelectable | Qt.ItemIsEnabled
-        elif index.internalPointer().hints:  # if index is a process with intents
-            return Qt.ItemIsEnabled
-        else:
-            return
-
-    def checkedIndices(self):
-        return [self.index(hintindex, 0, self.index(procindex, 0))
-                for procindex in range(self.rowCount())
-                for hintindex in range(self.rowCount(self.index(procindex, 0)))
-                if self.data(self.index(hintindex, 0, self.index(procindex, 0)), Qt.CheckStateRole)]
