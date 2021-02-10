@@ -8,6 +8,9 @@ from xarray import DataArray
 import mimetypes
 
 mimetypes.add_type('application/x-hdf5', '.hdf5')
+I_PROJECTION_KEY = 'sasentry/sasdata/I'
+QX_PROJECTION_KEY = 'sasentry/sasdata/Qx'
+QY_PROJECTION_KEY = 'sasentry/sasdata/Qy'
 
 
 def ingest_nxcanSAS(paths):
@@ -27,15 +30,15 @@ def ingest_nxcanSAS(paths):
     projections = [{'name': 'NXcanSAS',
                     'version': '0.1.0',
                     'projection':
-                        {'sasentry/sasdata/I': {'type': 'linked',
+                        {I_PROJECTION_KEY: {'type': 'linked',
                                                 'stream': 'primary',
                                                 'location': 'event',
                                                 'field': 'I'},
-                         'sasentry/sasdata/Qx': {'type': 'linked',
+                         QX_PROJECTION_KEY: {'type': 'linked',
                                                  'stream': 'primary',
                                                  'location': 'event',
                                                  'field': 'Qx'},
-                         'sasentry/sasdata/Qy': {'type': 'linked',
+                         QY_PROJECTION_KEY: {'type': 'linked',
                                                  'stream': 'primary',
                                                  'location': 'event',
                                                  'field': 'Qy'},
