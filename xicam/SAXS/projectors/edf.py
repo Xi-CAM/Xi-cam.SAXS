@@ -1,10 +1,14 @@
 from xicam.SAXS.intents import SAXSImageIntent
 from xicam.SAXS.ingestors.edf_ingestor import DATA_PROJECTION_KEY
+from xicam.core.data import ProjectionNotFound
 
 
 def project_NXsas(run_catalog):
     projection = next(
-        filter(lambda projection: projection['name'] == 'NXSAS', run_catalog.metadata['start']['projections']))
+        filter(lambda projection: projection['name'] == 'NXSAS', run_catalog.metadata['start']['projections']), None)
+
+    if not projection:
+        raise ProjectionNotFound("Could not find projection named 'NXSAS'.")
 
     data_stream = projection['projection'][DATA_PROJECTION_KEY]['stream']
     data_field = projection['projection'][DATA_PROJECTION_KEY]['field']

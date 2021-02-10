@@ -5,6 +5,9 @@ from databroker.core import BlueskyRun
 from qtpy.QtCore import QItemSelectionModel, Qt
 from qtpy.QtGui import QStandardItemModel
 import numpy as np
+from xicam.SAXS.projectors.edf import project_NXsas
+from xicam.SAXS.projectors.nxcansas import project_nxcanSAS
+from xicam.XPCS.projectors.nexus import project_nxXPCS
 
 from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
@@ -54,6 +57,9 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
 
     def __init__(self):
         super(BaseSAXSGUIPlugin, self).__init__()
+
+        # Add in appropriate projectors here
+        self._projectors.extend([project_NXsas, project_nxcanSAS])
 
         self.ensemble_model = EnsembleModel()
         self.intents_model = IntentsModel()
@@ -692,6 +698,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
     # TODO: This doesn't really need to be two separate stages...
     def __init__(self):
         super(CorrelationStage, self).__init__()
+
         self.stages["Correlation"] = {}
 
         onetime_workflow_editor = WorkflowEditor(OneTime())
