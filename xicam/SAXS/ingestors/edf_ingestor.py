@@ -1,30 +1,35 @@
-import time
-import event_model
 import fabio
 import mimetypes
 
+from bluesky_live.run_builder import RunBuilder
+
 mimetypes.add_type('application/x-edf', '.edf')
+DATA_PROJECTION_KEY = "/entry/instrument/detector/data"
 
 
-
+# TODO: add lazy-support
 def edf_ingestor(paths):
-    # TODO -- metadata?
-    # TODO -- use Datum and Resources
-    timestamp = time.time()  # TODO -- use start_doc's time (if it has one)?
-    run_bundle = event_model.compose_run()
-    yield "start", run_bundle.start_doc
+    projections = [{'name': 'NXSAS',
+                    'version': '0.1.0',
+                    'projection':
+                        {DATA_PROJECTION_KEY: {'type': 'linked',
+                                               'stream': 'primary',
+                                               'location': 'event',
+                                               'field': 'image'}},
+                    'configuration': {'ask': 'Dylan'}  # FIXME: ask Dylan. do we need this in all our other projections?
+                    }]
 
-    with fabio.open(paths[0]) as first_frame:
-        field = "pilatus1M"
-        source = "Beamline 7.3.3"
-        shape = list(first_frame.data.shape)
-        frame_data_keys = {field: {"source": source, "dtype": "number", "shape": shape}}
-        frame_stream_name = "primary"
-        frame_stream_bundle = run_bundle.compose_descriptor(data_keys=frame_data_keys, name=frame_stream_name)
-        yield "descriptor", frame_stream_bundle.descriptor_doc
+    data = None
+    with fabio.open(paths[0]) as file:
+        data = file.data
 
-    for path in paths:
-        with fabio.open(path) as frame:
-            yield "event", frame_stream_bundle.compose_event(data={field: frame.data},
-                                                             timestamps={field: timestamp})
-    yield "stop", run_bundle.compose_stop()
+    metadata = {'projections': projections}
+    with RunBuilder(metadata=metadata) as builder:
+        builder.add_stream("primary",
+                           data={'image': data})
+                           # data_keys={'image': {'source': 'Beamline 7.3.3',
+                           #                      'dtype': 'array',
+                           #                      'shape': data.shape}})
+
+    builder.get_run()
+    yield from builder._cache
