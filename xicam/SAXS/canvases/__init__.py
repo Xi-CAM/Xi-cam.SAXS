@@ -28,19 +28,5 @@ class SAXSImageIntentCanvas(ImageIntentCanvas):
     def __init__(self, *args, **kwargs):
         super(SAXSImageIntentCanvas, self).__init__(*args, **kwargs)
 
-    def render(self, intent):
-        if not self.canvas_widget:
-            bases_names = intent.mixins or tuple()
-            bases = map(lambda name: plugin_manager.type_mapping['ImageMixinPlugin'][name], bases_names)
-            self.canvas_widget = type('ImageViewBlend', (*bases, ImageView), {})()
-            self.canvas_widget.toolbar.view = self.canvas_widget
-            self.layout().addWidget(self.canvas_widget)
-            self.canvas_widget.imageItem.setOpts(imageAxisOrder='row-major')
-
-        kwargs = intent.kwargs.copy()
-        for key, value in kwargs.items():
-            if isinstance(value, DataArray):
-                kwargs[key] = np.asanyarray(value).squeeze()
-
-        # TODO: add rendering logic for ROI intents
-        return self.canvas_widget.setImage(np.asarray(intent.image).squeeze(), **kwargs)
+    def render(self, intent, **_):
+        super(SAXSImageIntentCanvas, self).render(intent, mixins=["SAXSImageIntentBlend"])
