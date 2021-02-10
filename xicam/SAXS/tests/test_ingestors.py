@@ -1,10 +1,9 @@
 import os
 import entrypoints
 import numpy as np
-from databroker.in_memory import BlueskyInMemoryCatalog
 
 
-def test_ingestor(tmp_path):
+def test_edf_ingestor(tmp_path):
     from fabio.edfimage import EdfImage
     # test data
     data = np.random.random((1000, 1000))
@@ -19,7 +18,6 @@ def test_ingestor(tmp_path):
     # load data into catalog
     document = list(edf_ingestor([edf_path]))
     uid = document[0][1]["uid"]
-    catalog = BlueskyInMemoryCatalog()
-    # TODO -- change upsert signature to put start and stop as kwargs
-    # TODO -- ask about more convenient way to get a BlueskyRun from a document generator
-    catalog.upsert(document[0][1], document[-1][1], edf_ingestor, ([edf_path],), {})
+
+    # TODO: actually do some assertions in here (assert the keys are correct in the descriptor)
+    #  (assert data is image) ...
