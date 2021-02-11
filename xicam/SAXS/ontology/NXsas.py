@@ -1,0 +1,1 @@
+DATA_PROJECTION_KEY = "/entry/instrument/detector/data"

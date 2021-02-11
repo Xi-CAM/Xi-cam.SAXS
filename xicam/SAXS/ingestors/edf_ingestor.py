@@ -1,10 +1,10 @@
 import fabio
 import mimetypes
+from xicam.SAXS.ontology import NXsas
 
 from bluesky_live.run_builder import RunBuilder
 
 mimetypes.add_type('application/x-edf', '.edf')
-DATA_PROJECTION_KEY = "/entry/instrument/detector/data"
 
 
 # TODO: add lazy-support
@@ -12,7 +12,7 @@ def edf_ingestor(paths):
     projections = [{'name': 'NXSAS',
                     'version': '0.1.0',
                     'projection':
-                        {DATA_PROJECTION_KEY: {'type': 'linked',
+                        {NXsas.DATA_PROJECTION_KEY: {'type': 'linked',
                                                'stream': 'primary',
                                                'location': 'event',
                                                'field': 'image'}},
