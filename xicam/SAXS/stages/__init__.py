@@ -4,10 +4,13 @@ from typing import Dict
 from databroker.core import BlueskyRun
 from qtpy.QtCore import QItemSelectionModel, Qt
 from qtpy.QtGui import QStandardItemModel
+from qtpy.QtWidgets import QDialog, QListView, QWidget, QListWidget, QHBoxLayout, QPushButton, QDialogButtonBox, \
+    QVBoxLayout
 import numpy as np
+
+from xicam.SAXS.intents import SAXSImageIntent
 from xicam.SAXS.projectors.edf import project_NXsas
 from xicam.SAXS.projectors.nxcansas import project_nxcanSAS
-from xicam.XPCS.projectors.nexus import project_nxXPCS
 
 from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
@@ -18,7 +21,7 @@ from xicam.gui.models import IntentsModel, EnsembleModel
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
 
-from xicam.SAXS.calibration.workflows import SimulateWorkflow
+from xicam.SAXS.calibration.workflows import SimulateWorkflow, FourierCalibrationWorkflow
 from xicam.SAXS.masking.workflows import MaskingWorkflow
 from xicam.SAXS.processing.workflows import DisplayWorkflow, ReduceWorkflow
 from xicam.SAXS.widgets.parametertrees import CorrelationParameterTree, TwoTimeParameterTree, OneTimeParameterTree
@@ -442,27 +445,102 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
     def __init__(self):
         super(CalibrateGUIPlugin, self).__init__()
 
-        self.calibrationsettings = pluginmanager.get_plugin_by_name('xicam.SAXS.calibration',
-                                                                    'SettingsPlugin')
+        self.calibration_workflow = FourierCalibrationWorkflow()
+        self.calibration_panel = WorkflowEditor(self.calibration_workflow, kwargs_callable=self.begin_calibrate)
 
-        self.calibration_view = self.canvases_view
+        self.calibrate_layout = GUILayout(self.canvases_view,
+                                          right=self.ensemble_view,
+                                          rightbottom=self.calibration_panel,
+                                          top=self.toolbar)
+        # stages = {'Calibrate': GUILayout(self.calibration_view,
+        #                                  right=self.calibrationsettings.widget,
+        #                                  rightbottom=self.calibrationpanel,
+        #                                  top=self.toolbar), }
+        stages = {'Calibrate': self.calibrate_layout}
 
-        self.calibration_view = TabView(self.catalogModel, widgetcls=SAXSCalibrationViewer,
-                                        stream='primary', field=self.field,
-                                        selectionmodel=self.selectionmodel,
-                                        bindings=[(self.calibrationsettings.sigGeometryChanged, 'setGeometry')],
-                                        geometry=self.getAI)
-
-        self.calibrationsettings.setModels(self.catalogModel, self.calibration_view.selectionmodel)
-        self.calibrationpanel = CalibrationPanel(self.catalogModel, self.calibration_view.selectionmodel)
-        self.calibrationpanel.sigDoCalibrateWorkflow.connect(self.doCalibrateWorkflow)
-        self.calibrationsettings.sigGeometryChanged.connect(self.doSimulateWorkflow)
-
-        stages = {'Calibrate': GUILayout(self.calibration_view,
-                                         right=self.calibrationsettings.widget,
-                                         rightbottom=self.calibrationpanel,
-                                         top=self.toolbar), }
         self.stages.update(**stages)
+
+    def begin_calibrate(self, _):
+        # get catalogs from active ensemble
+        active_ensemble = self.ensemble_model.active_ensemble
+        if not active_ensemble:
+            return
+
+        active_catalogs = self.ensemble_model.catalogs_from_ensemble(active_ensemble)
+
+        class CalibrationDialog(QDialog):
+            """Dialog for calibrating images.
+
+            User can select from a list of catalogs (pulled from the active ensemble),
+            preview, and calibrate the image data.
+            """
+            def __init__(self, catalogs: List[BlueskyRun], parent=None, window_flags=Qt.WindowFlags()):
+                super(CalibrationDialog, self).__init__(parent, window_flags)
+
+                self.preview_widget = PreviewWidget()
+
+                self._catalogs = catalogs
+
+                self.catalog_selector = QListWidget()
+                self.catalog_selector.addItems(map(lambda catalog: catalog.name, self._catalogs))
+                self.catalog_selector.currentRowChanged.connect(self._update_preview)
+
+                calibrate_button = QPushButton("&Calibrate")
+                calibrate_button.setDefault(True)
+
+                self.buttons = QDialogButtonBox(Qt.Horizontal)
+                # Add calibration button that accepts the dialog (closes with 1 status)
+                self.buttons.addButton(calibrate_button, QDialogButtonBox.AcceptRole)
+                # Add a cancel button that will reject the dialog (closes with 0 status)
+                self.buttons.addButton(QDialogButtonBox.Cancel)
+
+                self.buttons.rejected.connect(self.reject)
+                self.buttons.accepted.connect(self.accept)
+
+                layout = QHBoxLayout()
+                layout.addWidget(self.catalog_selector)
+                layout.addWidget(self.preview_widget)
+
+                outer_layout = QVBoxLayout()
+                outer_layout.addLayout(layout)
+                outer_layout.addWidget(self.buttons)
+                self.setLayout(outer_layout)
+
+            def _update_preview(self, row: int):
+                self.preview_widget.preview_catalog(self._catalogs[row])
+
+            def get_catalog(self):
+                return self._catalogs[self.catalog_selector.currentRow()]
+
+        if not active_catalogs:
+            msg.logMessage("No catalogs in active ensemble found, cannot calibrate.", msg.WARNING)
+            return
+
+        dialog = CalibrationDialog(active_catalogs)
+        accepted = dialog.exec_()
+
+        # Only calibrate if the dialog was accepted via the calibrate button
+        if not accepted == QDialog.Accepted:
+            return
+
+        catalog = dialog.get_catalog()
+
+        # TODO: better user feedback that there are no catalogs? (is that possible?)
+        if not catalog:
+            return
+
+        # find the saxsimageintent in this catalog
+        intents = self.ensemble_model.intents_from_catalog(catalog)
+
+        image_intent = next(iter(filter(lambda intent: isinstance(intent, SAXSImageIntent), intents)))
+        data = image_intent.image
+        return {"data":data}
+
+
+    def set_calibration(self, results):
+        print(results)
+
+
 #
 #     @threads.method()
 #     def doCalibrateWorkflow(self, workflow: Workflow):
