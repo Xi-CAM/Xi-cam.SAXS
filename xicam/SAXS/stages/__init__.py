@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Dict
+from typing import Dict, List
 
 from databroker.core import BlueskyRun
 from qtpy.QtCore import QItemSelectionModel, Qt
@@ -15,6 +15,7 @@ from xicam.SAXS.projectors.nxcansas import project_nxcanSAS
 from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
 from xicam.core.execution import Workflow
+from xicam.gui.widgets import PreviewWidget
 from xicam.gui.widgets.tabview import TabView
 from xicam.plugins import GUILayout, GUIPlugin, manager as pluginmanager
 from xicam.gui.models import IntentsModel, EnsembleModel
