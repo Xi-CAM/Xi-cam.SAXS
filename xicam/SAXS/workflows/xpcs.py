@@ -4,11 +4,11 @@ import event_model
 
 from xicam.core.execution import Workflow
 
-from ..processing.fitting import fit_scattering_factor
-from ..processing.fourierautocorrelator import fourier_correlation
-from ..processing.onetime import one_time_correlation
-from ..processing.twotime import two_time_correlation
-from ..processing.correction import correct_fastccd_image
+from ..operations.fitting import fit_scattering_factor
+from ..operations.fourierautocorrelator import fourier_correlation
+from ..operations.onetime import one_time_correlation
+from ..operations.twotime import two_time_correlation
+from ..operations.correction import correct_fastccd_image
 
 
 class ProcessingAlgorithms:

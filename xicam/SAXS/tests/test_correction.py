@@ -5,7 +5,7 @@ import numpy as np
 
 from xicam.core.execution.daskexecutor import DaskExecutor
 from xicam.core.execution.workflow import Workflow
-from xicam.SAXS.processing.correction import correct_fastccd_image
+from xicam.SAXS.operations.correction import correct_fastccd_image
 
 # Try to compare against the csxtools implementation...
 # Differences:

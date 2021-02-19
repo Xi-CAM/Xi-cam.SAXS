@@ -6,7 +6,7 @@ def test_VerticalCut():
 
     from qtpy.QtWidgets import QApplication
     app = QApplication([])
-    from xicam.SAXS.processing.verticalcuts import VerticalCutPlugin
+    from xicam.SAXS.operations.verticalcuts import VerticalCutPlugin
     t1 = VerticalCutPlugin()
     t1.data.value = np.ones((10, 10))
     t1.qz.value = np.tile(np.arange(10), (1, 10))

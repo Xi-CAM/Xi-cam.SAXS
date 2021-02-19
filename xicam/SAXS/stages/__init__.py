@@ -22,9 +22,9 @@ from xicam.gui.models import IntentsModel, EnsembleModel
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
 
-from xicam.SAXS.calibration.workflows import SimulateWorkflow, FourierCalibrationWorkflow
+from xicam.SAXS.calibration.workflows import SimulateWorkflow, FourierCalibrationWorkflow, CalibrationWorkflow
 from xicam.SAXS.masking.workflows import MaskingWorkflow
-from xicam.SAXS.processing.workflows import DisplayWorkflow, ReduceWorkflow
+from xicam.SAXS.operations.workflows import DisplayWorkflow, ReduceWorkflow
 from xicam.SAXS.widgets.parametertrees import CorrelationParameterTree, TwoTimeParameterTree, OneTimeParameterTree
 from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPluginBase, QDockWidget, QLabel
 from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
@@ -446,8 +446,11 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
     def __init__(self):
         super(CalibrateGUIPlugin, self).__init__()
 
-        self.calibration_workflow = FourierCalibrationWorkflow()
-        self.calibration_panel = WorkflowEditor(self.calibration_workflow, kwargs_callable=self.begin_calibrate)
+        self.calibration_workflow = CalibrationWorkflow()
+        self.calibration_panel = WorkflowEditor(self.calibration_workflow,
+                                                kwargs_callable=self.begin_calibrate,
+                                                wavelength_override=0.124e-9,
+                                                callback_slot=self.set_calibration)
 
         self.calibrate_layout = GUILayout(self.canvases_view,
                                           right=self.ensemble_view,
@@ -535,11 +538,22 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
 
         image_intent = next(iter(filter(lambda intent: isinstance(intent, SAXSImageIntent), intents)))
         data = image_intent.image
-        return {"data":data}
+        return {"data": data}
 
 
     def set_calibration(self, results):
+        # TODO: confirmation dialog of calibration (or dialog of error)
         print(results)
+        ai = results['azimuthal_integrator']
+
+        # Find all intents within active ensemble, and set their geometry
+        saxs_image_intents = filter(lambda intent: isinstance(intent, SAXSImageIntent),
+                                    self.ensemble_model.intents_from_ensemble(self.ensemble_model.active_ensemble))
+
+        def _set_geometry(intent):
+            intent.geometry = ai
+
+        map(_set_geometry, saxs_image_intents)
 
 
 #

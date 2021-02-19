@@ -7,3 +7,5 @@ class SAXSImageIntent(ImageIntent):
 
     def __init__(self, image, *args, **kwargs):
         super(SAXSImageIntent, self).__init__(image, *args, **kwargs)
+
+        self.geometry = None

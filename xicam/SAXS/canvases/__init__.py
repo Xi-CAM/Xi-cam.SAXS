@@ -30,3 +30,4 @@ class SAXSImageIntentCanvas(ImageIntentCanvas):
 
     def render(self, intent, **_):
         super(SAXSImageIntentCanvas, self).render(intent, mixins=["SAXSImageIntentBlend"])
+        self.canvas_widget.setGeometry(intent.geometry)

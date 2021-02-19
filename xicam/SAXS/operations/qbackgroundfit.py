@@ -28,7 +28,7 @@ class QBackgroundFit(OperationPlugin):
         print("find_peak_ranges")
         ...
         # must be a late import to avoid being picked up first by plugin manager
-        # from xicam.SAXS.processing.astropyfit import AstropyQSpectraFit
+        # from xicam.SAXS.operations.astropyfit import AstropyQSpectraFit
         # thisindex = self._workflow.processes.index(self)
         # self.peakranges = [(process.domainmin.value, process.domainmax.value)
         #                    for process in self._workflow.processes[thisindex + 1:]
@@ -96,7 +96,7 @@ class QBackgroundFit(OperationPlugin):
 #         return super(QBackgroundFit, self).parameter
 #
 #     def find_peak_ranges(self):
-#         from xicam.SAXS.processing.astropyfit import \
+#         from xicam.SAXS.operations.astropyfit import \
 #             AstropyQSpectraFit  # must be a late import to avoid being picked up first by plugin manager
 #         thisindex = self._workflow.processes.index(self)
 #         self.peakranges = [(process.domainmin.value, process.domainmax.value)

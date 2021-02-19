@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from xicam.SAXS.processing.twotime import two_time_correlation
+from xicam.SAXS.operations.twotime import two_time_correlation
 
 
 def test_twotime(self):
