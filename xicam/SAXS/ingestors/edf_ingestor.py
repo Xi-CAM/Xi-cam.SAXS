@@ -16,7 +16,7 @@ def edf_ingestor(paths):
                                                'stream': 'primary',
                                                'location': 'event',
                                                'field': 'image'}},
-                    'configuration': {'ask': 'Dylan'}  # FIXME: ask Dylan. do we need this in all our other projections?
+                    'configuration': {}
                     }]
 
     data = None
@@ -27,6 +27,8 @@ def edf_ingestor(paths):
     with RunBuilder(metadata=metadata) as builder:
         builder.add_stream("primary",
                            data={'image': data})
+
+    # TODO: add shape info here
                            # data_keys={'image': {'source': 'Beamline 7.3.3',
                            #                      'dtype': 'array',
                            #                      'shape': data.shape}})
