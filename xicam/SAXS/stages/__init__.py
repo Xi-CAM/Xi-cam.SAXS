@@ -555,6 +555,8 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
 
         map(_set_geometry, saxs_image_intents)
 
+        # drop all canvases and refresh
+        self.canvases_view.refresh()
 
 #
 #     @threads.method()
