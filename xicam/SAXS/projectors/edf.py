@@ -16,6 +16,6 @@ def project_NXsas(run_catalog):
     data = getattr(run_catalog, data_stream).to_dask().rename({data_field: NXsas.DATA_PROJECTION_KEY})
 
     intents_list = []
-    intents_list.append(SAXSImageIntent(image=data[NXsas.DATA_PROJECTION_KEY], item_name='Scattering Image Data'))
+    intents_list.append(SAXSImageIntent(image=data[NXsas.DATA_PROJECTION_KEY], name='Scattering Image Data'))
 
     return intents_list
