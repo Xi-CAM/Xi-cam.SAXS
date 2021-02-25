@@ -7,7 +7,7 @@ from xicam.plugins import manager as plugin_manager
 from xicam.plugins import live_plugin
 from xicam.gui.canvases import ImageIntentCanvas
 from xicam.gui.widgets.imageviewmixins import LogScaleIntensity, ImageViewHistogramOverflowFix, \
-    QCoordinates, Crosshair, BetterButtons, CenterMarker, ToolbarLayout
+    QCoordinates, Crosshair, BetterButtons, CenterMarker, ToolbarLayout, EwaldCorrected
 
 
 @live_plugin("ImageMixinPlugin")
@@ -19,7 +19,7 @@ class SAXSToolbarMixin(ToolbarLayout):
 
 
 @live_plugin("ImageMixinPlugin")
-class SAXSImageIntentBlend(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates,
+class SAXSImageIntentBlend(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, EwaldCorrected,
                            ImageViewHistogramOverflowFix, SAXSToolbarMixin):# LogButtons):
     ...
 
