@@ -23,25 +23,22 @@ def edf_ingestor(paths):
                     'configuration': {}
                     }]
 
-    data = None
     d = None
     with fabio.open(paths[0]) as file:
         d = file.data
-        data = DataArray(d)
 
     metadata = {'projections': projections}
     data_keys = {'image': {'source': 'Beamline 7.3.3',
                            'dtype': 'array',
-                           'shape': data.shape,
-                           # 'shape': (3,),
-                           'dims': data.dims,}}
+                           'shape': d.shape,
+                           'dims': ('dim_0', 'dim_1')}}
     with RunBuilder(metadata=metadata) as builder:
         builder.add_stream("primary",
-                           data={'image': data},
-                           # data={'image': [1,2,3]},
+                           #NOTE: Put data in list, since Runbuilder.add_stream expects
+                           #a sequence number to add event_page
+                           data={'image': [d]},
                            data_keys=data_keys,
                            )
-
 
     builder.get_run()
     yield from builder._cache
