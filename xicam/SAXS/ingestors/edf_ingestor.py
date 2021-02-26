@@ -1,6 +1,10 @@
 import fabio
 import mimetypes
+import time
 from xicam.SAXS.ontology import NXsas
+from xarray import DataArray
+import dask.array as da
+
 
 from bluesky_live.run_builder import RunBuilder
 
@@ -19,19 +23,22 @@ def edf_ingestor(paths):
                     'configuration': {}
                     }]
 
-    data = None
+    d = None
     with fabio.open(paths[0]) as file:
-        data = file.data
+        d = file.data
 
     metadata = {'projections': projections}
+    data_keys = {'image': {'source': 'Beamline 7.3.3',
+                           'dtype': 'array',
+                           'shape': d.shape,
+                           'dims': ('dim_0', 'dim_1')}}
     with RunBuilder(metadata=metadata) as builder:
         builder.add_stream("primary",
-                           data={'image': data})
-
-    # TODO: add shape info here
-                           # data_keys={'image': {'source': 'Beamline 7.3.3',
-                           #                      'dtype': 'array',
-                           #                      'shape': data.shape}})
+                           #NOTE: Put data in list, since Runbuilder.add_stream expects
+                           #a sequence number to add event_page
+                           data={'image': [d]},
+                           data_keys=data_keys,
+                           )
 
     builder.get_run()
     yield from builder._cache
