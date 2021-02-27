@@ -15,9 +15,11 @@ from xicam.SAXS.projectors.nxcansas import project_nxcanSAS
 from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
 from xicam.core.execution import Workflow
+from xicam.gui.canvases import XicamIntentCanvas
 from xicam.gui.widgets import PreviewWidget
+from xicam.gui.widgets.ROI import ROIOperation
 from xicam.gui.widgets.tabview import TabView
-from xicam.plugins import GUILayout, GUIPlugin, manager as pluginmanager
+from xicam.plugins import GUILayout, GUIPlugin, manager as pluginmanager, OperationPlugin
 from xicam.gui.models import IntentsModel, EnsembleModel
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
 from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
@@ -47,6 +49,7 @@ from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 # class SAXSGUIPlugin(CorrelationGUIPlugin, SAXSReductionGUIPlugin)
 
 from xicam.gui.plugins.ensembleguiplugin import EnsembleGUIPlugin
+from xicam.gui.actions import Action
 
 
 class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
@@ -65,9 +68,9 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
         # Add in appropriate projectors here
         self._projectors.extend([project_NXsas, project_nxcanSAS])
 
-        self.ensemble_model = EnsembleModel()
-        self.intents_model = IntentsModel()
-        self.intents_model.setSourceModel(self.ensemble_model)
+        # self.ensemble_model = EnsembleModel()
+        # self.intents_model = IntentsModel()
+        # self.intents_model.setSourceModel(self.ensemble_model)
 
         self.maskingworkflow = MaskingWorkflow()
         self.simulateworkflow = SimulateWorkflow()
@@ -75,15 +78,17 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
         self.reduceworkflow = ReduceWorkflow()
 
         self.toolbar = SAXSToolbarBase()
-        # FIXME: should workflow editor always require a workflow?
-        self.workflow_editor = WorkflowEditor(Workflow())
+        # # FIXME: should workflow editor always require a workflow?
+        # self.workflow_editor = WorkflowEditor(Workflow())
+        #
+        # self.field = "pilatus1M"
+        #
+        # self.ensemble_view = DataSelectorView()
+        # self.ensemble_view.setModel(self.ensemble_model)
+        # self.canvases_view = StackedCanvasView()
+        # self.canvases_view.setModel(self.intents_model)
 
-        self.field = "pilatus1M"
 
-        self.ensemble_view = DataSelectorView()
-        self.ensemble_view.setModel(self.ensemble_model)
-        self.canvases_view = StackedCanvasView()
-        self.canvases_view.setModel(self.intents_model)
         # self.ensemble_model = EnsembleModel()
         # self.intents_model = IntentsModel()
         # self.intents_model.setSourceModel(self.ensemble_model)
@@ -796,17 +801,39 @@ class CorrelationStage(BaseSAXSGUIPlugin):
 
         self.stages["Correlation"] = {}
 
-        onetime_workflow_editor = WorkflowEditor(OneTime())
-        onetime_layout = GUILayout(center=self.canvases_view,
+        self.workflow = OneTime()
+        correlation_workflow_editor = WorkflowEditor(self.workflow, kwargs_callable=self.get_active_images)
+        correlation_layout = GUILayout(center=self.canvases_view,
                                    right=self.ensemble_view,
-                                   rightbottom=onetime_workflow_editor,
+                                   rightbottom=correlation_workflow_editor,
                                    top=self.toolbar)
-        self.stages["Correlation"]["1-Time"] = onetime_layout
+        self.stages["Correlation"]["Correlation"] = correlation_layout
 
-        twotime_workflow_editor = WorkflowEditor(TwoTime())
-        twotime_layout = GUILayout(center=self.canvases_view,
-                                   right=self.ensemble_view,
-                                   rightbottom=twotime_workflow_editor,
-                                   top=self.toolbar)
-        self.stages["Correlation"]["2-Time"] = twotime_layout
+    def _test(self, o):
+        print("CorrelationStage._test")
 
+    def get_active_images(self, _):
+        intent_indexes = [self.intents_model.index(row, 0) for row in range(self.intents_model.rowCount())]
+        intents = {self.intents_model.data(index,IntentsModel.index_role): self.intents_model.data(index, IntentsModel.intent_role)
+                   for index in intent_indexes}
+        # self.ensemble_model.intents_from_ensemble(self.ensemble_model.active_ensemble)
+        image_indexes = list(filter(lambda index: isinstance(intents[index], SAXSImageIntent), intents.keys()))
+
+        if len(image_indexes) > 1:
+            ...
+            raise ValueError('...')
+        elif len(image_indexes) == 0:
+            ...
+            raise ValueError('...')
+
+        image_index = image_indexes[0]
+        canvas = self.canvases_view._canvas_manager.canvas_from_index(image_index)
+        # Test with time-series
+        return {'images': np.squeeze(intents[image_index].image), 'image_item': canvas.canvas_widget.imageItem}
+
+    def process_action(self, action: Action, canvas: XicamIntentCanvas):
+        print("CorrelationStage.process_action")
+        if not action.isAccepted():
+            self.workflow.insert_operation(0, action.roi.operation)
+            action.accept()
+        super(CorrelationStage, self).process_action(action, canvas)
