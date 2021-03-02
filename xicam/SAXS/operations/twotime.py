@@ -20,8 +20,7 @@ from typing import Tuple
 @describe_output('tau', 'the times at which the correlation was computed')
 @visible('images', False)
 @visible('labels', False)
-@intent(ImageIntent, name='2-time Correlation', output_map={'image', 'g2'}, labels={"bottom": "&tau;<sub>1</sub>",
-                                                                                    "left": "&tau;<sub>2</sub>"})
+@intent(ImageIntent, name='2-time Correlation', output_map={'image': 'g2'}, mixins=["AxesLabels"], labels={"bottom": "&tau;<sub>1</sub>", "left": "&tau;<sub>2</sub>"})
 def two_time_correlation(images: np.ndarray,
                          labels: np.ndarray,
                          num_bufs: int = 16,

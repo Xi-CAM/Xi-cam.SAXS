@@ -10,7 +10,7 @@ from typing import Union, Tuple
 
 @operation
 @display_name('Fit Scattering Factor')
-@output_names('fit_curve', 'relaxation_rate')
+@output_names('fit_curve', 'relaxation_rate', "tau")
 @describe_input('g2', 'Normalized intensity-intensity time autocorrelation')
 @describe_input('tau', 'delay time')
 @describe_input('beta', 'Optical contrast (speckle contrast), a sample-independent beamline parameter')
@@ -19,6 +19,7 @@ from typing import Union, Tuple
 @describe_output('fit_curve', 'Fitted model of the g2 curve')
 @describe_output('relaxation_rate', 'Relaxation time associated with the samples dynamics')
 @intent(PlotIntent,
+        canvas_name="1-time Correlation",
         match_key='1-time Correlation',
         name='g2 fit',
         labels={"bottom": "&tau;", "left": "g2"},
@@ -36,10 +37,10 @@ def fit_scattering_factor(g2: np.ndarray,
 
     fit = fitting_algorithm(model, tau[:threshold], g2[:threshold])
 
-    relaxation_rate = fit.relaxation_rate
+    relaxation_rate = fit.relaxation_rate.value
     fit_curve = fit(tau)
 
-    return fit_curve, relaxation_rate
+    return fit_curve, relaxation_rate, tau
 
     # labels = {'left': ['g<sub>2</sub>(&tau;)', 's'],
     #             'bottom': ['&tau;', 's']}

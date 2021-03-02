@@ -2,6 +2,7 @@ from functools import partial
 from typing import Dict, List
 
 from databroker.core import BlueskyRun
+from databroker.in_memory import BlueskyInMemoryCatalog
 from qtpy.QtCore import QItemSelectionModel, Qt
 from qtpy.QtGui import QStandardItemModel
 from qtpy.QtWidgets import QDialog, QListView, QWidget, QListWidget, QHBoxLayout, QPushButton, QDialogButtonBox, \
@@ -15,6 +16,7 @@ from xicam.SAXS.projectors.nxcansas import project_nxcanSAS
 from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
 from xicam.core.execution import Workflow
+from xicam.core.execution.workflow import ingest_result_set, project_intents
 from xicam.gui.canvases import XicamIntentCanvas
 from xicam.gui.widgets import PreviewWidget
 from xicam.gui.widgets.ROI import ROIOperation
@@ -51,6 +53,8 @@ from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 from xicam.gui.plugins.ensembleguiplugin import EnsembleGUIPlugin
 from xicam.gui.actions import Action
 
+from synthetic import synthetic_image_series
+
 
 class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
     name="SAXS"
@@ -66,7 +70,7 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
         super(BaseSAXSGUIPlugin, self).__init__()
 
         # Add in appropriate projectors here
-        self._projectors.extend([project_NXsas, project_nxcanSAS])
+        self._projectors.extend([project_NXsas, project_nxcanSAS, project_intents])
 
         # self.ensemble_model = EnsembleModel()
         # self.intents_model = IntentsModel()
@@ -802,7 +806,9 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         self.stages["Correlation"] = {}
 
         self.workflow = OneTime()
-        correlation_workflow_editor = WorkflowEditor(self.workflow, kwargs_callable=self.get_active_images)
+        correlation_workflow_editor = WorkflowEditor(self.workflow,
+                                                     kwargs_callable=self.get_active_images,
+                                                     callback_slot=self.workflow_finished)
         correlation_layout = GUILayout(center=self.canvases_view,
                                    right=self.ensemble_view,
                                    rightbottom=correlation_workflow_editor,
@@ -811,6 +817,15 @@ class CorrelationStage(BaseSAXSGUIPlugin):
 
     def _test(self, o):
         print("CorrelationStage._test")
+
+    def workflow_finished(self, *results):
+        document = list(ingest_result_set(self.workflow, results))
+        # FIXME: use better bluesky_live design instead of upserting directly
+        catalog = BlueskyInMemoryCatalog()
+        catalog.upsert(document[0][1], document[-1][1], partial(iter, document), [], {})
+        # project_intents(catalog)
+        self.appendCatalog(catalog[-1])
+
 
     def get_active_images(self, _):
         intent_indexes = [self.intents_model.index(row, 0) for row in range(self.intents_model.rowCount())]
@@ -835,5 +850,9 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         print("CorrelationStage.process_action")
         if not action.isAccepted():
             self.workflow.insert_operation(0, action.roi.operation)
+            # FIXME: don't rely on synthetic data (when we have real data to work with here)
+            data_op = synthetic_image_series()
+            self.workflow.insert_operation(0, data_op)
+            self.workflow.auto_connect_all()
             action.accept()
         super(CorrelationStage, self).process_action(action, canvas)
