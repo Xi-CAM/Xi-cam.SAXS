@@ -70,6 +70,7 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
         super(BaseSAXSGUIPlugin, self).__init__()
 
         # Add in appropriate projectors here
+        # Make sure project_intents is last (since it is generic case)
         self._projectors.extend([project_NXsas, project_nxcanSAS, project_intents])
 
         # self.ensemble_model = EnsembleModel()
