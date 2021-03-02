@@ -10,6 +10,7 @@ from qtpy.QtWidgets import QDialog, QListView, QWidget, QListWidget, QHBoxLayout
 import numpy as np
 
 from xicam.SAXS.intents import SAXSImageIntent
+from xicam.SAXS.operations.synthetic import synthetic_image_series
 from xicam.SAXS.projectors.edf import project_NXsas
 from xicam.SAXS.projectors.nxcansas import project_nxcanSAS
 
@@ -52,8 +53,6 @@ from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
 from xicam.gui.plugins.ensembleguiplugin import EnsembleGUIPlugin
 from xicam.gui.actions import Action
-
-from synthetic import synthetic_image_series
 
 
 class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
