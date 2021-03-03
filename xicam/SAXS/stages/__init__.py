@@ -556,13 +556,16 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
         ai = results['azimuthal_integrator']
 
         # Find all intents within active ensemble, and set their geometry
-        saxs_image_intents = filter(lambda intent: isinstance(intent, SAXSImageIntent),
-                                    self.ensemble_model.intents_from_ensemble(self.ensemble_model.active_ensemble))
+        saxs_image_intents = [intent
+                              for intents in
+                              self.ensemble_model.intents_from_ensemble(self.ensemble_model.active_ensemble).values()
+                              for intent in intents
+                              if isinstance(intent, SAXSImageIntent)]
 
         def _set_geometry(intent):
             intent.geometry = ai
 
-        map(_set_geometry, saxs_image_intents)
+        _ = list(map(_set_geometry, saxs_image_intents))
 
         # drop all canvases and refresh
         self.canvases_view.refresh()
@@ -803,17 +806,15 @@ class CorrelationStage(BaseSAXSGUIPlugin):
     def __init__(self):
         super(CorrelationStage, self).__init__()
 
-        self.stages["Correlation"] = {}
-
         self.workflow = OneTime()
         correlation_workflow_editor = WorkflowEditor(self.workflow,
                                                      kwargs_callable=self.get_active_images,
                                                      callback_slot=self.workflow_finished)
         correlation_layout = GUILayout(center=self.canvases_view,
-                                   right=self.ensemble_view,
-                                   rightbottom=correlation_workflow_editor,
-                                   top=self.toolbar)
-        self.stages["Correlation"]["Correlation"] = correlation_layout
+                                       right=self.ensemble_view,
+                                       rightbottom=correlation_workflow_editor,
+                                       top=self.toolbar)
+        self.stages["Correlation"] = correlation_layout
 
     def _test(self, o):
         print("CorrelationStage._test")
