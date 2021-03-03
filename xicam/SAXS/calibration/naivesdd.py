@@ -39,7 +39,7 @@ def naive_sdd(data: np.ndarray,
        azimuthal_integrator.set_wavelength(wavelength_override)
 
     # Un-calibrated azimuthal integration
-    r, radialprofile = azimuthal_integrator.integrate1d(np.asarray(data), npts, unit='r_mm', **kwargs)
+    r, radialprofile = azimuthal_integrator.integrate1d(np.squeeze(np.asarray(data)), npts, unit='r_mm', **kwargs)
 
     # find peaks
     peaks = np.array(find_peaks(np.arange(len(radialprofile)), radialprofile)).T

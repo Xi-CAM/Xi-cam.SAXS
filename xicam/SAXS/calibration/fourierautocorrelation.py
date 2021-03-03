@@ -38,7 +38,7 @@ def fourier_autocorrelation(data: np.ndarray, azimuthal_integrator: AzimuthalInt
     """
 
     mask = azimuthal_integrator.detector.mask
-    data = np.array(data)
+    data = np.squeeze(np.asarray(data))
     if mask is not None and mask.shape == data.shape:
         data = data * (1 - mask)
 
