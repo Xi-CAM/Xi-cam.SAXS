@@ -67,7 +67,7 @@ def set_detector(detector: DetectorEnum = next(iter(DetectorEnum.__members__.val
 
     else:
         selected_detector = detector()
-        detector.set_binning((binning_x, binning_y))
+        selected_detector.set_binning((binning_x, binning_y))
 
     ai = azimuthal_integrator or AzimuthalIntegrator()
     ai.detector = selected_detector
