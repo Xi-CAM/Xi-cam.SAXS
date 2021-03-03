@@ -19,8 +19,8 @@ class SAXSToolbarMixin(ToolbarLayout):
 
 
 @live_plugin("ImageMixinPlugin")
-class SAXSImageIntentBlend(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates, EwaldCorrected,
-                           ImageViewHistogramOverflowFix, RectROIAction):# LogButtons):
+class SAXSImageIntentBlend(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates,
+                           ImageViewHistogramOverflowFix, RectROIAction, EwaldCorrected):  # LogButtons):
     ...
 
 
