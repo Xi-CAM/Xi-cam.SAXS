@@ -34,9 +34,12 @@ from xicam.plugins.operationplugin import operation, describe_input, describe_ou
         labels={"bottom": "&tau;", "left": "g2"},
         output_map={'x': 'tau', 'y': 'g2'})
 def one_time_correlation(images: np.ndarray,
-                         labels: np.ndarray,
+                         labels: np.ndarray = None,
                          num_bufs: int = 16,
                          num_levels: int = 8) -> Tuple[da.array, da.array]:
+    if labels is None:
+        labels = np.ones_like(images[0])
+
     g2, tau = corr.multi_tau_auto_corr(num_levels, num_bufs,
                                        labels.astype(np.int),
                                        np.asarray(images))
