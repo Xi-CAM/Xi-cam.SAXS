@@ -806,10 +806,13 @@ class CorrelationStage(BaseSAXSGUIPlugin):
     def __init__(self):
         super(CorrelationStage, self).__init__()
 
-        self.workflow = OneTime()
+        workflows = {OneTime(): '1-Time Correlation', TwoTime(): '2-Time Correlation'}
+        self.workflow = next(iter(workflows.keys()))
+
         correlation_workflow_editor = WorkflowEditor(self.workflow,
                                                      kwargs_callable=self.get_active_images,
-                                                     callback_slot=self.workflow_finished)
+                                                     callback_slot=self.workflow_finished,
+                                                     workflows=workflows)
         correlation_layout = GUILayout(center=self.canvases_view,
                                        right=self.ensemble_view,
                                        rightbottom=correlation_workflow_editor,
@@ -827,10 +830,11 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         # project_intents(catalog)
         self.appendCatalog(catalog[-1])
 
-
-    def get_active_images(self, _):
+    def get_active_images(self, workflow_editor: WorkflowEditor):
+        self.workflow = workflow_editor.workflow
         intent_indexes = [self.intents_model.index(row, 0) for row in range(self.intents_model.rowCount())]
-        intents = {self.intents_model.data(index,IntentsModel.index_role): self.intents_model.data(index, IntentsModel.intent_role)
+        intents = {self.intents_model.data(index, IntentsModel.index_role): self.intents_model.data(index,
+                                                                                                    IntentsModel.intent_role)
                    for index in intent_indexes}
         # self.ensemble_model.intents_from_ensemble(self.ensemble_model.active_ensemble)
         image_indexes = list(filter(lambda index: isinstance(intents[index], SAXSImageIntent), intents.keys()))
