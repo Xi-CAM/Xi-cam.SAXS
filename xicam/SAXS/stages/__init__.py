@@ -18,6 +18,7 @@ from xicam.core import msg, threads
 from xicam.core.data import MetaXArray
 from xicam.core.execution import Workflow
 from xicam.core.execution.workflow import ingest_result_set, project_intents
+from xicam.core.intents import ROIIntent
 from xicam.gui.canvases import XicamIntentCanvas
 from xicam.gui.widgets import PreviewWidget
 from xicam.gui.widgets.ROI import ROIOperation
@@ -819,9 +820,6 @@ class CorrelationStage(BaseSAXSGUIPlugin):
                                        top=self.toolbar)
         self.stages["Correlation"] = correlation_layout
 
-    def _test(self, o):
-        print("CorrelationStage._test")
-
     def workflow_finished(self, *results):
         document = list(ingest_result_set(self.workflow, results))
         # FIXME: use better bluesky_live design instead of upserting directly
@@ -854,7 +852,12 @@ class CorrelationStage(BaseSAXSGUIPlugin):
     def process_action(self, action: Action, canvas: XicamIntentCanvas):
         print("CorrelationStage.process_action")
         if not action.isAccepted():
-            self.workflow.insert_operation(0, action.roi.operation)
+            # Create ROI Intent adjacent to visualized intent
+            roi_intent = ROIIntent(name=repr(action.roi), roi=action.roi, match_key=canvas._primary_intent.match_key)
+
+            catalog = self.ensemble_model.catalog_from_intent(canvas._primary_intent)
+            self.ensemble_model.append_to_catalog(catalog, roi_intent)
+
             # FIXME: don't rely on synthetic data (when we have real data to work with here)
             data_op = synthetic_image_series()
             self.workflow.insert_operation(0, data_op)
