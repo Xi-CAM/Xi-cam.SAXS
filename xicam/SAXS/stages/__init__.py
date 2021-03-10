@@ -820,6 +820,8 @@ class CorrelationStage(BaseSAXSGUIPlugin):
                                        top=self.toolbar)
         self.stages["Correlation"] = correlation_layout
 
+        self._roi_added = False
+
     def workflow_finished(self, *results):
         document = list(ingest_result_set(self.workflow, results))
         # FIXME: use better bluesky_live design instead of upserting directly
@@ -847,20 +849,31 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         image_index = image_indexes[0]
         canvas = self.canvases_view._canvas_manager.canvas_from_index(image_index)
         # Test with time-series
-        return {'images': np.squeeze(intents[image_index].image), 'image_item': canvas.canvas_widget.imageItem}
+        kwargs = {'images': np.squeeze(intents[image_index].image), 'image_item': canvas.canvas_widget.imageItem}
+
+        # Return the visualized (checked) rois as well
+        roi_intent_indexes = filter(lambda index: isinstance(intents[index], ROIIntent)
+                                        and index.data(Qt.CheckStateRole) == Qt.Checked,
+                                    intents.keys())
+        rois = list(map(lambda index: index.data(EnsembleModel.object_role).roi, roi_intent_indexes))
+
+        kwargs['rois'] = rois
+        return kwargs
 
     def process_action(self, action: Action, canvas: XicamIntentCanvas):
-        print("CorrelationStage.process_action")
         if not action.isAccepted():
             # Create ROI Intent adjacent to visualized intent
             roi_intent = ROIIntent(name=repr(action.roi), roi=action.roi, match_key=canvas._primary_intent.match_key)
-
             catalog = self.ensemble_model.catalog_from_intent(canvas._primary_intent)
             self.ensemble_model.append_to_catalog(catalog, roi_intent)
 
-            # FIXME: don't rely on synthetic data (when we have real data to work with here)
-            data_op = synthetic_image_series()
-            self.workflow.insert_operation(0, data_op)
+            if not self._roi_added:
+                self.workflow.insert_operation(0, ROIOperation())
+                # FIXME: don't rely on synthetic data (when we have real data to work with here)
+                data_op = synthetic_image_series()
+                self.workflow.insert_operation(0, data_op)
+                self._roi_added = True
+
             self.workflow.auto_connect_all()
             action.accept()
         super(CorrelationStage, self).process_action(action, canvas)

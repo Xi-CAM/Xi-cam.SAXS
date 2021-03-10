@@ -44,4 +44,4 @@ def one_time_correlation(images: np.ndarray,
                                        labels.astype(np.int),
                                        np.asarray(images))
     g2 = g2.squeeze()
-    return g2, tau
+    return g2.T, tau
