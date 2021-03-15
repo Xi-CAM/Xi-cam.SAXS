@@ -809,6 +809,10 @@ class CorrelationStage(BaseSAXSGUIPlugin):
 
         workflows = {OneTime(): '1-Time Correlation', TwoTime(): '2-Time Correlation'}
         self.workflow = next(iter(workflows.keys()))
+        # FIXME: don't rely on synthetic data (when we have real data to work with here)
+        data_op = synthetic_image_series()
+        self.workflow.insert_operation(0, data_op)
+        self.workflow.auto_connect_all()
 
         correlation_workflow_editor = WorkflowEditor(self.workflow,
                                                      kwargs_callable=self.get_active_images,
@@ -868,10 +872,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
             self.ensemble_model.append_to_catalog(catalog, roi_intent)
 
             if not self._roi_added:
-                self.workflow.insert_operation(0, ROIOperation())
-                # FIXME: don't rely on synthetic data (when we have real data to work with here)
-                data_op = synthetic_image_series()
-                self.workflow.insert_operation(0, data_op)
+                self.workflow.insert_operation(1, ROIOperation())
                 self._roi_added = True
 
             self.workflow.auto_connect_all()

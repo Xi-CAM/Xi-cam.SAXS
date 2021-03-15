@@ -37,11 +37,15 @@ def one_time_correlation(images: np.ndarray,
                          labels: np.ndarray = None,
                          num_bufs: int = 16,
                          num_levels: int = 8) -> Tuple[da.array, da.array]:
+    if images.ndim < 3:
+        raise ValueError(f"Cannot compute correlation on data with {images.ndim} dimensions.")
+
     if labels is None:
         labels = np.ones_like(images[0])
 
     g2, tau = corr.multi_tau_auto_corr(num_levels, num_bufs,
                                        labels.astype(np.int),
-                                       np.asarray(images))
+                                       images)
     g2 = g2.squeeze()
+    # FIXME: is it required to trim the 0th value off the tau and g2 arrays?
     return g2.T, tau
