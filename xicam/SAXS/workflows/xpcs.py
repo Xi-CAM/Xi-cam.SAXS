@@ -138,15 +138,15 @@ class OneTime(XPCSWorkflow):
 
     def __init__(self):
         super(OneTime, self).__init__()
-        average_i = average_intensity()
-        self.add_operation(average_i)
         onetime = one_time_correlation()
         self.add_operation(onetime)
         fitting = fit_scattering_factor()
+        average_i = average_intensity()
+        self.add_operation(average_i)
         self.add_operation(fitting)
         # Manually set up connections
-        self.add_link(self.correct_image, average_i, "images", "images")
-        self.add_link(average_i, onetime, "images", "images")
+        self.add_link(self.correct_image, onetime, "images", "images")
+        self.add_link(onetime, average_i, "images", "images")
         self.add_link(onetime, fitting, "g2", "g2")
         self.add_link(onetime, fitting, "tau", "tau")
 

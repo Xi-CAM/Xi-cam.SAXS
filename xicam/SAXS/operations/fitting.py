@@ -35,6 +35,8 @@ def fit_scattering_factor(g2: np.ndarray,
     fitting_algorithm = fitting.SLSQPLSQFitter()
     threshold = min(len(tau), np.argmax(g2 < correlation_threshold))
 
+    if g2.ndim > 1:
+        fit = [fitting_algorithm(model, tau[:threshold], g2[:threshold]) for curve in g2]
     fit = fitting_algorithm(model, tau[:threshold], g2[:threshold])
 
     relaxation_rate = fit.relaxation_rate.value
