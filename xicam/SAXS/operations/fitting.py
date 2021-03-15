@@ -29,20 +29,21 @@ def fit_scattering_factor(g2: np.ndarray,
                           tau: np.ndarray,
                           beta: float = 1.0,
                           baseline: float = 1.0,
-                          correlation_threshold: float = 1.5) -> Tuple[np.ndarray, float]:
+                          correlation_threshold: float = 1.5) -> Tuple[np.ndarray, np.ndarray]:
     relaxation_rate = 0.01  # Some initial guess
     model = ScatteringModel(beta, baseline, relaxation_rate=relaxation_rate)
     fitting_algorithm = fitting.SLSQPLSQFitter()
     threshold = min(len(tau), np.argmax(g2 < correlation_threshold))
 
     if g2.ndim > 1:
-        fit = [fitting_algorithm(model, tau[:threshold], g2[:threshold]) for curve in g2]
-    fit = fitting_algorithm(model, tau[:threshold], g2[:threshold])
+        fits = [fitting_algorithm(model, tau[:threshold], g2[i][:threshold]) for i in range(len(g2))]
+    else:
+        fits = [fitting_algorithm(model, tau[:threshold], g2[:threshold])]
 
-    relaxation_rate = fit.relaxation_rate.value
-    fit_curve = fit(tau)
+    relaxation_rates = np.asarray([fit.relaxation_rate.value for fit in fits]).squeeze()
+    fit_curves = np.asarray([fit(tau) for fit in fits]).squeeze()
 
-    return fit_curve, relaxation_rate, tau
+    return fit_curves, relaxation_rates, tau
 
     # labels = {'left': ['g<sub>2</sub>(&tau;)', 's'],
     #             'bottom': ['&tau;', 's']}
