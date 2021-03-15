@@ -871,10 +871,6 @@ class CorrelationStage(BaseSAXSGUIPlugin):
             catalog = self.ensemble_model.catalog_from_intent(canvas._primary_intent)
             self.ensemble_model.append_to_catalog(catalog, roi_intent)
 
-            if not self._roi_added:
-                self.workflow.insert_operation(1, ROIOperation())
-                self._roi_added = True
-
             self.workflow.auto_connect_all()
             action.accept()
         super(CorrelationStage, self).process_action(action, canvas)
