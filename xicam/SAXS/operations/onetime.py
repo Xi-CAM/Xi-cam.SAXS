@@ -5,6 +5,7 @@ import pyqtgraph as pg
 
 import skbeam.core.correlation as corr
 from xicam.core.intents import PlotIntent
+from xicam.core import msg
 
 from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible, \
     input_names, output_names, display_name, categories, intent
@@ -46,6 +47,9 @@ def one_time_correlation(images: np.ndarray,
         raise ValueError(f"Cannot compute correlation on data with {images.ndim} dimensions.")
 
     labels = get_label_array(images, rois=rois, image_item=image_item)
+    if labels.max() == 0:
+        msg.showMessage("Please add an ROI over which to calculate one-time correlation.")
+        raise ValueError("Please add an ROI over which to calculate one-time correlation.")
 
     g2, tau = corr.multi_tau_auto_corr(num_levels, num_bufs,
                                        labels.astype(np.int),
