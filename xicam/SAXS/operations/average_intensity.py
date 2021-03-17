@@ -17,14 +17,12 @@ def average_intensity(images: np.ndarray, rois: np.ndarray = None):
     labels = get_label_array(images, rois=rois)
     if labels is not None:
         n_labels = int(labels.max())
-        label_averages = []
         for label in range(1, n_labels + 1):
-            for image in images:
-                masked_image = np.where(labels == label, image, np.zeros(image.shape))
-                label_averages.append(np.average(masked_image))
-            averages.append(label_averages)
+            masked_image = np.where(labels == label, images, np.zeros(images[0].shape))
+            averages.append(np.average(masked_image, axis=(-2, -1)))
     else:
         for image in images:
+            averages = np.average(images, axis=(-2, -1))
             averages.append(np.average(image))
 
-    return np.asarray((range(len(images)))), np.asarray(averages).squeeze(), images
+    return np.asarray(range(len(images))), np.asarray(averages).squeeze(), images
