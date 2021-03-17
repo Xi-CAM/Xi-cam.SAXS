@@ -1,11 +1,6 @@
 import fabio
 import mimetypes
-import time
 from xicam.SAXS.ontology import NXsas
-from xarray import DataArray
-import dask.array as da
-
-
 from bluesky_live.run_builder import RunBuilder
 
 mimetypes.add_type('application/x-edf', '.edf')
@@ -23,7 +18,6 @@ def edf_ingestor(paths):
                     'configuration': {}
                     }]
 
-    d = None
     with fabio.open(paths[0]) as file:
         d = file.data
 
