@@ -6,6 +6,6 @@ scipy
 dill
 scikit-image
 databroker>=1.0.0b1
-astroscrappy
+# astroscrappy
 scikit-beam
 camsaxs
