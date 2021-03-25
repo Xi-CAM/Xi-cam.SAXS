@@ -1,1 +1,10 @@
 DATA_PROJECTION_KEY = "/entry/instrument/detector/data"
+ENERGY_PROJECTION_KEY = "/entry/instrument/monochromator/wavelength"
+BEAM_CENTER_X_PROJECTION_KEY = "/entry/instrument/detector/beam_center_x"  # NOTE: These are lengths, not pixel pos's
+BEAM_CENTER_Y_PROJECTION_KEY = "/entry/instrument/detector/beam_center_y"
+X_PIXEL_SIZE_PROJECTION_KEY = "/entry/instrument/detector/x_pixel_size"  # NOTE: These might have to be resolved with
+Y_PIXEL_SIZE_PROJECTION_KEY = "/entry/instrument/detector/y_pixel_size"  # the detector class
+DISTANCE_PROJECTION_KEY = "/entry/instrument/detector/distance"
+AZIMUTHAL_ANGLE_PROJECTION_KEY = "/entry/instrument/detector/azimuthal_angle"
+INCIDENCE_ANGLE_PROJECTION_KEY = "/entry/instrument/sample/incidence_angle"
+DETECTOR_TRANSLATION_X_PROJECTION_KEY = "/entry/instrument/detector/translate_x"
