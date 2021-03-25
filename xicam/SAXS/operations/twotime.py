@@ -27,7 +27,7 @@ from typing import Tuple, Iterable
         name='2-time Correlation',
         output_map={'image': 'g2'},
         mixins=["AxesLabels", "XArrayView"],
-        labels={"bottom": "&tau;<sub>1</sub>", "left": "&tau;<sub>2</sub>"})
+        labels={"bottom": "𝜏₁", "left": "𝜏₂"})
 def two_time_correlation(images: np.ndarray,
                          image_item: pg.ImageItem = None,
                          rois: Iterable[pg.ROI] = None,

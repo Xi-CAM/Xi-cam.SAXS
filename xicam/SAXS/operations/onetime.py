@@ -37,7 +37,7 @@ from ..utils import get_label_array, average_q_from_labels
         match_key='1-time Correlation',
         name='g2',
         yLog=True,
-        labels={"bottom": "&tau;", "left": "g2"},
+        labels={"bottom": "𝜏", "left": "g₂"},
         output_map={'x': 'tau', 'y': 'g2'})
 def one_time_correlation(images: np.ndarray,
                          rois: Iterable[pg.ROI] = None,
