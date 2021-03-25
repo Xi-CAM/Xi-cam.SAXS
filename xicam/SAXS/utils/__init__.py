@@ -51,6 +51,6 @@ def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.
 
 def average_q_from_labels(labels: np.ndarray, geometry: AzimuthalIntegrator) -> List[float]:
     q = geometry.qArray()
-    average_qs = [np.average(q, where=(labels == i)) for i in range(1, labels.max() + 1)]
+    average_qs = [np.average(q, weights=(labels == i)) for i in range(1, labels.max() + 1)]
     # TODO: return a dict mapping labels to qs?
     return average_qs

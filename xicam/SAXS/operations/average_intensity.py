@@ -1,7 +1,7 @@
 import numpy as np
 from xicam.SAXS.utils import get_label_array
 
-from xicam.plugins.operationplugin import intent, operation, output_names
+from xicam.plugins.operationplugin import intent, operation, output_names, visible
 from xicam.core.intents import PlotIntent
 
 
@@ -11,6 +11,8 @@ from xicam.core.intents import PlotIntent
         "Average Intensity",
         output_map={"x": "times", "y": "intensities"},
         labels={"bottom": "t", "left": "I"})
+@visible('images', False)
+@visible('rois', False)
 def average_intensity(images: np.ndarray, rois: np.ndarray = None):
     # TODO: calculate labels from ROIs
     averages = []

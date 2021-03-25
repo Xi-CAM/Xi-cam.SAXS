@@ -1,4 +1,5 @@
 import numpy as np
+from numba import njit, prange
 from xicam.plugins.operationplugin import operation, display_name, output_names, describe_input, \
     describe_output, categories, visible
 
@@ -20,6 +21,7 @@ def correct_fastccd_image(images: np.ndarray,
                           darks: np.ndarray = None,
                           gains: tuple = (1, 2, 4, 8)) -> np.ndarray:
 
+    @njit(parallel=True)
     def correct(array, flats, bkg, gain_map=(1, 2, 4, 8)):
         # 16-bit unsigned
         # image: bits 0 - 12
@@ -28,17 +30,27 @@ def correct_fastccd_image(images: np.ndarray,
         # gain1: 0b11 (3)
         # gain2: 0b10 (2)
         # gain8: 0b00 (0)
-        intensity = np.bitwise_and(0x1FFF, array)
-        bad_flag = np.bitwise_and(0x1, np.right_shift(array, 13))
-        gain = np.bitwise_and(0x3, np.right_shift(array, 14))
-        # map the gain bit values to the gain map indices to get the actual gain values
-        # e.g. 3 -> index 2; 2 -> index 1; 1 -> index 0
-        gain_map = dict(zip((0, 1, 2, 3), gain_map))
-        gain = np.vectorize(gain_map.get)(gain)
-        # gain = np.vectorize(partial(lambda a, b: a[int((b + 1) / 2)], gain_map))(gain)
-        arr = flats * gain * intensity
-        arr = np.where(arr < bkg, bkg, arr)
-        return np.array((1 - bad_flag) * (arr - bkg), dtype=np.uint16)
+
+        for i in prange(array.shape[0]):
+            for j in prange(array.shape[1]):
+                for k in prange(array.shape[2]):
+                    val = array[i,j,k]
+
+                    intensity = 0x1FFF & val
+                    bad_flag = 0x1 & (val >> 13)
+                    gain = gain_map[0x3 & (val >> 14)]
+
+                    array[i,j,k] = flats[j,k] * gain * intensity
+
+                    if val < bkg[j,k]:
+                        array[i,j,k] = bkg[j,k]
+
+                    if bad_flag:
+                        array[i,j,k] = 0
+                    else:
+                        array[i,j,k] -= bkg[j,k]
+
+        return array
 
     # TODO: is this pulling from the correct dark? we need of mapping of gain index to dark array?
 
@@ -47,13 +59,13 @@ def correct_fastccd_image(images: np.ndarray,
 
     flats = flats
     if flats is None:
-        flats = 1
+        flats = np.ones_like(images[0])
     elif flats.ndim != 2:
         raise ValueError(f"\"flats\" should be 2-dimensional; shape = \"{flats.shape}\"")
 
     darks = darks
     if darks is None:
-        darks = 0
+        darks = np.zeros_like(images[0])
     elif darks.ndim != 3:
         raise ValueError(f"\"darks\" should be 3-dimensional; shape = \"{darks.shape}\"")
     else:

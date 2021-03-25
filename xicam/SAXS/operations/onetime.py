@@ -53,7 +53,7 @@ def one_time_correlation(images: np.ndarray,
         raise ValueError("Please add an ROI over which to calculate one-time correlation.")
 
     g2, tau = corr.multi_tau_auto_corr(num_levels, num_bufs,
-                                       labels.astype(np.int_),
+                                       labels.astype(np.uint8),
                                        images)
     g2 = g2.squeeze()
     # FIXME: is it required to trim the 0th value off the tau and g2 arrays?

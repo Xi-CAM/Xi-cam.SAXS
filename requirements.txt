@@ -9,3 +9,4 @@ databroker>=1.0.0b1
 astroscrappy
 scikit-beam
 camsaxs
+numba

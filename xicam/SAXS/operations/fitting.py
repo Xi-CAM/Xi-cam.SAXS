@@ -4,20 +4,20 @@ from astropy.modeling import Fittable1DModel, Parameter, fitting
 from xicam.core.intents import PlotIntent
 
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories, intent
+    categories, intent, visible
 from typing import Union, Tuple
 
 
 @operation
 @display_name('Fit Scattering Factor')
-@output_names('fit_curve', 'relaxation_rate', "tau", "g2")
+@output_names('fit_curve', 'relaxation_rates', "tau", "g2")
 @describe_input('g2', 'Normalized intensity-intensity time autocorrelation')
 @describe_input('tau', 'delay time')
 @describe_input('beta', 'Optical contrast (speckle contrast), a sample-independent beamline parameter')
 @describe_input('baseline', 'baseline of one time correlation equal to one for ergodic samples')
 @describe_input('correlation_threshold', 'threshold defining which g2 values to fit')
 @describe_output('fit_curve', 'Fitted model of the g2 curve')
-@describe_output('relaxation_rate', 'Relaxation time associated with the samples dynamics')
+@describe_output('relaxation_rates', 'Relaxation time associated with the samples dynamics')
 @intent(PlotIntent,
         canvas_name="1-time Correlation",
         match_key='1-time Correlation',
@@ -31,6 +31,8 @@ from typing import Union, Tuple
         labels={"bottom": "&tau;", "left": "g2"},
         output_map={'x': 'tau', 'y': 'g2'})
 @categories(('Scattering', 'Fitting'))
+@visible('g2', False)
+@visible('tau', False)
 def fit_scattering_factor(g2: np.ndarray,
                           tau: np.ndarray,
                           beta: float = 1.0,

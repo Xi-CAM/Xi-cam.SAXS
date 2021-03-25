@@ -809,9 +809,6 @@ class CorrelationStage(BaseSAXSGUIPlugin):
 
         workflows = {OneTime(): '1-Time Correlation', TwoTime(): '2-Time Correlation'}
         self.workflow = next(iter(workflows.keys()))
-        # FIXME: don't rely on synthetic data (when we have real data to work with here)
-        data_op = synthetic_image_series()
-        self.workflow.insert_operation(0, data_op)
         self.workflow.auto_connect_all()
 
         correlation_workflow_editor = WorkflowEditor(self.workflow,
@@ -828,6 +825,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
 
     def workflow_finished(self, *results):
         document = list(ingest_result_set(self.workflow, results))
+        # TODO: do we want to keep in memory catalog or write to attached databroker?
         # FIXME: use better bluesky_live design instead of upserting directly
         catalog = BlueskyInMemoryCatalog()
         catalog.upsert(document[0][1], document[-1][1], partial(iter, document), [], {})
