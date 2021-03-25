@@ -1,5 +1,6 @@
 import uuid
 
+import numpy as np
 from pyFAI.detectors import ALL_DETECTORS
 from scipy import constants
 
@@ -8,7 +9,7 @@ from xicam.SAXS.ontology import NXsas
 from xicam.SAXS.patches.pyFAI import AzimuthalIntegrator
 from xicam.core.data import ProjectionNotFound
 
-PROJECTION_NAME = "NXSAS"
+PROJECTION_NAME = "NXsas"
 PROJECTION_KEYS = {
     "Detector Rotation": "",
     "Detector Translate": "",
@@ -32,8 +33,9 @@ PROJECTION_KEYS = {
 # EPU energy
 
 def extract_mapped_value(run_catalog, projection, key):
-    stream = projection['projection'][PROJECTION_KEYS[key]]['stream']
-    field = projection['projection'][PROJECTION_KEYS[key]]['field']
+    # TODO: should safely handle if key not found in projection
+    stream = projection['projection'][key]['stream']
+    field = projection['projection'][key]['field']
     return getattr(run_catalog, stream).to_dask()[field]
 
 def project_NXsas(run_catalog):
@@ -45,7 +47,7 @@ def project_NXsas(run_catalog):
 
     data = extract_mapped_value(run_catalog, projection, NXsas.DATA_PROJECTION_KEY)
 
-    detector_distance = extract_mapped_value(run_catalog, projection, NXsas.DISTANCE_PROJECTION_KEY)
+    # detector_distance = extract_mapped_value(run_catalog, projection, NXsas.DISTANCE_PROJECTION_KEY)
 
     detector_rotation = extract_mapped_value(run_catalog, projection, NXsas.AZIMUTHAL_ANGLE_PROJECTION_KEY)
 
@@ -58,20 +60,30 @@ def project_NXsas(run_catalog):
     wavelength = 1.239842e-6 / beamline_energy  # convert from eV to meters
 
     # TODO: handle dynamic poni values
-
     poni1 = projection['configuration']['poni1']
     poni1 = poni1 - detector_translate
     poni2 = projection['configuration']['poni2']
     sdd = projection['configuration']['sdd']
 
+    # These are static values, take first one; using max() to get scalar value
+    poni1 = poni1[0].values.max()
+    rot2 = detector_rotation[0].values.max()
+    wavelength = wavelength[0].values.max()
+
     # Create detector from projection metadata
     detector_name = projection['configuration']['detector_name']
     detector_class = ALL_DETECTORS[detector_name]
     detector = detector_class()
+
+    # Convert poni from pixel to meters
+    poni1 *= detector.get_pixel1()
+    poni2 *= detector.get_pixel2()
+
+    # TODO: should only construct geometry if the projection values required all exist
     geometry = AzimuthalIntegrator(dist=sdd,
                                    poni1=poni1,
                                    poni2=poni2,
-                                   rot2=detector_rotation,
+                                   rot2=-np.radians(rot2),  # Convert to radians, account for upward rotation
                                    detector=detector,
                                    wavelength=wavelength)
 
