@@ -853,11 +853,13 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         image_index = image_indexes[0]
         canvas = self.canvases_view._canvas_manager.canvas_from_index(image_index)
         # Test with time-series
-        kwargs = {'images': np.squeeze(intents[image_index].image), 'image_item': canvas.canvas_widget.imageItem}
+        kwargs = {'images': np.squeeze(intents[image_index].image),
+                  'image_item': canvas.canvas_widget.imageItem,
+                  'geometry': intents[image_index].geometry}
 
         # Return the visualized (checked) rois as well
         roi_intent_indexes = filter(lambda index: isinstance(intents[index], ROIIntent)
-                                        and index.data(Qt.CheckStateRole) == Qt.Checked,
+                                                  and index.data(Qt.CheckStateRole) == Qt.Checked,
                                     intents.keys())
         rois = list(map(lambda index: index.data(EnsembleModel.object_role).roi, roi_intent_indexes))
 

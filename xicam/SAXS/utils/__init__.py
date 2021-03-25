@@ -1,12 +1,18 @@
+from typing import List
+
 import numpy as np
 import pyqtgraph as pg
+from xicam.SAXS.patches.pyFAI import AzimuthalIntegrator
 
 
 def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.ImageItem = None) -> np.ndarray:
+    while images.ndim > 2:
+        images = images[0]
+
     if rois is None:
-        return np.ones_like(images[0])
+        return np.ones_like(images)
     # Create zeros label array to insert new labels into (if multiple ROIs)
-    label_array = np.zeros(images[0].shape)
+    label_array = np.zeros(images.shape)
     roi_masks = []
     for roi in rois:
         # TODO: Should label array be astype(np.int) (instead of float)?
@@ -41,3 +47,10 @@ def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.
             print()
 
     return label_array.astype(np.int)
+
+
+def average_q_from_labels(labels: np.ndarray, geometry: AzimuthalIntegrator) -> List[float]:
+    q = geometry.qArray()
+    average_qs = [np.average(q, where=(labels == i)) for i in range(1, labels.max() + 1)]
+    # TODO: return a dict mapping labels to qs?
+    return average_qs

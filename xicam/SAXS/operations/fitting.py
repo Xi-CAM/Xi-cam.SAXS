@@ -36,7 +36,7 @@ def fit_scattering_factor(g2: np.ndarray,
                           beta: float = 1.0,
                           baseline: float = 1.0,
                           relaxation_rate: float = 0.01,
-                          correlation_threshold: float = 1.5) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+                          correlation_threshold: float = 2) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     model = ScatteringModel(beta, baseline, relaxation_rate=relaxation_rate)
     fitting_algorithm = fitting.SLSQPLSQFitter()
     threshold = min(len(tau), np.argmax(g2 < correlation_threshold))

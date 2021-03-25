@@ -144,7 +144,8 @@ setup(
             "guinier_plot = xicam.SAXS.operations.guinier_plot:guinier_plot",
             "detector_mask = xicam.SAXS.masking.detector:detector_mask_plugin",
             "set_geometry = xicam.SAXS.operations.select_detector:set_geometry",
-            "set_detector = xicam.SAXS.operations.select_detector:set_detector"
+            "set_detector = xicam.SAXS.operations.select_detector:set_detector",
+            "diffusion_coefficient = xicam.SAXS.operations.diffusion_coefficient:diffusion_coefficient"
         ],
         'xicam.plugins.Fittable1DModelPlugin': [
             'Gaussian1D = xicam.SAXS.models.gaussian1d:Gaussian1D'
