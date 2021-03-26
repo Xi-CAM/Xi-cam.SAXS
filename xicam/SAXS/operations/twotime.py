@@ -26,7 +26,7 @@ from typing import Tuple, Iterable
 @intent(ImageIntent,
         name='2-time Correlation',
         output_map={'image': 'g2'},
-        mixins=["AxesLabels", "XArrayView"],
+        mixins=["AxesLabels", "XArrayView", "SliceSelector"],
         labels={"bottom": "𝜏₁", "left": "𝜏₂"})
 def two_time_correlation(images: np.ndarray,
                          image_item: pg.ImageItem = None,
@@ -48,7 +48,7 @@ def two_time_correlation(images: np.ndarray,
                          num_levels)
     g2 = corr.g2
     lag_steps = corr.lag_steps
-    return g2, lag_steps
+    return np.rot90(g2, axes=(-2, -1)), lag_steps
 
 
 # class TwoTimeCorrelation(ProcessingPlugin):
