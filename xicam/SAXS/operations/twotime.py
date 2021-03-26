@@ -56,6 +56,13 @@ def two_time_correlation(images: np.ndarray,
     qs = None
     if geometry is not None:
         qs = np.asarray(average_q_from_labels(labels, geometry))
+        # qs = np.asarray([f"q={q:.3f}" for q in qs])  # FIXME: why can't we return a python list for the catalog?
+        # File "xi-cam/xicam/core/execution/workflow.py", line 886, in project_intents
+        #     kwargs[intent_kwarg_name] = getattr(run_catalog, operation_id).to_dask()[output_name]
+        # ...
+        # File "site-packages/xarray/core/dataarray.py", line 126, in _infer_coords_and_dims
+        #     raise ValueError(
+        #  ValueError: different number of dimensions on data and dims: 2 vs 1
 
     # Rotate image plane 90 degrees
     g2 = np.rot90(g2, axes=(-2, -1))
