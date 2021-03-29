@@ -867,7 +867,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
     def process_action(self, action: Action, canvas: XicamIntentCanvas):
         if not action.isAccepted():
             # Create ROI Intent adjacent to visualized intent
-            roi_intent = ROIIntent(name=repr(action.roi), roi=action.roi, match_key=canvas._primary_intent.match_key)
+            roi_intent = ROIIntent(name=str(action.roi), roi=action.roi, match_key=canvas._primary_intent.match_key)
             catalog = self.ensemble_model.catalog_from_intent(canvas._primary_intent)
             self.ensemble_model.append_to_catalog(catalog, roi_intent)
 
