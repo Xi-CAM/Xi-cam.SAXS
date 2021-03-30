@@ -9,7 +9,7 @@ from qtpy.QtWidgets import QDialog, QListView, QWidget, QListWidget, QHBoxLayout
     QVBoxLayout
 import numpy as np
 
-from xicam.SAXS.intents import SAXSImageIntent
+from xicam.SAXS.intents import SAXSImageIntent, GISAXSImageIntent
 from xicam.SAXS.operations.synthetic import synthetic_image_series
 from xicam.SAXS.projectors.edf import project_NXsas
 from xicam.SAXS.projectors.nxcansas import project_nxcanSAS
@@ -854,6 +854,12 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         kwargs = {'images': np.squeeze(intents[image_index].image),
                   'image_item': canvas.canvas_widget.imageItem,
                   'geometry': intents[image_index].geometry}
+
+        # Provide incidence angle and transmission mode based on SAXS v. GISAXS image intent type
+        # TODO: if we support multiple image_indexes, will need to handle appropriately
+        if isinstance(intents[image_index], GISAXSImageIntent):
+            kwargs['transmission_mode'] = 'reflection'
+            kwargs['incidence_angle'] = image_index.data(EnsembleModel.object_role).incidence_angle
 
         # Return the visualized (checked) rois as well
         roi_intent_indexes = filter(lambda index: isinstance(intents[index], ROIIntent)

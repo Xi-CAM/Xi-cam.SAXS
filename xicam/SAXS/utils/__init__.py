@@ -2,6 +2,8 @@ from typing import List
 
 import numpy as np
 import pyqtgraph as pg
+from camsaxs.remesh_bbox import q_from_geometry
+
 from xicam.SAXS.patches.pyFAI import AzimuthalIntegrator
 
 
@@ -49,8 +51,13 @@ def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.
     return label_array.astype(np.int)
 
 
-def average_q_from_labels(labels: np.ndarray, geometry: AzimuthalIntegrator) -> List[float]:
-    q = geometry.qArray()
+def average_q_from_labels(labels: np.ndarray,
+                          geometry: AzimuthalIntegrator,
+                          transmission_mode: str,
+                          incidence_angle=None) -> List[float]:
+    q = q_from_geometry(labels.shape, geometry, transmission_mode == 'reflection', incidence_angle or 0.0)
+
+    # q = geometry.qArray()
     average_qs = [np.average(q, weights=(labels == i)) for i in range(1, labels.max() + 1)]
     # TODO: return a dict mapping labels to qs?
     return average_qs

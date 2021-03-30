@@ -39,17 +39,22 @@ from xicam.plugins.operationplugin import operation, output_names, display_name,
 @visible('tau', False)
 @visible('fit_curve', False)
 @visible('geometry', False)
+@visible('transmission_mode', False)
+@visible('incidence_angle', False)
 def diffusion_coefficient(relaxation_rates: np.ndarray,
                           labels: np.ndarray,
                           g2: np.ndarray,
                           tau: np.ndarray,
                           fit_curve: np.ndarray,
-                          geometry: AzimuthalIntegrator = None):
+                          geometry: AzimuthalIntegrator = None,
+                          transmission_mode: str = 'transmission',
+                          incidence_angle: float = None,
+                          ):
     # TODO: what should we do when we only get one relaxation rate (ie one roi / non-segmented roi)
     if geometry is None:
         msg.notifyMessage('Calibrate required for diffusion coefficients.')
 
-    qs = np.asarray(average_q_from_labels(labels, geometry))
+    qs = np.asarray(average_q_from_labels(labels, geometry, transmission_mode, incidence_angle))
 
     x = qs ** 2
     # diffusion_values = relaxation_rates / x
