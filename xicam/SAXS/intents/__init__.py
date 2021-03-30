@@ -13,7 +13,7 @@ class SAXSImageIntent(ImageIntent):
 
 class GISAXSImageIntent(SAXSImageIntent):
 
-    def __init__(self, name:str, image, *args, incoming_angle=0.0, **kwargs):
+    def __init__(self, name: str, image, *args, incidence_angle=0.0, **kwargs):
         super(GISAXSImageIntent, self).__init__(name, image, *args, **kwargs)
 
-        self.incoming_angle = incoming_angle
+        self.incidence_angle = incidence_angle
