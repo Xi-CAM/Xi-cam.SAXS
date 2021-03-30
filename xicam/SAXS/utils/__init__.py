@@ -28,15 +28,10 @@ def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.
         # For single roi, our max will be 0 (since label_array is just np.zeros so far, hasn't been modified)
         if label_array_max == 0:
             label_array = label
-            print(f"{label_array_max + 1}: {(label_array == 1).sum()}")
-            print()
         else:
             # FIXME right now, if labels overlap, label integers are being added together (into a new label value)
             # Adjust any currently non-masked areas with the new label
             label_array = np.where(label_array == 0, label, label_array)
-            print(f"{1}: {(label_array == 1).sum()}")
-            print(f"{2}: {(label_array == 2).sum()}")
-            print()
             #
             label_array = np.where(label_array > 0,
                                    np.where(label > 0, label, label_array),
@@ -44,9 +39,6 @@ def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.
             # label_array = np.where(label_array > 0,
             #                        label or label_array,
             #                        label_array)
-            print(f"1: {(label_array == 1).sum()}")
-            print(f"2: {(label_array == 2).sum()}")
-            print()
 
     return label_array.astype(np.int)
 
@@ -55,9 +47,12 @@ def average_q_from_labels(labels: np.ndarray,
                           geometry: AzimuthalIntegrator,
                           transmission_mode: str,
                           incidence_angle=None) -> List[float]:
+    # q_h, q_v
     q = q_from_geometry(labels.shape, geometry, transmission_mode == 'reflection', incidence_angle or 0.0)
 
-    # q = geometry.qArray()
+    # TODO: how can we allow choosing between these different q values (q_h, q_v, q_norm)
+    # q magnitude
+    q = np.linalg.norm(q, axis=2)
     average_qs = [np.average(q, weights=(labels == i)) for i in range(1, labels.max() + 1)]
     # TODO: return a dict mapping labels to qs?
     return average_qs
