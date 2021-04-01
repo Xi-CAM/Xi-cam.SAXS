@@ -86,7 +86,7 @@ def project_NXsas(run_catalog):
                                        rot2=-np.radians(rot2),  # Convert to radians, account for upward rotation
                                        detector=detector,
                                        wavelength=wavelength)
-    except AttributeError as e:
+    except (AttributeError, KeyError) as e:
         geometry = None
         msg.logMessage(e, level=msg.WARNING)
 
