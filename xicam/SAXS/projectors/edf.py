@@ -70,6 +70,7 @@ def project_NXsas(run_catalog):
         poni1 = poni1[0].values.max()
         rot2 = detector_rotation[0].values.max()
         wavelength = wavelength[0].values.max()
+        incidence_angle = incidence_angle[0].values.max()
 
         # Create detector from projection metadata
         detector_name = projection['configuration']['detector_name']
@@ -91,7 +92,7 @@ def project_NXsas(run_catalog):
         msg.logMessage(e, level=msg.WARNING)
 
     intents_list = []
-    if projection['configuration']['geometry_mode'] == 'reflection':
+    if projection['configuration'].get('geometry_mode') == 'reflection':
         intents_list.append(GISAXSImageIntent(image=data,
                                               name='Scattering Image Data',
                                               geometry=geometry,
