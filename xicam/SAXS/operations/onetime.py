@@ -52,9 +52,18 @@ def one_time_correlation(images: np.ndarray,
         msg.notifyMessage("Please add an ROI over which to calculate one-time correlation.")
         raise ValueError("Please add an ROI over which to calculate one-time correlation.")
 
+    # Trim the image based on labels, and resolve to memory
+    si, se = np.where(np.flipud(labels))
+    trimmed_images = np.asarray(images[:, si.min():si.max() + 1, se.min():se.max() + 1])
+    trimmed_labels = np.asarray(np.flipud(labels)[si.min():si.max() + 1, se.min():se.max() + 1])
+
+    # trimmed_images[trimmed_images <= 0] = np.NaN   # may be necessary to mask values
+
+    trimmed_images -= np.min(trimmed_images, axis=0)
+
     g2, tau = corr.multi_tau_auto_corr(num_levels, num_bufs,
-                                       labels.astype(np.uint8),
-                                       images)
-    g2 = g2.squeeze()
+                                       trimmed_labels.astype(np.uint8),
+                                       trimmed_images)
+    g2 = g2[1:].squeeze()
     # FIXME: is it required to trim the 0th value off the tau and g2 arrays?
-    return g2.T, tau, images, labels
+    return g2.T, tau[1:], images, labels
