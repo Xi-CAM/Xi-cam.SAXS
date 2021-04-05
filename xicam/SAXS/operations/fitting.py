@@ -23,13 +23,15 @@ from typing import Union, Tuple
         match_key='1-time Correlation',
         name='g2 fit',
         labels={"bottom": "𝜏", "left": "g₂"},
-        output_map={'x': 'tau', 'y': 'fit_curve'})
+        output_map={'x': 'tau', 'y': 'fit_curve'},
+        mixins=["ToggleSymbols"])
 @intent(PlotIntent,
         canvas_name="1-time Correlation",
         match_key='1-time Correlation',
         name='g2',
         labels={"bottom": "𝜏", "left": "g₂"},
-        output_map={'x': 'tau', 'y': 'g2'})
+        output_map={'x': 'tau', 'y': 'g2'},
+        mixins=["ToggleSymbols"])
 @categories(('Scattering', 'Fitting'))
 @visible('g2', False)
 @visible('tau', False)

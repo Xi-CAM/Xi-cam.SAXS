@@ -14,25 +14,29 @@ from xicam.plugins.operationplugin import operation, output_names, display_name,
 @intent(PlotIntent, 'Linear fit of Diffusion',
         output_map={'x': 'x', 'y': 'diffusion_fit'},
         labels={'bottom': 'q²', 'left': 'Γ'},
-        match_key='diffusion_coefficient')
+        match_key='diffusion_coefficient',
+        mixins=["ToggleSymbols"])
 @intent(ScatterIntent,
         'Diffusion Coefficients',
         output_map={'x': 'x', 'y': 'relaxation_rates'},
         labels={'bottom': 'q²', 'left': 'Γ'},
-        match_key='diffusion_coefficient')
+        match_key='diffusion_coefficient',
+        mixins=["ToggleSymbols"])
 # Make sure g2 and its fit intents are propagated to this end operation
 @intent(PlotIntent,
         match_key='1-time Correlation',
         name='g2',
         yLog=True,
         labels={"bottom": "𝜏", "left": "g₂"},
-        output_map={'x': 'tau', 'y': 'g2'})
+        output_map={'x': 'tau', 'y': 'g2'},
+        mixins=["ToggleSymbols"])
 @intent(PlotIntent,
         canvas_name="1-time Correlation",
         match_key='1-time Correlation',
         name='g2 fit',
         labels={"bottom": "𝜏", "left": "g₂"},
-        output_map={'x': 'tau', 'y': 'fit_curve'})
+        output_map={'x': 'tau', 'y': 'fit_curve'},
+        mixins=["ToggleSymbols"])
 @visible('labels', False)
 @visible('relaxation_rates', False)
 @visible('g2', False)

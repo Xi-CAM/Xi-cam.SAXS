@@ -38,7 +38,8 @@ from ..utils import get_label_array, average_q_from_labels
         name='g2',
         yLog=True,
         labels={"bottom": "𝜏", "left": "g₂"},
-        output_map={'x': 'tau', 'y': 'g2'})
+        output_map={'x': 'tau', 'y': 'g2'},
+        mixins=["ToggleSymbols"])
 def one_time_correlation(images: np.ndarray,
                          rois: Iterable[pg.ROI] = None,
                          image_item: pg.ImageItem = None,

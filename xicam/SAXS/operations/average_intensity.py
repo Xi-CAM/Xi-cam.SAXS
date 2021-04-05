@@ -10,7 +10,8 @@ from xicam.core.intents import PlotIntent
 @intent(PlotIntent,
         "Average Intensity",
         output_map={"x": "times", "y": "intensities"},
-        labels={"bottom": "t", "left": "I"})
+        labels={"bottom": "t", "left": "I"},
+        mixins=["ToggleSymbols"])
 @visible('images', False)
 @visible('rois', False)
 def average_intensity(images: np.ndarray, rois: np.ndarray = None):
