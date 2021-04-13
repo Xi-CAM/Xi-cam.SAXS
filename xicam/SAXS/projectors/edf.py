@@ -40,8 +40,21 @@ def extract_mapped_value(run_catalog, projection, key):
     return getattr(run_catalog, stream).to_dask()[field]
 
 def project_NXsas(run_catalog):
-    projection = next(
-        filter(lambda projection: projection['name'] == PROJECTION_NAME, run_catalog.metadata['start']['projections']), None)
+    if 'projections' not in run_catalog.metadata['start']:
+        # FIXME: remove injected projection (figure out correct way to inject for things like npy files)
+        projection = {'name': 'NXsas',
+                      'version': '0.1.0',
+                      'projection':
+                          {NXsas.DATA_PROJECTION_KEY: {'type': 'linked',
+                                                       'stream': 'primary',
+                                                       'location': 'event',
+                                                       'field': "image"}},
+                      'configuration': {}
+                      }
+    else:
+
+        projection = next(
+            filter(lambda projection: projection['name'] == PROJECTION_NAME, run_catalog.metadata['start'].get('projections', [])), None)
 
     if not projection:
         raise ProjectionNotFound(f"Could not find projection named '{PROJECTION_NAME}'.")
