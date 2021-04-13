@@ -18,9 +18,10 @@ class SAXSToolbarMixin(ToolbarLayout):
         super(SAXSToolbarMixin, self).__init__(*args, toolbar=toolbar, **kwargs)
 
 
+# FIXME: investigate EWaldCorrected (particularly ProcessingView) -- causes "tuple indexing error" on ProxyView when opening image
 @live_plugin("ImageMixinPlugin")
 class SAXSImageIntentBlend(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates,
-                           ImageViewHistogramOverflowFix, ROICreator, EwaldCorrected):  # LogButtons):
+                           ImageViewHistogramOverflowFix, ROICreator): #EwaldCorrected):  # LogButtons):
     ...
 
 
