@@ -9,7 +9,7 @@ from xicam.SAXS.ingestors.nxcansas import I_PROJECTION_KEY, QX_PROJECTION_KEY, Q
 #  allow NOT having a geometry as well
 def project_nxcanSAS(run_catalog):
     projection = next(
-        filter(lambda projection: projection['name'] == 'NXcanSAS', run_catalog.metadata['start']['projections']), None)
+        filter(lambda projection: projection['name'] == 'NXcanSAS', run_catalog.metadata['start'].get('projections', [])), None)
     if not projection:
         raise ProjectionNotFound("Could not find projection 'NXcanSAS'.")
     catalog_name = display_name(run_catalog).split(" ")[0]
