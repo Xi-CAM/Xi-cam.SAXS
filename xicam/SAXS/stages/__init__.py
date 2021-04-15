@@ -855,6 +855,24 @@ class CorrelationStage(BaseSAXSGUIPlugin):
                   'image_item': canvas.canvas_widget.imageItem,
                   'geometry': intents[image_index].geometry}
 
+        # Disable diffusion coefficient op when no geometry provided
+        # TODO: handling in the diffusion coefficient op itself is problematic, since it is an end node -
+        #     what should be returned / how would the intents be visualized?
+        if intents[image_index].geometry is None:
+            diffusion_op = next(filter(lambda op: op.name == "Diffusion Coefficient", self.workflow.operations), None)
+            if diffusion_op is not None:
+                source_data = image_index.internalPointer()
+                image_name = source_data.data(Qt.DisplayRole)
+                image_catalog = source_data.parentItem.data(Qt.DisplayRole)
+                image_ensemble = source_data.parentItem.parentItem.data(Qt.DisplayRole)
+                msg.notifyMessage(
+                    f"No valid geometry found for:"
+                    f"\n\t{image_ensemble} -> {image_catalog} -> {image_name}.\""
+                    f"\nDiffusion Coefficient operation has been disabled.",
+                    title=f"No Geometry Found",
+                    level=msg.WARNING)
+                self.workflow.set_disabled(diffusion_op)
+
         # Provide incidence angle and transmission mode based on SAXS v. GISAXS image intent type
         # TODO: if we support multiple image_indexes, will need to handle appropriately
         if isinstance(intents[image_index], GISAXSImageIntent):
