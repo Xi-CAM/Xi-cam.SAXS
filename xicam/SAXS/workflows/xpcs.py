@@ -147,9 +147,9 @@ class OneTime(XPCSWorkflow):
         self.add_operation(onetime)
         self.add_operation(average_i)
         self.add_operation(fitting)
-        self.add_operation(diffusion)
+        # self.add_operation(diffusion)
 
-        # Manually set up connections
+        # Manually set up connections (redundant if using this with LinearWorkflowEditor)
         self.add_link(self.correct_image, onetime, "images", "images")
         self.add_link(onetime, average_i, "images", "images")
         self.add_link(onetime, fitting, "g2", "g2")

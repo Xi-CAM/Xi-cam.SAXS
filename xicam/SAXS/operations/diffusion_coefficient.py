@@ -57,16 +57,18 @@ def diffusion_coefficient(relaxation_rates: np.ndarray,
     # TODO: what should we do when we only get one relaxation rate (ie one roi / non-segmented roi)
     if geometry is None:
         msg.notifyMessage('Calibrate required for diffusion coefficients.')
+        
+        return np.array([0]), np.array([0]), relaxation_rates, g2, tau, fit_curve
+        
+    else:
+        qs = np.asarray(average_q_from_labels(labels, geometry, transmission_mode, incidence_angle))
 
-    qs = np.asarray(average_q_from_labels(labels, geometry, transmission_mode, incidence_angle))
+        x = qs ** 2
+        # diffusion_values = relaxation_rates / x
 
-    x = qs ** 2
-    # diffusion_values = relaxation_rates / x
+        model = models.Linear1D()
+        fitting_algorithm = fitting.LinearLSQFitter()
 
-    model = models.Linear1D()
-    fitting_algorithm = fitting.LinearLSQFitter()
+        fit = fitting_algorithm(model, x, relaxation_rates)
 
-    fit = fitting_algorithm(model, x, relaxation_rates)
-
-    return fit(x), x, relaxation_rates, g2, tau, fit_curve
-
+        return fit(x), x, relaxation_rates, g2, tau, fit_curve
