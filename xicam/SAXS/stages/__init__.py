@@ -82,7 +82,10 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
         self.displayworkflow = DisplayWorkflow()
         self.reduceworkflow = ReduceWorkflow()
 
+        # Add toolbar to the layout
         self.toolbar = SAXSToolbarBase()
+        self.gui_layout_template["top"] = self.toolbar
+
         # # FIXME: should workflow editor always require a workflow?
         # self.workflow_editor = WorkflowEditor(Workflow())
         #
@@ -802,6 +805,16 @@ class CompareGUIPlugin(BaseSAXSGUIPlugin):
 #                                                # workflow_pickle=workflow_pickle))
 
 class CorrelationStage(BaseSAXSGUIPlugin):
+    """
+    Xi-CAM stage for XPCS correlation viewing and analysis.
+
+    Features:
+    * Open supported files in the data browser on the left, a preview will be shown when single-clicking the file.
+    * Open configured databrokers to access and load bluesky runs.
+    * Interactive tree-like viewer on the right-hand widget, where you can check/uncheck items to visualize and run analysis on.
+    * Define ROIs on an opened and checked image item using the toolbar above the center widget.
+    * Configurable and runnable 1-Time and 2-Time workflows in the bottom right widget.
+    """
     name = "Correlation"
     # TODO: This doesn't really need to be two separate stages...
     def __init__(self):
@@ -811,15 +824,13 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         self.workflow = next(iter(workflows.keys()))
         self.workflow.auto_connect_all()
 
-        correlation_workflow_editor = WorkflowEditor(self.workflow,
-                                                     kwargs_callable=self.get_active_images,
-                                                     callback_slot=self.workflow_finished,
-                                                     workflows=workflows)
-        correlation_layout = GUILayout(center=self.canvases_view,
-                                       right=self.ensemble_view,
-                                       rightbottom=correlation_workflow_editor,
-                                       top=self.toolbar)
-        self.stages["Correlation"] = correlation_layout
+        # FIXME: modify WorkflowEditor.workflow setter to allow changing workflow, kwargs_callable, etc.
+        self.workflow_editor = WorkflowEditor(self.workflow,
+                                              kwargs_callable=self.get_active_images,
+                                              callback_slot=self.workflow_finished,
+                                              workflows=workflows)
+        self.gui_layout_template["rightbottom"] = self.workflow_editor
+        self.stages[self.name] = GUILayout(**self.gui_layout_template)
 
         self._roi_added = False
 
@@ -841,6 +852,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         # self.ensemble_model.intents_from_ensemble(self.ensemble_model.active_ensemble)
         image_indexes = list(filter(lambda index: isinstance(intents[index], SAXSImageIntent), intents.keys()))
 
+        # FIXME: handle multiple images
         if len(image_indexes) > 1:
             ...
             raise ValueError('...')
