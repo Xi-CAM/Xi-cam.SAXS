@@ -481,9 +481,12 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
         # get catalogs from active ensemble
         active_ensemble = self.ensemble_model.active_ensemble
         if not active_ensemble:
-            return
+            raise RuntimeError("Unable to calibrate since there is no data currently loaded. "
+                               "Try opening data from the data browser on the left, "
+                               "then retry running the calibration workflow.")
 
-        active_catalogs = self.ensemble_model.catalogs_from_ensemble(active_ensemble)
+        # [] handles case where there is an active ensemble but no catalogs under it
+        active_catalogs = self.ensemble_model.catalogs_from_ensemble(active_ensemble) or []
 
         class CalibrationDialog(QDialog):
             """Dialog for calibrating images.
@@ -530,8 +533,9 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
                 return self._catalogs[self.catalog_selector.currentRow()]
 
         if not active_catalogs:
-            msg.logMessage("No catalogs in active ensemble found, cannot calibrate.", msg.WARNING)
-            return
+            raise RuntimeError("There are no catalogs in the active ensemble "
+                               f'"{active_ensemble.data(Qt.DisplayRole)}". '
+                               "Unable to calibrate.")
 
         dialog = CalibrationDialog(active_catalogs)
         accepted = dialog.exec_()
