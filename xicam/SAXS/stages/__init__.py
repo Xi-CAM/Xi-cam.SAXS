@@ -82,10 +82,6 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
         self.displayworkflow = DisplayWorkflow()
         self.reduceworkflow = ReduceWorkflow()
 
-        # Add toolbar to the layout
-        self.toolbar = SAXSToolbarBase()
-        self.gui_layout_template["top"] = self.toolbar
-
         # # FIXME: should workflow editor always require a workflow?
         # self.workflow_editor = WorkflowEditor(Workflow())
         #
@@ -467,8 +463,7 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
 
         self.calibrate_layout = GUILayout(self.canvases_view,
                                           right=self.ensemble_view,
-                                          rightbottom=self.calibration_panel,
-                                          top=self.toolbar)
+                                          rightbottom=self.calibration_panel)
         # stages = {'Calibrate': GUILayout(self.calibration_view,
         #                                  right=self.calibrationsettings.widget,
         #                                  rightbottom=self.calibrationpanel,
@@ -627,7 +622,6 @@ class CompareGUIPlugin(BaseSAXSGUIPlugin):
         self.comparemultiview = QLabel("...")
 
         stages = {'Compare': GUILayout(self.comparemultiview,
-                                       top=self.toolbar,
                                        right=self.ensemble_view)}
         self.stages.update(**stages)
 #
