@@ -15,9 +15,10 @@ class FastCCD(detectors.Detector):
         Returns a generic mask for FastCCD detectors...
         """
 
-        mask = np.zeros((2050, 960))
-        # mask middle 19 rows
-        mask[2050 // 2 - 9: 2050 // 2 + 9, :] = 1
+        mask = np.zeros(MAX_SHAPE)
+        # mask middle 19 cols
+        # TODO: fix overscanned pixels at IOC instead of this 19 col mask here
+        mask[:, 2050 // 2 - 9: 2050 // 2 + 9] = 1
         # TODO: check that this mask is correct
 
         return mask
