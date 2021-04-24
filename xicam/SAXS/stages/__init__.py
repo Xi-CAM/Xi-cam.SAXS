@@ -71,6 +71,7 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
 
         # Add in appropriate projectors here
         # Make sure project_intents is last (since it is generic case)
+        # FIXME: refactor separation of SAXS v. XPCS
         self._projectors.extend([project_NXsas, project_nxcanSAS, project_intents])
 
         # self.ensemble_model = EnsembleModel()
