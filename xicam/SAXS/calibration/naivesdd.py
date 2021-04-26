@@ -1,12 +1,15 @@
+from enum import Enum
+
 import numpy as np
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
-    categories
+    categories, units
 from pyFAI import calibrant
 from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
 from scipy import signal
 
-
 # TODO: use Multigeometry
+# Create Enum containing a dict of calibrations (ordered according to keys)
+calibrants = Enum("Calibrant", dict(sorted(calibrant.ALL_CALIBRANTS.all.items())))
 
 
 @operation
@@ -17,17 +20,27 @@ from scipy import signal
 @describe_input('calibrant', "Calibrant standard record")
 @describe_input('azimuthal_integrator', "Azimuthal integrator; the SDD will be modified in-place")
 @describe_input('npts', "Resolution in q of the azimuthal integration used for ring detection")
+@describe_input('wavelength_override', "If provided, override the wavelength provided by the input azimuthal_integrator")
+@units('wavelength_override', 'm')
 @describe_output('azimuthal_integrator', "Azimuthal integrator with the SDD be modified in-place")
 @categories(('Scattering', 'Calibration'))
 def naive_sdd(data: np.ndarray,
-              calibrant: calibrant.Calibrant,
               azimuthal_integrator: AzimuthalIntegrator,
+              calibrant: calibrants = calibrant.get_calibrant("AgBh"),
               mask: np.ndarray=None,
+              wavelength_override: float = None,
               npts: int = 2000) -> AzimuthalIntegrator:
     kwargs = {}
     if mask is not None:
         kwargs['mask'] = mask
 
+    # TODO: add a type that is a special parameter-tree item allowing enable/disable the parameter in the gui
+    if wavelength_override:
+        azimuthal_integrator.set_wavelength(wavelength_override)
+
+    # slice into the first index as long as there's higher dimensionality
+    while len(data.shape) > 2:
+        data = data[0]
 
     # Un-calibrated azimuthal integration
     r, radialprofile = azimuthal_integrator.integrate1d(np.asarray(data), npts, unit='r_mm', **kwargs)

@@ -7,7 +7,7 @@ from xicam.gui.static import path
 from xicam.core.execution.workflow import Workflow
 from xicam.plugins import OperationPlugin
 from xicam.gui.widgets.menuview import MenuView
-from xicam.gui.widgets.ROI import ArcROI, LineROI, BetterPolyLineROI, RectROI, SegmentedRectROI
+from xicam.gui.widgets.ROI import ArcROI, LineROI, BetterPolyLineROI, BetterRectROI, SegmentedRectROI
 from xicam.core import msg
 from functools import partial
 import pyqtgraph as pg
@@ -165,10 +165,10 @@ class ROIs(SAXSToolbarBase):
         view = self._get_view()
         if view:
             view.getView().addItem(roi)
-            self.workflow.insert_operation(self.index, roi.process)
+            self.workflow.insert_operation(self.index, roi.operation)
             # Remove the roi process from the workflow when the roi is removed
             # TODO -- should this be in BetterROI?
-            roi.sigRemoveRequested.connect(lambda roi: self.workflow.remove_operation(roi.process))
+            roi.sigRemoveRequested.connect(lambda roi: self.workflow.remove_operation(roi.operation))
         else:
             msg.notifyMessage("Please open an image before creating an ROI.", level=msg.WARNING)
 
@@ -195,7 +195,7 @@ class ROIs(SAXSToolbarBase):
         self.add_roi(BetterPolyLineROI(points, closed=True))
 
     def add_rect(self):
-        self.add_roi(RectROI(pos=self._rect_origin(), size=self._scaled_size()))
+        self.add_roi(BetterRectROI(pos=self._rect_origin(), size=self._scaled_size()))
 
     def add_rect_segmented(self):
         self.add_roi(SegmentedRectROI(pos=self._rect_origin(), size=self._scaled_size()))

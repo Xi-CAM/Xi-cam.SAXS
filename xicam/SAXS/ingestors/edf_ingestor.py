@@ -1,7 +1,6 @@
 import fabio
 import mimetypes
 from xicam.SAXS.ontology import NXsas
-
 from bluesky_live.run_builder import RunBuilder
 
 mimetypes.add_type('application/x-edf', '.edf')
@@ -16,20 +15,24 @@ def edf_ingestor(paths):
                                                'stream': 'primary',
                                                'location': 'event',
                                                'field': 'image'}},
-                    'configuration': {'ask': 'Dylan'}  # FIXME: ask Dylan. do we need this in all our other projections?
+                    'configuration': {}
                     }]
 
-    data = None
     with fabio.open(paths[0]) as file:
-        data = file.data
+        d = file.data
 
     metadata = {'projections': projections}
+    data_keys = {'image': {'source': 'Beamline 7.3.3',
+                           'dtype': 'array',
+                           'shape': d.shape,
+                           'dims': ('dim_0', 'dim_1')}}
     with RunBuilder(metadata=metadata) as builder:
         builder.add_stream("primary",
-                           data={'image': data})
-                           # data_keys={'image': {'source': 'Beamline 7.3.3',
-                           #                      'dtype': 'array',
-                           #                      'shape': data.shape}})
+                           #NOTE: Put data in list, since Runbuilder.add_stream expects
+                           #a sequence number to add event_page
+                           data={'image': [d]},
+                           data_keys=data_keys,
+                           )
 
     builder.get_run()
     yield from builder._cache

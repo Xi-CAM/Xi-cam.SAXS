@@ -4,11 +4,13 @@ import event_model
 
 from xicam.core.execution import Workflow
 
-from ..processing.fitting import fit_scattering_factor
-from ..processing.fourierautocorrelator import fourier_correlation
-from ..processing.onetime import one_time_correlation
-from ..processing.twotime import two_time_correlation
-from ..processing.correction import correct_fastccd_image
+from ..operations.average_intensity import average_intensity
+from ..operations.fitting import fit_scattering_factor
+from ..operations.fourierautocorrelator import fourier_correlation
+from ..operations.onetime import one_time_correlation
+from ..operations.twotime import two_time_correlation
+from ..operations.correction import correct_fastccd_image
+from ..operations.diffusion_coefficient import diffusion_coefficient
 
 
 class ProcessingAlgorithms:
@@ -138,11 +140,18 @@ class OneTime(XPCSWorkflow):
     def __init__(self):
         super(OneTime, self).__init__()
         onetime = one_time_correlation()
-        self.add_operation(onetime)
         fitting = fit_scattering_factor()
+        average_i = average_intensity()
+        diffusion = diffusion_coefficient()
+
+        self.add_operation(onetime)
+        self.add_operation(average_i)
         self.add_operation(fitting)
-        # Manually set up connections
+        # self.add_operation(diffusion)
+
+        # Manually set up connections (redundant if using this with LinearWorkflowEditor)
         self.add_link(self.correct_image, onetime, "images", "images")
+        self.add_link(onetime, average_i, "images", "images")
         self.add_link(onetime, fitting, "g2", "g2")
         self.add_link(onetime, fitting, "tau", "tau")
 

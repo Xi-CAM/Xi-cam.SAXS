@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 class FastCCD(detectors.Detector):
     aliases = ['Fast CCD']
-    MAX_SHAPE = (1000, 960)
+    MAX_SHAPE = (960, 2050)
 
     def __init__(self, pixel1=30.e-6, pixel2=30.e-6, max_shape=MAX_SHAPE):
         super(FastCCD, self).__init__(pixel1=pixel1, pixel2=pixel2, max_shape=max_shape)
@@ -15,9 +15,10 @@ class FastCCD(detectors.Detector):
         Returns a generic mask for FastCCD detectors...
         """
 
-        mask = np.zeros((1000, 960))
-        # mask middle 19 rows
-        mask[500 - 9: 500 + 9, :] = 1
+        mask = np.zeros(MAX_SHAPE)
+        # mask middle 19 cols
+        # TODO: fix overscanned pixels at IOC instead of this 19 col mask here
+        mask[:, 2050 // 2 - 9: 2050 // 2 + 9] = 1
         # TODO: check that this mask is correct
 
         return mask

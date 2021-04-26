@@ -7,7 +7,7 @@ from xicam.plugins import manager as plugin_manager
 from xicam.plugins import live_plugin
 from xicam.gui.canvases import ImageIntentCanvas
 from xicam.gui.widgets.imageviewmixins import LogScaleIntensity, ImageViewHistogramOverflowFix, \
-    QCoordinates, Crosshair, BetterButtons, CenterMarker, ToolbarLayout
+    QCoordinates, Crosshair, BetterButtons, CenterMarker, ToolbarLayout, EwaldCorrected, ROICreator
 
 
 @live_plugin("ImageMixinPlugin")
@@ -18,9 +18,10 @@ class SAXSToolbarMixin(ToolbarLayout):
         super(SAXSToolbarMixin, self).__init__(*args, toolbar=toolbar, **kwargs)
 
 
+# FIXME: investigate EWaldCorrected (particularly ProcessingView) -- causes "tuple indexing error" on ProxyView when opening image
 @live_plugin("ImageMixinPlugin")
 class SAXSImageIntentBlend(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates,
-                           ImageViewHistogramOverflowFix, SAXSToolbarMixin):# LogButtons):
+                           ImageViewHistogramOverflowFix, ROICreator, EwaldCorrected):  # LogButtons):
     ...
 
 
@@ -30,3 +31,5 @@ class SAXSImageIntentCanvas(ImageIntentCanvas):
 
     def render(self, intent, **_):
         super(SAXSImageIntentCanvas, self).render(intent, mixins=["SAXSImageIntentBlend"])
+        if hasattr(intent, "geometry"):
+            self.canvas_widget.setGeometry(intent.geometry)
