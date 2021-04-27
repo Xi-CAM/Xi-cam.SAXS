@@ -55,7 +55,7 @@ def two_time_correlation(images: np.ndarray,
     # Calculate avg qs from label array for first dimension on returned g2 (so slice selector shows qs for indexing)
     qs = None
     if geometry is not None:
-        qs = np.asarray(average_q_from_labels(labels, geometry))
+        qs = np.asarray(average_q_from_labels(labels, geometry, scattering_mode='transmission'))
         # qs = np.asarray([f"q={q:.3f}" for q in qs])  # FIXME: why can't we return a python list for the catalog?
         # File "xi-cam/xicam/core/execution/workflow.py", line 886, in project_intents
         #     kwargs[intent_kwarg_name] = getattr(run_catalog, operation_id).to_dask()[output_name]

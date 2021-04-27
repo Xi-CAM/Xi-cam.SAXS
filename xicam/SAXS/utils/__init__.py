@@ -45,10 +45,10 @@ def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.
 
 def average_q_from_labels(labels: np.ndarray,
                           geometry: AzimuthalIntegrator,
-                          transmission_mode: str,
+                          scattering_mode: str,
                           incidence_angle=None) -> List[float]:
     # q_h, q_v
-    q = q_from_geometry(labels.shape, geometry, transmission_mode == 'reflection', incidence_angle or 0.0)
+    q = q_from_geometry(labels.shape, geometry, scattering_mode == 'reflection', incidence_angle or 0.0)
 
     # TODO: how can we allow choosing between these different q values (q_h, q_v, q_norm)
     # q magnitude
