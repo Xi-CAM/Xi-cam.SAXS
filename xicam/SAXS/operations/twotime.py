@@ -17,7 +17,13 @@ from ..utils import average_q_from_labels, get_label_array
 @describe_input('images', 'dimensions are: (rr, cc), iterable of 2D arrays')
 @describe_input('labels', 'labeled array of the same shape as the image stack;'
                           'each ROI is represented by a distinct label (i.e., integer)')
-@describe_input('num_bufs', 'maximum lag step to compute in each generation of downsampling (must be even)')
+@describe_input('autoset_num_bufs', 'When enabled, automatically determine the number of buffers to be used. '
+                                    'This will ignore any value in num_bufs if checked. '
+                                    'Enabling this will set number of levels to 1 (if not already set to 1). '
+                                    'The number of buffers selected will be automatically based on number of frames,'
+                                    ' (or number of frames - 1 if there are an odd number of frames.')
+@describe_input('num_bufs', 'Maximum lag step to compute in each generation of downsampling (must be even). '
+                            'Check autoset_num_bufs to automatically set this for you.')
 @describe_input('num_levels', 'how many generations of downsampling to perform,'
                               'i.e., the depth of the binomial tree of averaged frames default is one')
 @output_names('g2', 'tau', 'qs')
@@ -33,11 +39,20 @@ from ..utils import average_q_from_labels, get_label_array
 def two_time_correlation(images: np.ndarray,
                          image_item: pg.ImageItem = None,
                          rois: Iterable[pg.ROI] = None,
-                         num_bufs: int = 16,
-                         num_levels: int = 8,
+                         autoset_num_bufs: bool = True,
+                         num_bufs: int = 2,
+                         num_levels: int = 1,
                          geometry: AzimuthalIntegrator = None) -> Tuple[np.ndarray, np.ndarray]:
     # TODO -- make composite parameter item widget to allow default (all frames) or enter value
     num_frames = len(images)
+
+    # Auto-select-buffers will override number of levels to be 1,
+    # which requires that the number of buffers == number of frames
+    # (unless odd; then use number of frames - 1)
+    if autoset_num_bufs:
+        num_levels = 1
+        num_frames = num_frames if num_frames % 2 == 0 else num_frames - 1
+        num_bufs = num_frames
 
     labels = get_label_array(images, rois=rois, image_item=image_item)
     if labels.max() == 0:
