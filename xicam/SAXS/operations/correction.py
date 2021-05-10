@@ -4,8 +4,13 @@ from xicam.plugins.operationplugin import operation, display_name, output_names,
     describe_output, categories, visible
 
 
-@njit(parallel=True)
 def correct(array, flats, bkg, gain_map=(1, 2, 4, 8)):
+    return _correct(np.asarray(array, dtype=np.uint16),
+                    np.asarray(flats, dtype=np.float32),
+                    np.asarray(bkg, dtype=np.float32))
+
+@njit(parallel=True)
+def _correct(array, flats, bkg, gain_map=(1, 2, 4, 8)):
     # 16-bit unsigned
     # image: bits 0 - 12
     # bad:   bit 13
@@ -13,10 +18,6 @@ def correct(array, flats, bkg, gain_map=(1, 2, 4, 8)):
     # gain1: 0b11 (3)
     # gain2: 0b10 (2)
     # gain8: 0b00 (0)
-    array = array.astype(dtype=np.uint16)
-    flats = flats.astype(dtype=np.float32)
-    bkg = bkg.astype(dtype=np.float32)
-
     for i in prange(array.shape[0]):
         for j in prange(array.shape[1]):
             for k in prange(array.shape[2]):
