@@ -5,7 +5,7 @@ import pyqtgraph as pg
 
 import skbeam.core.correlation as corr
 from xicam.SAXS.patches.pyFAI import AzimuthalIntegrator
-from xicam.core.intents import PlotIntent, ImageIntent
+from xicam.core.intents import PlotIntent
 from xicam.core import msg
 
 from xicam.plugins.operationplugin import operation, describe_input, describe_output, visible, \
@@ -27,7 +27,7 @@ from ..utils import get_label_array, average_q_from_labels
 @describe_input('number_of_levels', 'Integer number defining how many generations of \
                  downsampling to perform, i.e., the depth of the binomial tree \
                  of averaged frames')
-@output_names('g2', 'tau', 'images', 'labels', 'trimmed_images')
+@output_names('g2', 'tau', 'images', 'labels')
 @describe_output('g2', 'Normalized g2 data array with shape = (len(lag_steps), num_rois)')
 @describe_output('tau', 'array describing tau (lag steps)')
 @visible('images', False)
@@ -40,11 +40,6 @@ from ..utils import get_label_array, average_q_from_labels
         labels={"bottom": "𝜏", "left": "g₂"},
         output_map={'x': 'tau', 'y': 'g2'},
         mixins=["ToggleSymbols"])
-@intent(ImageIntent,
-        name='Trimmed Data',
-        output_map={'image': 'trimmed_images'},
-        mixins=["XArrayView"],
-        )
 def one_time_correlation(images: np.ndarray,
                          rois: Iterable[pg.ROI] = None,
                          image_item: pg.ImageItem = None,
@@ -63,13 +58,13 @@ def one_time_correlation(images: np.ndarray,
     trimmed_images = np.asarray(images[:, si.min():si.max() + 1, se.min():se.max() + 1])
     trimmed_labels = np.asarray(np.flipud(labels)[si.min():si.max() + 1, se.min():se.max() + 1])
 
-    # trimmed_images = trimmed_images.clip(1, None)
+    # trimmed_images[trimmed_images <= 0] = np.NaN   # may be necessary to mask values
 
-    trimmed_images -= np.min(trimmed_images, axis=0)  # + 1
+    trimmed_images -= np.min(trimmed_images, axis=0)
 
     g2, tau = corr.multi_tau_auto_corr(num_levels, num_bufs,
                                        trimmed_labels.astype(np.uint8),
                                        trimmed_images)
     g2 = g2[1:].squeeze()
     # FIXME: is it required to trim the 0th value off the tau and g2 arrays?
-    return g2.T, tau[1:], images, labels, trimmed_images
+    return g2.T, tau[1:], images, labels
