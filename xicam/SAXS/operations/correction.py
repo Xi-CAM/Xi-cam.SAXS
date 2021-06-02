@@ -6,8 +6,8 @@ from xicam.plugins.operationplugin import operation, display_name, output_names,
 
 def correct(array, flats, bkg, gain_map=(1, 2, 4, 8)):
     return _correct(np.asarray(array, dtype=np.uint16),
-                    np.asarray(flats, dtype=np.float32),
-                    np.asarray(bkg, dtype=np.float32))
+                    np.asarray(flats, dtype=np.uint16),
+                    np.asarray(bkg, dtype=np.uint16))
 
 @njit(parallel=True)
 def _correct(array, flats, bkg, gain_map=(1, 2, 4, 8)):
@@ -18,6 +18,8 @@ def _correct(array, flats, bkg, gain_map=(1, 2, 4, 8)):
     # gain1: 0b11 (3)
     # gain2: 0b10 (2)
     # gain8: 0b00 (0)
+    masked_flat = 0x1FFF & flats
+    masked_dark = 0x1FFF & bkg
     for i in prange(array.shape[0]):
         for j in prange(array.shape[1]):
             for k in prange(array.shape[2]):
@@ -27,15 +29,17 @@ def _correct(array, flats, bkg, gain_map=(1, 2, 4, 8)):
                 bad_flag = 0x1 & (val >> 13)
                 gain = gain_map[0x3 & (val >> 14)]
 
-                array[i, j, k] = flats[j, k] * gain * intensity
+                bkg_gain = gain_map[0x3 & (bkg[j, k] >> 14)]
 
-                if val < bkg[j, k]:
-                    array[i, j, k] = bkg[j, k]
+                array[i, j, k] = masked_flat[j, k] * gain * intensity
+
+                if intensity < masked_dark[j, k]:
+                    array[i, j, k] = bkg_gain * masked_dark[j, k]
 
                 if bad_flag:
                     array[i, j, k] = 0
                 else:
-                    array[i, j, k] -= bkg[j, k]
+                    array[i, j, k] -= bkg_gain * masked_dark[j, k]
 
     return array
 
