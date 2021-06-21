@@ -22,6 +22,7 @@ from typing import Union, Tuple
         canvas_name="1-time Correlation",
         match_key='1-time Correlation',
         name='g2 fit',
+        xLogMode=True,
         labels={"bottom": "𝜏", "left": "g₂"},
         output_map={'x': 'tau', 'y': 'fit_curve'},
         mixins=["ToggleSymbols"])
@@ -29,6 +30,7 @@ from typing import Union, Tuple
         canvas_name="1-time Correlation",
         match_key='1-time Correlation',
         name='g2',
+        xLogMode=True,
         labels={"bottom": "𝜏", "left": "g₂"},
         output_map={'x': 'tau', 'y': 'g2'},
         mixins=["ToggleSymbols"])

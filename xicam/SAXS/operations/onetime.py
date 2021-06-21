@@ -36,7 +36,7 @@ from ..utils import get_label_array, average_q_from_labels
 @intent(PlotIntent,
         match_key='1-time Correlation',
         name='g2',
-        yLog=True,
+        xLogMode=True,
         labels={"bottom": "𝜏", "left": "g₂"},
         output_map={'x': 'tau', 'y': 'g2'},
         mixins=["ToggleSymbols"])

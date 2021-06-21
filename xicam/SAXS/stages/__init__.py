@@ -230,6 +230,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
     * Configurable and runnable 1-Time and 2-Time workflows in the bottom right widget.
     """
     name = "Correlation"
+
     # TODO: This doesn't really need to be two separate stages...
     def __init__(self):
         super(CorrelationStage, self).__init__()
@@ -268,11 +269,10 @@ class CorrelationStage(BaseSAXSGUIPlugin):
 
         # FIXME: handle multiple images
         if len(image_indexes) > 1:
-            ...
-            raise ValueError('...')
+            image_names = [img.parent().data(Qt.DisplayRole) for img in image_indexes]
+            raise ValueError("Running multiple images in this workflow is currently unsupported.")
         elif len(image_indexes) == 0:
-            ...
-            raise ValueError('...')
+            raise ValueError("No images are selected; cannot run this workflow.")
 
         image_index = image_indexes[0]
         canvas = self.canvases_view._canvas_manager.canvas_from_index(image_index)
