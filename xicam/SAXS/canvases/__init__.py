@@ -1,13 +1,11 @@
-import numpy as np
-from pyqtgraph import ImageView
-from xarray import DataArray
-
 from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarBase, ROIs
 from xicam.plugins import manager as plugin_manager
 from xicam.plugins import live_plugin
 from xicam.gui.canvases import ImageIntentCanvas
 from xicam.gui.widgets.imageviewmixins import LogScaleIntensity, ImageViewHistogramOverflowFix, \
     QCoordinates, Crosshair, BetterButtons, CenterMarker, ToolbarLayout, EwaldCorrected, ROICreator
+
+from xicam.SAXS.widgets.imageviewmixins import BackgroundCorrected
 
 
 @live_plugin("ImageMixinPlugin")
@@ -20,7 +18,7 @@ class SAXSToolbarMixin(ToolbarLayout):
 
 # FIXME: investigate EWaldCorrected (particularly ProcessingView) -- causes "tuple indexing error" on ProxyView when opening image
 @live_plugin("ImageMixinPlugin")
-class SAXSImageIntentBlend(LogScaleIntensity, CenterMarker, BetterButtons, Crosshair, QCoordinates,
+class SAXSImageIntentBlend(BackgroundCorrected, LogScaleIntensity, CenterMarker, BetterButtons, QCoordinates,
                            ImageViewHistogramOverflowFix, ROICreator, EwaldCorrected):  # LogButtons):
     ...
 
@@ -33,3 +31,5 @@ class SAXSImageIntentCanvas(ImageIntentCanvas):
         super(SAXSImageIntentCanvas, self).render(intent, mixins=["SAXSImageIntentBlend"])
         if hasattr(intent, "geometry"):
             self.canvas_widget.setGeometry(intent.geometry)
+        if hasattr(intent, "darks") and hasattr(self.canvas_widget, "set_darks"):
+            self.canvas_widget.set_darks(intent._darks)

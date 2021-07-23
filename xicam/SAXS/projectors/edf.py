@@ -10,6 +10,8 @@ from xicam.SAXS.patches.pyFAI import AzimuthalIntegrator
 from xicam.core.data import ProjectionNotFound
 from xicam.core import msg
 
+from xicam.SAXS.ontology.NXsas import DATA_PROJECTION_KEY
+
 PROJECTION_NAME = "NXsas"
 PROJECTION_KEYS = {
     "Detector Rotation": "",
@@ -61,6 +63,14 @@ def project_NXsas(run_catalog):
 
     data = extract_mapped_value(run_catalog, projection, NXsas.DATA_PROJECTION_KEY)
 
+    # try to extract dark image
+    device_name = projection['projection'][DATA_PROJECTION_KEY]['field']
+    try:
+        darks = run_catalog.dark.to_dask()[device_name]
+    except (AttributeError, KeyError) as e:
+        darks = None
+        msg.logMessage(e, level=msg.WARNING)
+
     # handle case where we don't have info to construct a geometry
     try:
         detector_rotation = extract_mapped_value(run_catalog, projection, NXsas.AZIMUTHAL_ANGLE_PROJECTION_KEY)
@@ -107,12 +117,14 @@ def project_NXsas(run_catalog):
     intents_list = []
     if projection['configuration'].get('geometry_mode') == 'reflection':
         intents_list.append(GISAXSImageIntent(image=data,
+                                              darks=darks,
                                               name='Scattering Image Data',
                                               geometry=geometry,
                                               incidence_angle=incidence_angle,
                                               match_key=uuid.uuid4()))
     else:
         intents_list.append(SAXSImageIntent(image=data,
+                                            darks=darks,
                                             name='Scattering Image Data',
                                             geometry=geometry,
                                             match_key=uuid.uuid4()))
