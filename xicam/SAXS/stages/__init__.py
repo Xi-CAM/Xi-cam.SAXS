@@ -281,6 +281,9 @@ class CorrelationStage(BaseSAXSGUIPlugin):
                   'image_item': canvas.canvas_widget.imageItem,
                   'geometry': intents[image_index].geometry}
 
+        if 'darks' in intents[image_index].kwargs:
+            kwargs['darks'] = np.squeeze(intents[image_index].kwargs['darks'])
+
         # Provide incidence angle and transmission mode based on SAXS v. GISAXS image intent type
         # TODO: if we support multiple image_indexes, will need to handle appropriately
         if isinstance(intents[image_index], GISAXSImageIntent):
