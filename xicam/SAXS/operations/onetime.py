@@ -44,7 +44,8 @@ def one_time_correlation(images: np.ndarray,
                          rois: Iterable[pg.ROI] = None,
                          image_item: pg.ImageItem = None,
                          num_bufs: int = 16,
-                         num_levels: int = 8, ) -> Tuple[da.array, da.array, da.array, np.ndarray]:
+                         num_levels: int = 8,
+                         intensity_drift_correction: bool = True) -> Tuple[da.array, da.array, da.array, np.ndarray]:
     if images.ndim < 3:
         raise ValueError(f"Cannot compute correlation on data with {images.ndim} dimensions.")
 
@@ -59,6 +60,9 @@ def one_time_correlation(images: np.ndarray,
     trimmed_labels = np.asarray(np.flipud(labels)[si.min():si.max() + 1, se.min():se.max() + 1])
 
     # trimmed_images[trimmed_images <= 0] = np.NaN   # may be necessary to mask values
+
+    if intensity_drift_correction:
+        trimmed_images = trimmed_images/np.mean(trimmed_images, axis=(1,2))[:, None, None]
 
     trimmed_images -= np.min(trimmed_images, axis=0)
 
