@@ -16,7 +16,7 @@ from ..utils import get_label_array, average_q_from_labels
 
 @operation
 @display_name('1-time Correlation')
-@input_names('images', 'rois', 'image_item', 'number_of_buffers', 'number_of_levels', )
+@input_names('images', 'rois', 'image_item', 'number_of_buffers', 'number_of_levels', 'intensity_drift_correction')
 @describe_input('images', 'Input array of two or more dimensions')
 # @describe_input('labels', 'Labeled array of the same shape as the image stack. \
 #                 Each ROI is represented by sequential integers starting at one.  For \
