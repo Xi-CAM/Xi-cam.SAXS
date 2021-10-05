@@ -38,6 +38,8 @@ class BackgroundCorrected(BetterLayout, ProcessingView):
         """Set dark image for this image view."""
         if darks is not None:
             self._darks = darks
+            if self._darks.ndim == 3:
+                self._darks = np.mean(self._darks, axis=0)
             self._bg_correct_btn.setEnabled(True)
             self._toggle_bg_correction(True)
 
