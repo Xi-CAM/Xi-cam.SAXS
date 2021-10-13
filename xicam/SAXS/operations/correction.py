@@ -21,6 +21,8 @@ def _correct(array, flats, bkg, gain_map=(1, 2, 4, 8), clip=False):
     # gain8: 0b00 (0)
     masked_flat = 0x1FFF & flats
     masked_dark = 0x1FFF & bkg
+    out = np.empty_like(array, dtype=np.int32)
+
     for i in prange(array.shape[0]):
         for j in prange(array.shape[1]):
             for k in prange(array.shape[2]):
@@ -32,18 +34,18 @@ def _correct(array, flats, bkg, gain_map=(1, 2, 4, 8), clip=False):
 
                 bkg_gain = gain_map[0x3 & (bkg[j, k] >> 14)]
 
-                array[i, j, k] = masked_flat[j, k] * gain * intensity
+                out[i, j, k] = masked_flat[j, k] * gain * intensity
 
                 if clip:
                     if intensity < masked_dark[j, k]:
-                        array[i, j, k] = bkg_gain * masked_dark[j, k]
+                        out[i, j, k] = bkg_gain * masked_dark[j, k]
 
                 if bad_flag:
-                    array[i, j, k] = 0
+                    out[i, j, k] = 0
                 else:
-                    array[i, j, k] -= bkg_gain * masked_dark[j, k]
+                    out[i, j, k] -= bkg_gain * masked_dark[j, k]
 
-    return array.astype(np.int16)
+    return out
 
 
 @operation
