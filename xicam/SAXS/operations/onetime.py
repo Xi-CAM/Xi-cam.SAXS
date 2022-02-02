@@ -16,12 +16,13 @@ from ..utils import get_label_array, average_q_from_labels
 
 @operation
 @display_name('1-time Correlation')
-@input_names('images', 'rois', 'image_item', 'number_of_buffers', 'number_of_levels', 'intensity_drift_correction')
+@input_names('images', 'labels', 'rois', 'image_item', 'number_of_buffers', 'number_of_levels',
+             'intensity_drift_correction')
 @describe_input('images', 'Input array of two or more dimensions')
-# @describe_input('labels', 'Labeled array of the same shape as the image stack. \
-#                 Each ROI is represented by sequential integers starting at one.  For \
-#                 example, if you have four ROIs, they must be labeled 1, 2, 3, 4. \
-#                 Background is labeled as 0')
+@describe_input('labels', 'Labeled array of the same shape as the image stack. \
+                 Each ROI is represented by sequential integers starting at one.  For \
+                 example, if you have four ROIs, they must be labeled 1, 2, 3, 4. \
+                 Background is labeled as 0')
 @describe_input('number_of_buffers', 'Integer number of buffers (must be even). Maximum \
                  lag step to compute in each generation of downsampling.')
 @describe_input('number_of_levels', 'Integer number defining how many generations of \
@@ -31,6 +32,7 @@ from ..utils import get_label_array, average_q_from_labels
 @describe_output('g2', 'Normalized g2 data array with shape = (len(lag_steps), num_rois)')
 @describe_output('tau', 'array describing tau (lag steps)')
 @visible('images', False)
+@visible('labels', False)
 @visible('rois', False)
 @visible('image_item', False)
 @intent(PlotIntent,
@@ -41,6 +43,7 @@ from ..utils import get_label_array, average_q_from_labels
         output_map={'x': 'tau', 'y': 'g2'},
         mixins=["ToggleSymbols"])
 def one_time_correlation(images: np.ndarray,
+                         labels: np.ndarray = None,
                          rois: Iterable[pg.ROI] = None,
                          image_item: pg.ImageItem = None,
                          num_bufs: int = 16,
@@ -49,20 +52,29 @@ def one_time_correlation(images: np.ndarray,
     if images.ndim < 3:
         raise ValueError(f"Cannot compute correlation on data with {images.ndim} dimensions.")
 
-    labels = get_label_array(images, rois=rois, image_item=image_item)
-    if labels.max() == 0:
-        msg.notifyMessage("Please add an ROI over which to calculate one-time correlation.")
-        raise ValueError("Please add an ROI over which to calculate one-time correlation.")
+    # if labels array was not passed in, it must be generated; trimming will occur here for memory conservation
+    if labels is None:
+        labels = get_label_array(images, rois=rois, image_item=image_item)
+        if labels.max() == 0:
+            msg.notifyMessage("Please add an ROI over which to calculate one-time correlation.")
+            raise ValueError("Please add an ROI over which to calculate one-time correlation.")
 
-    # Trim the image based on labels, and resolve to memory
-    si, se = np.where(np.flipud(labels))
-    trimmed_images = np.asarray(images[:, si.min():si.max() + 1, se.min():se.max() + 1])
-    trimmed_labels = np.asarray(np.flipud(labels)[si.min():si.max() + 1, se.min():se.max() + 1])
+        # Trim the image based on labels, and resolve to memory
+        si, se = np.where(np.flipud(labels))
+        # trimmed_images = np.asarray(images[:, si.min():si.max() + 1, se.min():se.max() + 1])
+        trimmed_images = np.asarray([image[si.min():si.max() + 1, se.min():se.max() + 1] for image in images])
+        trimmed_labels = np.asarray(np.flipud(labels)[si.min():si.max() + 1, se.min():se.max() + 1])
+
+
+    # If a labels array is passed in, no trimming is done; autocorr should read each frame lazy-like
+    else:
+        trimmed_images = images
+        trimmed_labels = labels
 
     # trimmed_images[trimmed_images <= 0] = np.NaN   # may be necessary to mask values
 
     if intensity_drift_correction:
-        trimmed_images = trimmed_images/np.mean(trimmed_images, axis=(1,2))[:, None, None]
+        trimmed_images = trimmed_images / np.mean(trimmed_images, axis=(1, 2))[:, None, None]
 
     trimmed_images -= np.min(trimmed_images, axis=0)
 
