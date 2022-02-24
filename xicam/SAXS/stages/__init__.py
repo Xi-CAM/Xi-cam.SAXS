@@ -24,9 +24,10 @@ from xicam.gui.widgets import PreviewWidget
 from xicam.gui.widgets.ROI import ROIOperation
 from xicam.gui.widgets.tabview import TabView
 from xicam.plugins import GUILayout, GUIPlugin, manager as pluginmanager, OperationPlugin
-from xicam.gui.models import IntentsModel, EnsembleModel
+# from xicam.gui.models import IntentsModel, EnsembleModel
+from xicam.gui.models.treemodel import IntentsModel, EnsembleModel
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
-from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
+# from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
 
 from xicam.SAXS.calibration.workflows import SimulateWorkflow, FourierCalibrationWorkflow, CalibrationWorkflow
 from xicam.SAXS.masking.workflows import MaskingWorkflow
@@ -250,6 +251,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         self._roi_added = False
 
     def workflow_finished(self, *results):
+        # print(f'results {results}')
         document = list(ingest_result_set(self.workflow, results))
         # TODO: do we want to keep in memory catalog or write to attached databroker?
         # FIXME: use better bluesky_live design instead of upserting directly
@@ -261,8 +263,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
     def get_active_images(self, workflow_editor: WorkflowEditor):
         self.workflow = workflow_editor.workflow
         intent_indexes = [self.intents_model.index(row, 0) for row in range(self.intents_model.rowCount())]
-        intents = {self.intents_model.data(index, IntentsModel.index_role): self.intents_model.data(index,
-                                                                                                    IntentsModel.intent_role)
+        intents = {index: index.internalPointer()
                    for index in intent_indexes}
         # self.ensemble_model.intents_from_ensemble(self.ensemble_model.active_ensemble)
         image_indexes = list(filter(lambda index: isinstance(intents[index], SAXSImageIntent), intents.keys()))
@@ -275,7 +276,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
             raise ValueError("No images are selected; cannot run this workflow.")
 
         image_index = image_indexes[0]
-        canvas = self.canvases_view._canvas_manager.canvas_from_index(image_index)
+        canvas = self.intents_model.data(image_index, self.intents_model.canvas_role)
         # Test with time-series
         kwargs = {'images': np.squeeze(intents[image_index].image),
                   'image_item': canvas.canvas_widget.imageItem,
@@ -291,10 +292,12 @@ class CorrelationStage(BaseSAXSGUIPlugin):
             kwargs['incidence_angle'] = image_index.data(EnsembleModel.object_role).incidence_angle
 
         # Return the visualized (checked) rois as well
-        roi_intent_indexes = filter(lambda index: isinstance(intents[index], ROIIntent)
-                                                  and index.data(Qt.CheckStateRole) == Qt.Checked,
-                                    intents.keys())
-        rois = list(map(lambda index: index.data(EnsembleModel.object_role).roi, roi_intent_indexes))
+        # roi_intent_indexes = filter(lambda index: isinstance(intents[index], ROIIntent)
+        #                                           and index.data(Qt.CheckStateRole) == Qt.Checked,
+        #                             intents.keys())
+        roi_intents = list(filter(lambda intent: isinstance(intent, ROIIntent), intents.values()))
+        rois = list(map(lambda intent: intent.roi, roi_intents))
+        # rois = list(map(lambda index: index.internalPointer(), roi_intent_indexes))
 
         kwargs['rois'] = rois
         return kwargs
@@ -303,8 +306,9 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         if not action.isAccepted():
             # Create ROI Intent adjacent to visualized intent
             roi_intent = ROIIntent(name=str(action.roi), roi=action.roi, match_key=canvas._primary_intent.match_key)
-            catalog = self.ensemble_model.catalog_from_intent(canvas._primary_intent)
-            self.ensemble_model.append_to_catalog(catalog, roi_intent)
+            # catalog = self.ensemble_model.catalog_from_intent(canvas._primary_intent)
+            catalog = self.ensemble_model.tree.parent(canvas._primary_intent)
+            self.ensemble_model.appendIntent(roi_intent, catalog)
 
             self.workflow.auto_connect_all()
             action.accept()
