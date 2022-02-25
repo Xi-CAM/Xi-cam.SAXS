@@ -1,59 +1,38 @@
 from functools import partial
 from typing import Dict, List
 
+import numpy as np
 from databroker.core import BlueskyRun
 from databroker.in_memory import BlueskyInMemoryCatalog
-from qtpy.QtCore import QItemSelectionModel, Qt
-from qtpy.QtGui import QStandardItemModel
-from qtpy.QtWidgets import QDialog, QListView, QWidget, QListWidget, QHBoxLayout, QPushButton, QDialogButtonBox, \
+from qtpy.QtCore import Qt
+from qtpy.QtWidgets import QDialog, QListWidget, QHBoxLayout, QPushButton, QDialogButtonBox, \
     QVBoxLayout
-import numpy as np
 
-from xicam.SAXS.intents import SAXSImageIntent, GISAXSImageIntent
-from xicam.SAXS.operations.synthetic import synthetic_image_series
-from xicam.SAXS.projectors.edf import project_NXsas
-from xicam.SAXS.projectors.nxcansas import project_nxcanSAS
-
-from xicam.core import msg, threads
-from xicam.core.data import MetaXArray
-from xicam.core.execution import Workflow
 from xicam.core.execution.workflow import ingest_result_set, project_intents
 from xicam.core.intents import ROIIntent
+from xicam.gui.actions import Action
 from xicam.gui.canvases import XicamIntentCanvas
+from xicam.gui.models.treemodel import EnsembleModel
+from xicam.gui.plugins.ensembleguiplugin import EnsembleGUIPlugin
 from xicam.gui.widgets import PreviewWidget
-from xicam.gui.widgets.ROI import ROIOperation
-from xicam.gui.widgets.tabview import TabView
-from xicam.plugins import GUILayout, GUIPlugin, manager as pluginmanager, OperationPlugin
-from xicam.gui.models import IntentsModel, EnsembleModel
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
-from xicam.gui.widgets.views import StackedCanvasView, DataSelectorView
+from xicam.plugins import GUILayout
 
-from xicam.SAXS.calibration.workflows import SimulateWorkflow, FourierCalibrationWorkflow, CalibrationWorkflow
+from xicam.SAXS.calibration.workflows import SimulateWorkflow, CalibrationWorkflow
+from xicam.SAXS.intents import SAXSImageIntent, GISAXSImageIntent
 from xicam.SAXS.masking.workflows import MaskingWorkflow
 from xicam.SAXS.operations.workflows import DisplayWorkflow, ReduceWorkflow
-from xicam.SAXS.widgets.parametertrees import CorrelationParameterTree, TwoTimeParameterTree, OneTimeParameterTree
-from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSViewerPluginBase, QDockWidget, QLabel
-from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
-from xicam.SAXS.workflows.roi import ROIWorkflow
+from xicam.SAXS.projectors.edf import project_NXsas
+from xicam.SAXS.projectors.nxcansas import project_nxcanSAS
+from xicam.SAXS.widgets.SAXSViewerPlugin import QLabel
 from xicam.SAXS.workflows.xpcs import OneTime, TwoTime
-
-# need to be late imports?
-from xicam.SAXS.calibration import CalibrationPanel
-from xicam.SAXS.widgets.SAXSViewerPlugin import SAXSCalibrationViewer, SAXSMaskingViewer, SAXSReductionViewer, SAXSCompareViewer
-from xicam.SAXS.widgets.SAXSToolbar import SAXSToolbarRaw, SAXSToolbarMask, SAXSToolbarReduce, SAXSToolbarBase
-from xicam.SAXS.widgets.XPCSToolbar import XPCSToolBar
 
 
 # FIXME: the old way used TabWidget.currentWidget with XPCSToolBar...
 # - previous: view was a tab view with the SAXSReductionViewer mixin as its widget
 # - how can we adapt this to StackedCanvasView / CanvasView?
-
-
 # # SAXS GUI Plugin mixin can use shared components
 # class SAXSGUIPlugin(CorrelationGUIPlugin, SAXSReductionGUIPlugin)
-
-from xicam.gui.plugins.ensembleguiplugin import EnsembleGUIPlugin
-from xicam.gui.actions import Action
 
 
 class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
@@ -95,10 +74,6 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
         self.calibrate_layout = GUILayout(self.canvases_view,
                                           right=self.ensemble_view,
                                           rightbottom=self.calibration_panel)
-        # stages = {'Calibrate': GUILayout(self.calibration_view,
-        #                                  right=self.calibrationsettings.widget,
-        #                                  rightbottom=self.calibrationpanel,
-        #                                  top=self.toolbar), }
         stages = {'Calibrate': self.calibrate_layout}
 
         self.stages.update(**stages)
@@ -255,16 +230,13 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         # FIXME: use better bluesky_live design instead of upserting directly
         catalog = BlueskyInMemoryCatalog()
         catalog.upsert(document[0][1], document[-1][1], partial(iter, document), [], {})
-        # project_intents(catalog)
         self.appendCatalog(catalog[-1])
 
     def get_active_images(self, workflow_editor: WorkflowEditor):
         self.workflow = workflow_editor.workflow
         intent_indexes = [self.intents_model.index(row, 0) for row in range(self.intents_model.rowCount())]
-        intents = {self.intents_model.data(index, IntentsModel.index_role): self.intents_model.data(index,
-                                                                                                    IntentsModel.intent_role)
+        intents = {index: index.internalPointer()
                    for index in intent_indexes}
-        # self.ensemble_model.intents_from_ensemble(self.ensemble_model.active_ensemble)
         image_indexes = list(filter(lambda index: isinstance(intents[index], SAXSImageIntent), intents.keys()))
 
         # FIXME: handle multiple images
@@ -275,7 +247,7 @@ class CorrelationStage(BaseSAXSGUIPlugin):
             raise ValueError("No images are selected; cannot run this workflow.")
 
         image_index = image_indexes[0]
-        canvas = self.canvases_view._canvas_manager.canvas_from_index(image_index)
+        canvas = self.intents_model.data(image_index, self.intents_model.canvas_role)
         # Test with time-series
         kwargs = {'images': np.squeeze(intents[image_index].image),
                   'image_item': canvas.canvas_widget.imageItem,
@@ -291,10 +263,8 @@ class CorrelationStage(BaseSAXSGUIPlugin):
             kwargs['incidence_angle'] = image_index.data(EnsembleModel.object_role).incidence_angle
 
         # Return the visualized (checked) rois as well
-        roi_intent_indexes = filter(lambda index: isinstance(intents[index], ROIIntent)
-                                                  and index.data(Qt.CheckStateRole) == Qt.Checked,
-                                    intents.keys())
-        rois = list(map(lambda index: index.data(EnsembleModel.object_role).roi, roi_intent_indexes))
+        roi_intents = list(filter(lambda intent: isinstance(intent, ROIIntent), intents.values()))
+        rois = list(map(lambda intent: intent.roi, roi_intents))
 
         kwargs['rois'] = rois
         return kwargs
@@ -303,8 +273,8 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         if not action.isAccepted():
             # Create ROI Intent adjacent to visualized intent
             roi_intent = ROIIntent(name=str(action.roi), roi=action.roi, match_key=canvas._primary_intent.match_key)
-            catalog = self.ensemble_model.catalog_from_intent(canvas._primary_intent)
-            self.ensemble_model.append_to_catalog(catalog, roi_intent)
+            catalog = self.ensemble_model.tree.parent(canvas._primary_intent)
+            self.ensemble_model.appendIntent(roi_intent, catalog)
 
             self.workflow.auto_connect_all()
             action.accept()
