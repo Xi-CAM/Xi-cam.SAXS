@@ -118,14 +118,14 @@ def project_NXsas(run_catalog):
     if projection['configuration'].get('geometry_mode') == 'reflection':
         intents_list.append(GISAXSImageIntent(image=data,
                                               darks=darks,
-                                              name='Scattering Image Data',
+                                              name=f"SAXS 〈{run_catalog.metadata['start']['sample_name']}〉",
                                               geometry=geometry,
                                               incidence_angle=incidence_angle,
                                               match_key=uuid.uuid4()))
     else:
         intents_list.append(SAXSImageIntent(image=data,
                                             darks=darks,
-                                            name='Scattering Image Data',
+                                            name=f"SAXS 〈{run_catalog.metadata['start']['sample_name']}〉",
                                             geometry=geometry,
                                             match_key=uuid.uuid4()))
 
