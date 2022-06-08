@@ -33,3 +33,5 @@ class SAXSImageIntentCanvas(ImageIntentCanvas):
             self.canvas_widget.setGeometry(intent.geometry)
         if hasattr(intent, "darks") and hasattr(self.canvas_widget, "set_darks"):
             self.canvas_widget.set_darks(intent._darks)
+        if hasattr(intent, "log_scale"):
+            self.canvas_widget.setLogScale(intent.log_scale)
