@@ -1,3 +1,4 @@
+from xicam.SAXS.masking.roi import roi_mask_plugin
 from xicam.core.execution.workflow import Workflow
 # from xicam.gui.widgets.ROI import LabelArrayProcessingPlugin
 from xicam.plugins.operationplugin import OperationPlugin
@@ -14,8 +15,8 @@ class ROIWorkflow(Workflow):
     """
     def __init__(self):
         super(ROIWorkflow, self).__init__(name="ROIWorkflow")
-        # self.add_operation(LabelArrayProcessingPlugin())
-        # self.auto_connect_all()
+        self.add_operation(roi_mask_plugin())
+        self.auto_connect_all()
 
     def prepend_operation(self, operation: OperationPlugin, auto_connect_all: bool = False):
         super(ROIWorkflow, self).insert_operation(0, operation)
