@@ -42,15 +42,24 @@ def q_integrate(azimuthal_integrator: AzimuthalIntegrator,
                 flat: np.ndarray = None,
                 method: str = 'splitbbox',
                 normalization_factor: float = 1, ) -> Tuple[np.ndarray, np.ndarray]:
-    q, I = azimuthal_integrator.integrate1d(data=data,
-                                  npt=npt,
-                                  radial_range=radial_range,
-                                  azimuth_range=azimuth_range,
-                                  mask=mask,
-                                  polarization_factor=polz_factor,
-                                  dark=dark,
-                                  flat=flat,
-                                  method=method,
-                                  unit=unit,
-                                  normalization_factor=normalization_factor)
-    return q, I
+    q = []
+    I = []
+    if data.ndim == 2:
+        data = [data]
+    for frame in data:
+        q_i, I_i = azimuthal_integrator.integrate1d(data=np.asarray(frame),
+                                                    npt=npt,
+                                                    radial_range=radial_range,
+                                                    azimuth_range=azimuth_range,
+                                                    mask=mask,
+                                                    polarization_factor=polz_factor,
+                                                    dark=dark,
+                                                    flat=flat,
+                                                    method=method,
+                                                    unit=unit,
+                                                    normalization_factor=normalization_factor)
+        q.append(q_i)
+        I.append(I_i)
+
+    # TODO: support dynamic q
+    return np.asarray(q_i), np.asarray(I)

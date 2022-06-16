@@ -43,21 +43,28 @@ def chi_integrate(azimuthal_integrator: AzimuthalIntegrator,
                   flat: np.ndarray = None,
                   method: str = 'splitbbox',
                   normalization_factor: float = 1, ) -> Tuple[np.ndarray, np.ndarray]:
-    I, q, chi = azimuthal_integrator.integrate2d(data=data,
-                                                 npt_rad=1,
-                                                 npt_azim=npt_azim,
-                                                 radial_range=radial_range,
-                                                 azimuth_range=azimuth_range,
-                                                 mask=mask,
-                                                 polarization_factor=polz_factor,
-                                                 dark=dark,
-                                                 flat=flat,
-                                                 method=method,
-                                                 unit=unit,
-                                                 normalization_factor=normalization_factor)
+    I = []
+    chi = []
+    if data.ndim == 2:
+        data = [data]
+    for frame in data:
+        I_i, q_i, chi_i = azimuthal_integrator.integrate2d(data=np.asarray(frame),
+                                                           npt_rad=1,
+                                                           npt_azim=npt_azim,
+                                                           radial_range=radial_range,
+                                                           azimuth_range=azimuth_range,
+                                                           mask=mask,
+                                                           polarization_factor=polz_factor,
+                                                           dark=dark,
+                                                           flat=flat,
+                                                           method=method,
+                                                           unit=unit,
+                                                           normalization_factor=normalization_factor)
 
-    I = np.sum(I, axis=1)
-    return I, chi
+        I_i = np.sum(I_i, axis=1)
+        chi.append(chi_i)
+        I.append(I_i)
+    return np.asarray(chi_i), np.asarray(I)  # TODO: support dynamic q
 
 # def nonesafe_flipud(data: np.ndarray):
 #     if data is None: return None

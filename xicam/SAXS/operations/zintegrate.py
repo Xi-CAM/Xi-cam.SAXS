@@ -26,15 +26,26 @@ def z_integrate(azimuthal_integrator: AzimuthalIntegrator,
                 dark: np.ndarray = None,
                 flat: np.ndarray = None,
                 normalization_factor: float = 1) -> Tuple[np.ndarray, np.ndarray]:
-    if dark is None: dark = np.zeros_like(data)
-    if flat is None: flat = np.ones_like(data)
-    if mask is None: mask = np.zeros_like(data)
-    I = np.sum((data - dark) * np.average(flat - dark) / (
-            flat - dark) / normalization_factor * np.logical_not(mask), axis=1)[::-1]
-    centerx = azimuthal_integrator.getFit2D()['centerX']
-    centerz = azimuthal_integrator.getFit2D()['centerY']
-    q_z = azimuthal_integrator.qFunction(np.arange(0, data.shape[0]),
-                                         np.array([centerx] * data.shape[0])) / 10
-    q_z[np.arange(0, data.shape[0]) < centerz] *= -1.
+    if data.ndim == 2:
+        data = [data]
+    if dark is None: dark = np.zeros_like(data[0])
+    if flat is None: flat = np.ones_like(data[0])
+    if mask is None: mask = np.zeros_like(data[0])
+    I = []
+    q_z = []
+    for frame in data:
+        frame = np.asarray(frame)
+        I_i = np.sum((frame - dark) * np.average(flat - dark) / (
+                flat - dark) / normalization_factor * np.logical_not(mask), axis=-1)[::-1]
+        I.append(I_i)
+        centerx = azimuthal_integrator.getFit2D()['centerX']
+        centerz = azimuthal_integrator.getFit2D()['centerY']
+        q_z_i = azimuthal_integrator.qFunction(np.arange(0, frame.shape[-2]),
+                                               np.array([centerx] * frame.shape[-2])) / 10
+        q_z_i[np.arange(0, frame.shape[-2]) < centerz] *= -1.
+        q_z_i = q_z_i[::-1]
+        q_z.append(q_z_i)
 
-    return q_z, I
+        # TODO: support dynamic q
+
+    return np.asarray(q_z_i), np.asarray(I)
