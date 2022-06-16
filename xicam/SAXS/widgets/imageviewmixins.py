@@ -60,8 +60,6 @@ class BackgroundCorrected(BetterLayout, ProcessingView):
         """Either returns the raw image or the correct image, depending on the bg correction button state."""
         if self._bg_correction:
             flats = np.ones_like(image)
-            if self._darks is None:
-                return image
-            else:
-                return correct(np.expand_dims(image, 0), flats, self._darks)[0]
-        return image
+            if self._darks is not None:
+                image = correct(np.expand_dims(image, 0), flats, self._darks)[0]
+        return super(BackgroundCorrected, self).process(image)
