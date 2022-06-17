@@ -7,7 +7,7 @@ from camsaxs.remesh_bbox import q_from_geometry
 from xicam.SAXS.patches.pyFAI import AzimuthalIntegrator
 
 
-def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.ImageItem = None) -> np.ndarray:
+def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.ImageItem = None, geometry: AzimuthalIntegrator = None) -> np.ndarray:
     while images.ndim > 2:
         images = images[0]
 
@@ -18,7 +18,13 @@ def get_label_array(images: np.ndarray, rois: np.ndarray = None, image_item: pg.
     roi_masks = []
     for roi in rois:
         # TODO: Should label array be astype(np.int) (instead of float)?
-        label = roi.getLabelArray(images, image_item)
+        if getattr(roi, 'is_Q_based', False):
+            if not geometry:
+                raise ValueError('No geometry provided.')
+            label = roi.getLabelArray(images, image_item, geometry=geometry)
+        else:
+            label = roi.getLabelArray(images, image_item)
+
         # Store the boolean mask of each label array
         roi_mask = label.astype(np.bool)
         roi_masks.append(roi_mask)
