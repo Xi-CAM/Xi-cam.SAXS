@@ -16,10 +16,11 @@ import pyqtgraph as pg
 @categories(("Scattering", "Masking"))
 def roi_mask_plugin(data: np.array = None,
                     rois: Iterable[pg.ROI] = None,
+                    geometry: AzimuthalIntegrator = None,
                     image_item: pg.ImageItem = None,
                     mask: np.ndarray = None) -> np.ndarray:
     if rois:
-        labels = get_label_array(data, rois=rois, image_item=image_item)
+        labels = get_label_array(data, rois=rois, image_item=image_item, geometry=geometry)
         return np.logical_or(mask, np.logical_not(labels))
     else:
         return mask
