@@ -408,7 +408,8 @@ class CorrelationStage(BaseSAXSGUIPlugin):
                                               callback_slot=self.workflow_finished,
                                               workflows=workflows)
         self.gui_layout_template["rightbottom"] = self.workflow_editor
-        self.stages[self.name] = GUILayout(**self.gui_layout_template)
+        stages = {"Correlation": GUILayout(**self.gui_layout_template)}
+        self.stages.update(stages)
 
         self._roi_added = False
 
