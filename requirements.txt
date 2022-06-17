@@ -2,7 +2,7 @@
 xicam
 numpy
 qtpy
-pyFAI
+pyFAI<0.21
 scipy
 dill
 scikit-image
