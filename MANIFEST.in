@@ -1,2 +1,2 @@
 include versioneer.py
-include xicam/_version.py
+include xicam/SAXS/_version.py
