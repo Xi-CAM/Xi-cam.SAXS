@@ -7,6 +7,7 @@ Usage: pip install -e .
 """
 from os import path
 from setuptools import find_namespace_packages, setup
+import versioneer
 
 here = path.abspath(path.dirname(__file__))
 # get the dependencies and installs
@@ -24,8 +25,8 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='0.3.0',
-
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     description="SAXS GUI Interface",
 
     long_description=long_description,
