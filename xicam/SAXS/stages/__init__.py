@@ -89,7 +89,7 @@ class BaseSAXSGUIPlugin(EnsembleGUIPlugin):
         # TODO: if we support multiple image_indexes, will need to handle appropriately
         if isinstance(intents[image_index], GISAXSImageIntent):
             kwargs['transmission_mode'] = 'reflection'
-            kwargs['incidence_angle'] = image_index.data(EnsembleModel.object_role).incidence_angle
+            kwargs['incidence_angle'] = image_index.internalPointer().incidence_angle
 
         # Return the visualized (checked) rois as well
         roi_intents = list(filter(lambda intent: isinstance(intent, ROIIntent), intents.values()))

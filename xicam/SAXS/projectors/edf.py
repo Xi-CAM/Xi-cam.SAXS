@@ -35,11 +35,16 @@ PROJECTION_KEYS = {
 # Mono energy,
 # EPU energy
 
+
 def extract_mapped_value(run_catalog, projection, key):
     # TODO: should safely handle if key not found in projection
-    stream = projection['projection'][key]['stream']
-    field = projection['projection'][key]['field']
-    return getattr(run_catalog, stream).to_dask()[field]
+    if projection['projection'][key]['type'] == 'linked':
+        stream = projection['projection'][key]['stream']
+        field = projection['projection'][key]['field']
+        return getattr(run_catalog, stream).to_dask()[field]
+    elif projection['projection'][key]['type'] == 'static':
+        return projection['projection'][key]['value']
+
 
 def project_NXsas(run_catalog):
     projection = next(
@@ -60,21 +65,24 @@ def project_NXsas(run_catalog):
         msg.logMessage(e, level=msg.WARNING)
 
     # handle case where we don't have info to construct a geometry
+    incidence_angle = None
+
     try:
+        incidence_angle = extract_mapped_value(run_catalog, projection, NXsas.INCIDENCE_ANGLE_PROJECTION_KEY)
+
         detector_rotation = extract_mapped_value(run_catalog, projection, NXsas.AZIMUTHAL_ANGLE_PROJECTION_KEY)
 
         beamline_energy = extract_mapped_value(run_catalog, projection, NXsas.ENERGY_PROJECTION_KEY)
 
-        incidence_angle = extract_mapped_value(run_catalog, projection, NXsas.INCIDENCE_ANGLE_PROJECTION_KEY)
-
-        detector_translate = extract_mapped_value(run_catalog, projection, NXsas.DETECTOR_TRANSLATION_X_PROJECTION_KEY)
+        detector_translate_x = extract_mapped_value(run_catalog, projection, NXsas.DETECTOR_TRANSLATION_X_PROJECTION_KEY)
+        detector_translate_y = extract_mapped_value(run_catalog, projection, NXsas.DETECTOR_TRANSLATION_Y_PROJECTION_KEY)
 
         wavelength = 1.239842e-6 / beamline_energy  # convert from eV to meters
 
         # TODO: handle dynamic poni values
-        poni1 = projection['configuration']['poni1']
-        poni1 = poni1 - detector_translate
-        poni2 = projection['configuration']['poni2']
+        poni1 = projection['configuration']['poni1'] - detector_translate_x
+        poni2 = projection['configuration']['poni2'] - detector_translate_y
+
         sdd = projection['configuration']['sdd']
 
         # These are static values, take first one; using max() to get scalar value
@@ -106,7 +114,7 @@ def project_NXsas(run_catalog):
     if projection['configuration'].get('geometry_mode') == 'reflection':
         intents_list.append(GISAXSImageIntent(image=data,
                                               darks=darks,
-                                              name=f"SAXS 〈{run_catalog.metadata['start']['sample_name']}〉",
+                                              name=f"GISAXS 〈{run_catalog.metadata['start']['sample_name']}〉",
                                               geometry=geometry,
                                               incidence_angle=incidence_angle,
                                               match_key=uuid.uuid4()))
