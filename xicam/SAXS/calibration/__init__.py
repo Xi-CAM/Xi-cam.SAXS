@@ -130,6 +130,9 @@ class DeviceProfiles(ParameterSettingsPlugin):
         return self.AIs.get(device, None)
 
     def setAI(self, ai: AzimuthalIntegrator, device: str):
+        if not self.child(device):
+            self.addDevice(device)
+
         self.AIs[device] = ai
         self.multiAI.ais = self.AIs.values()
 

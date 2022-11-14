@@ -9,8 +9,8 @@ from xicam.SAXS.ontology import NXsas
 from xicam.SAXS.patches.pyFAI import AzimuthalIntegrator
 from xicam.core.data import ProjectionNotFound
 from xicam.core import msg
-
 from xicam.SAXS.ontology.NXsas import DATA_PROJECTION_KEY
+from xicam.plugins import manager as plugin_manager
 
 PROJECTION_NAME = "NXsas"
 PROJECTION_KEYS = {
@@ -67,6 +67,8 @@ def project_NXsas(run_catalog):
     # handle case where we don't have info to construct a geometry
     incidence_angle = None
 
+    calibration_settings = plugin_manager.get_plugin_by_name('xicam.SAXS.calibration', 'SettingsPlugin')
+
     try:
         incidence_angle = extract_mapped_value(run_catalog, projection, NXsas.INCIDENCE_ANGLE_PROJECTION_KEY)
 
@@ -106,9 +108,15 @@ def project_NXsas(run_catalog):
                                        rot2=-np.radians(rot2),  # Convert to radians, account for upward rotation
                                        detector=detector,
                                        wavelength=wavelength)
+
+        calibration_settings.setAI(geometry, device_name)
+
     except (AttributeError, KeyError) as e:
         geometry = None
         msg.logMessage(e, level=msg.WARNING)
+
+    if geometry is None and calibration_settings.child(device_name):
+        geometry = calibration_settings.AI(device_name)
 
     intents_list = []
     if projection['configuration'].get('geometry_mode') == 'reflection':
@@ -117,12 +125,14 @@ def project_NXsas(run_catalog):
                                               name=f"GISAXS 〈{run_catalog.metadata['start']['sample_name']}〉",
                                               geometry=geometry,
                                               incidence_angle=incidence_angle,
-                                              match_key=uuid.uuid4()))
+                                              match_key=uuid.uuid4(),
+                                              device_name=device_name), )
     else:
         intents_list.append(SAXSImageIntent(image=data,
                                             darks=darks,
                                             name=f"SAXS 〈{run_catalog.metadata['start']['sample_name']}〉",
                                             geometry=geometry,
-                                            match_key=uuid.uuid4()))
+                                            match_key=uuid.uuid4(),
+                                            device_name=device_name))
 
     return intents_list

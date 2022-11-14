@@ -19,7 +19,7 @@ from xicam.gui.models.treemodel import EnsembleModel
 from xicam.gui.plugins.ensembleguiplugin import EnsembleGUIPlugin
 from xicam.gui.widgets import PreviewWidget
 from xicam.gui.widgets.linearworkfloweditor import WorkflowEditor
-from xicam.plugins import GUILayout
+from xicam.plugins import GUILayout, manager as plugin_manager
 
 from xicam.SAXS.calibration.workflows import SimulateWorkflow, CalibrationWorkflow
 from xicam.SAXS.intents import SAXSImageIntent, GISAXSImageIntent
@@ -363,6 +363,13 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
             intent.geometry = ai
 
         _ = list(map(_set_geometry, saxs_image_intents))
+
+        calibration_settings = plugin_manager.get_plugin_by_name('xicam.SAXS.calibration', 'SettingsPlugin')
+        device_names = list(map(lambda intent: intent.device_name, saxs_image_intents))
+
+        for device_name in device_names:
+            if device_name:
+                calibration_settings.setAI(ai, device_name)
 
         # drop all canvases and refresh
         invoke_in_main_thread(self.canvases_view.refresh)
