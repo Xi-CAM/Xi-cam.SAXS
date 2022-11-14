@@ -15,7 +15,7 @@ from typing import Tuple
 @describe_output('azimuthal_integrator',
                  "The input `AzimuthalIntegrator` with its center shifted to the estimated center. If not provided, then `None`.")
 @categories(('Scattering', 'Calibration'))
-def fourier_autocorrelation(data: np.ndarray, azimuthal_integrator: AzimuthalIntegrator = None) -> \
+def fourier_autocorrelation(data: np.ndarray, azimuthal_integrator: AzimuthalIntegrator = None, mask: np.ndarray = None) -> \
         Tuple[Tuple[float, float], AzimuthalIntegrator]:
     """
     Estimate beam center of a SAXS/WAXS image using fourier autocorrelation. The validity of this technique depends on
@@ -37,7 +37,9 @@ def fourier_autocorrelation(data: np.ndarray, azimuthal_integrator: AzimuthalInt
 
     """
 
-    mask = azimuthal_integrator.detector.mask
+    if mask is None:
+        mask = azimuthal_integrator.detector.mask
+
     data = np.squeeze(np.asarray(data))
     if mask is not None and mask.shape == data.shape:
         data = data * (1 - mask)

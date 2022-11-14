@@ -109,6 +109,7 @@ def project_NXsas(run_catalog):
                                        detector=detector,
                                        wavelength=wavelength)
 
+
         calibration_settings.setAI(geometry, device_name)
 
     except (AttributeError, KeyError) as e:

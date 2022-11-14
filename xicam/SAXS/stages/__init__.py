@@ -346,6 +346,11 @@ class CalibrateGUIPlugin(BaseSAXSGUIPlugin):
         kwargs['data'] = kwargs['images']
         kwargs['azimuthal_integrator'] = kwargs.get('geometry', None)
 
+        roi_kwargs = self.begin_roi(None, **kwargs)
+        kwargs.update(roi_kwargs)
+
+        kwargs['mask'] = kwargs['roi_mask']
+
         return kwargs
 
     def set_calibration(self, results):
