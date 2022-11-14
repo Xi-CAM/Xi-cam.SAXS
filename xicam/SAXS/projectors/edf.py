@@ -116,7 +116,7 @@ def project_NXsas(run_catalog):
         geometry = None
         msg.logMessage(e, level=msg.WARNING)
 
-    if geometry is None and calibration_settings.child(device_name):
+    if geometry is None and device_name in calibration_settings.AIs:
         geometry = calibration_settings.AI(device_name)
 
     intents_list = []
