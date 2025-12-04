@@ -2,11 +2,11 @@
 xicam
 numpy
 qtpy
-pyFAI<0.21
+pyFAI
 scipy
 dill
 scikit-image
-databroker>=1.0.0b1
+databroker
 # astroscrappy
 scikit-beam
 camsaxs
