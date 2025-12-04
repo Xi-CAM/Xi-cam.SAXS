@@ -1,7 +1,7 @@
 from enum import Enum
 import numpy as np
 from pyFAI.detectors import ALL_DETECTORS, Detector
-from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
+from pyFAI.integrator.azimuthal import AzimuthalIntegrator
 from xicam.plugins.operationplugin import describe_input, describe_output, operation, output_names, display_name, units
 
 

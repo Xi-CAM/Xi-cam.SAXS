@@ -4,7 +4,7 @@ import numpy as np
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories, units
 from pyFAI import calibrant
-from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
+from pyFAI.integrator.azimuthal import AzimuthalIntegrator
 from scipy import signal
 
 # TODO: use Multigeometry

@@ -1,6 +1,6 @@
 from xicam.plugins.operationplugin import operation, output_names, display_name, describe_input, describe_output, \
     categories
-from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
+from pyFAI.integrator.azimuthal import AzimuthalIntegrator
 import numpy as np
 
 

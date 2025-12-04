@@ -3,7 +3,7 @@ from qtpy.QtCore import Signal, Qt
 from qtpy.QtWidgets import *
 from xicam.gui.static import path
 from pyFAI import detectors
-from pyFAI.azimuthalIntegrator import AzimuthalIntegrator
+from pyFAI.integrator.azimuthal import AzimuthalIntegrator
 from pyFAI.multi_geometry import MultiGeometry
 
 from xicam.plugins import ParameterSettingsPlugin

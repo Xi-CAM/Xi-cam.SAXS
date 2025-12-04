@@ -1,4 +1,4 @@
-from pyFAI import azimuthalIntegrator
+from pyFAI.integrator import azimuthal
 # import numpy
 #
 # import logging
@@ -24,7 +24,7 @@ from pyFAI import azimuthalIntegrator
 #
 #
 # # monkey patch to correct auto-inversion of masks when 'numpy' is used
-class AzimuthalIntegrator(azimuthalIntegrator.AzimuthalIntegrator):
+class AzimuthalIntegrator(azimuthal.AzimuthalIntegrator):
 
     def __deepcopy__(self, memo=None):
         """deep copy
@@ -150,7 +150,7 @@ class AzimuthalIntegrator(azimuthalIntegrator.AzimuthalIntegrator):
 #         self.engines = {}
 #
 #
-azimuthalIntegrator.__dict__['AzimuthalIntegrator'] = AzimuthalIntegrator
+azimuthal.__dict__['AzimuthalIntegrator'] = AzimuthalIntegrator
 #
 #
 # new_ALL_DETECTORS = {}
