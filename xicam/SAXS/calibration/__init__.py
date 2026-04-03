@@ -50,7 +50,7 @@ class DeviceProfiles(ParameterSettingsPlugin):
     def __init__(self):
         self.headermodel = None
         self.selectionmodel = None
-        self.multiAI = MultiGeometry([])
+        #self.multiAI = MultiGeometry([])
         self.AIs = dict()
         self._changes = []
         self.isSilent = False
@@ -134,7 +134,7 @@ class DeviceProfiles(ParameterSettingsPlugin):
             self.addDevice(device)
 
         self.AIs[device] = ai
-        self.multiAI.ais = self.AIs.values()
+        #self.multiAI.ais = self.AIs.values()
 
         # propagate new ai to parameter
         fit2d = ai.getFit2D()
@@ -164,7 +164,7 @@ class DeviceProfiles(ParameterSettingsPlugin):
                 ai = AzimuthalIntegrator(wavelength=self['Wavelength'])
                 ai.detector = FastCCD()
                 self.AIs[device] = ai
-                self.multiAI.ais = list(self.AIs.values())
+                #self.multiAI.ais = list(self.AIs.values())
             finally:
                 self.setSilence(False)
 
