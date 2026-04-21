@@ -423,6 +423,12 @@ class CorrelationStage(BaseSAXSGUIPlugin):
         stages = {"Correlation": GUILayout(**self.gui_layout_template)}
         self.stages.update(stages)
 
+        # TODO: update when supporting multiple images
+        self.workflow_editor.workflow_widget.run_button.setToolTip("Select one image when running workflow")
+        label = QLabel("<em>To run workflow, ensure one image is selected</em>")
+        position = self.workflow_editor.workflow_widget.layout().count() - 2
+        self.workflow_editor.workflow_widget.layout().insertWidget(position, label)
+
         self._roi_added = False
 
     def workflow_finished(self, *results):
